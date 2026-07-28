@@ -1,0 +1,13 @@
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+# 只让公网服务器本机节点访问 ws://127.0.0.1:18765。
+# 如果以后要让其他节点电脑也通过这台服务器中转，把下一行注释掉，并放行 18765/tcp。
+proxyBindAddr = "127.0.0.1"
+
+auth.method = "token"
+auth.token = "c99893c0ae57d0f9186d9b1439b627ae85cbabc1c9503d49"
+
+allowPorts = [
+  { single = 18765 }
+]

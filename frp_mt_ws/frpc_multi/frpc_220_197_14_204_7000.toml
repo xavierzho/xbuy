@@ -1,0 +1,12 @@
+serverAddr = "220.197.14.204"
+serverPort = 7000
+
+auth.method = "token"
+auth.token = "c99893c0ae57d0f9186d9b1439b627ae85cbabc1c9503d49"
+
+[[proxies]]
+name = "mt-master-ws"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 8765
+remotePort = 18765

@@ -1,0 +1,14 @@
+# Development and packaging environment
+curl_cffi>=0.7.0
+PyQt6>=6.6.0
+PyQt6-WebEngine>=6.6.0
+requests>=2.28.0
+PySocks>=1.7.1
+pyinstaller>=6.3.0
+# Payment requestPay: SM4 cipherText
+gmssl>=3.2.1
+# UnionPay iOS direct jump link: 3DES-ECB encryption
+pycryptodome>=3.20.0
+# Optional: wasmtime / AI bot
+wasmtime>=24.0.0
+wecom-aibot-python-sdk

@@ -1,0 +1,248 @@
+{
+  "accounts_tested": 23,
+  "requests_per_account": 10,
+  "interval_ms": 500,
+  "excluded_proxy_keyword": "NUe881H15",
+  "overall_codes": {
+    "-1": 162,
+    "4293": 59,
+    "429": 9
+  },
+  "overall_success_2000": 0,
+  "overall_total": 230,
+  "rows": [
+    {
+      "phone": "15117573492",
+      "nickname": "朋",
+      "proxy": "http://NUe881H11:P242C10@120.48.92.69:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "19074207156",
+      "nickname": "江湖",
+      "proxy": "http://NUe881H12:P4098D2@1.94.4.148:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "13434370263",
+      "nickname": "凤凰1",
+      "proxy": "http://NUe881H13:PAA052F@120.48.107.196:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "13298630928",
+      "nickname": "凤凰2",
+      "proxy": "http://NUe881H14:PACFECB@106.12.191.96:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "18189654813",
+      "nickname": "凤凰3",
+      "proxy": "http://NUe881H16:P5BAD67@106.13.187.145:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "18230891120",
+      "nickname": "小郑",
+      "proxy": "http://NUe881H17:P9B4E20@106.13.50.105:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "19985353340",
+      "nickname": "刘玲",
+      "proxy": "http://NUe881H18:P10671B@106.13.34.77:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "18024861341",
+      "nickname": "凤凰4",
+      "proxy": "http://NUe881H19:PCE9A7F@175.174.189.247:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "4293": 9,
+        "-1": 1
+      }
+    },
+    {
+      "phone": "15013543657",
+      "nickname": "凤凰5",
+      "proxy": "http://NUe881H20:PE9037F@175.167.21.64:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "4293": 10
+      }
+    },
+    {
+      "phone": "15710061179",
+      "nickname": "凤凰6",
+      "proxy": "http://NUe881H21:PA6697B@60.20.180.15:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "4293": 10
+      }
+    },
+    {
+      "phone": "15922054322",
+      "nickname": "凤凰7",
+      "proxy": "http://NUe881H22:P8C4DA1@1.15.105.230:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "18639667678",
+      "nickname": "凤凰8",
+      "proxy": "http://NUe881H23:P8EE030@154.8.213.236:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 3,
+        "429": 7
+      }
+    },
+    {
+      "phone": "13672475200",
+      "nickname": "凤凰9",
+      "proxy": "http://NUe881H24:PC7B6EB@42.194.199.48:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "17623474228",
+      "nickname": "凤凰10",
+      "proxy": "http://NUe881H11:P242C10@120.48.92.69:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "18680022089",
+      "nickname": "凤凰11",
+      "proxy": "http://NUe881H12:P4098D2@1.94.4.148:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 8,
+        "429": 2
+      }
+    },
+    {
+      "phone": "16696008358",
+      "nickname": "凤凰12",
+      "proxy": "http://NUe881H13:PAA052F@120.48.107.196:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "13059301116",
+      "nickname": "凤凰13",
+      "proxy": "http://NUe881H14:PACFECB@106.12.191.96:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "13726672246",
+      "nickname": "凤凰14",
+      "proxy": "http://NUe881H16:P5BAD67@106.13.187.145:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "13732176349",
+      "nickname": "凤凰15",
+      "proxy": "http://NUe881H17:P9B4E20@106.13.50.105:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "17707889224",
+      "nickname": "凤凰16",
+      "proxy": "http://NUe881H18:P10671B@106.13.34.77:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "-1": 10
+      }
+    },
+    {
+      "phone": "18295591118",
+      "nickname": "凤凰17",
+      "proxy": "http://NUe881H19:PCE9A7F@175.174.189.247:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "4293": 10
+      }
+    },
+    {
+      "phone": "17570721318",
+      "nickname": "花椒",
+      "proxy": "http://NUe881H20:PE9037F@175.167.21.64:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "4293": 10
+      }
+    },
+    {
+      "phone": "18580966945",
+      "nickname": "空城",
+      "proxy": "http://NUe881H21:PA6697B@60.20.180.15:8011",
+      "success_2000": 0,
+      "total": 10,
+      "codes": {
+        "4293": 10
+      }
+    }
+  ]
+}

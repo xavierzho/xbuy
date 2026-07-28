@@ -1,0 +1,2299 @@
+{
+  "summary": {
+    "har": "D:\\Backup\\Documents\\xwechat_files\\wxid_4xe4ucwh62wi22_991b\\msg\\file\\2026-05\\ProxyPin5-20_20_26_53.har",
+    "entries": 116,
+    "rush_count": 25,
+    "unique_content_web_bb": 25,
+    "unique_du": 4,
+    "app_chain_count": 6,
+    "bangcle_count": 9,
+    "rush_status_counts": {
+      "200": 1,
+      "429": 20,
+      "480": 4
+    },
+    "cw_field_unique": {
+      "101": 1,
+      "103": 1,
+      "104": 1,
+      "105": 1,
+      "106": 1,
+      "108": 1,
+      "109": 25,
+      "110": 25,
+      "111": 25,
+      "120": 1,
+      "130": 1,
+      "140": 1,
+      "141": 1
+    },
+    "du_field_unique": {
+      "101": 1,
+      "103": 1,
+      "105": 1,
+      "107": 1,
+      "109": 1,
+      "111": 1,
+      "113": 4
+    },
+    "first_rush_idx": 84,
+    "first_success_rush": {
+      "idx": 84,
+      "status": 200,
+      "response": {
+        "code": 2000,
+        "data": {
+          "hasGain": true,
+          "priorityRecordId": 22102815,
+          "userVerifyStatus": 1
+        }
+      }
+    }
+  },
+  "rush": [
+    {
+      "idx": 84,
+      "time": "2026-05-20T12:25:20.836017Z",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "2fe4a08816b6d1d3da6f5913dfa3414b",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279920817",
+      "mt_v": "71109bbfc2887c529a3dc2276a7",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "c1e23000181f7f21910b4ec7f82e9393",
+        "110": "2fe4a08816b6d1d3da6f5913dfa3414b",
+        "111": 1779279920824,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": {
+        "code": 2000,
+        "data": {
+          "hasGain": true,
+          "priorityRecordId": 22102815,
+          "userVerifyStatus": 1
+        }
+      }
+    },
+    {
+      "idx": 85,
+      "time": "2026-05-20T12:25:19.362462Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "e57378fe188a8928a0857d1994a6cf50",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279919351",
+      "mt_v": "8fcf1e21bfc7e1274ccad80b4eo",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "8032fe31e59a50a6bfc44364d1b2b45d",
+        "110": "e57378fe188a8928a0857d1994a6cf50",
+        "111": 1779279919356,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 86,
+      "time": "2026-05-20T12:25:17.959938Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "6cb745f28d945a0cb7de79fcb8f6338e",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279917941",
+      "mt_v": "8505abc12287bb8b1049f5653d1",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "8520828cc2266fc32a2002b20139e83f",
+        "110": "6cb745f28d945a0cb7de79fcb8f6338e",
+        "111": 1779279917950,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 87,
+      "time": "2026-05-20T12:25:16.510616Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "751ee74e0c03cf5c4cb089b111ef829f",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279916499",
+      "mt_v": "dbc8a59244c89999b761ce018cz",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "5b3561e2191ae9fffab55d57b545f874",
+        "110": "751ee74e0c03cf5c4cb089b111ef829f",
+        "111": 1779279916504,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 88,
+      "time": "2026-05-20T12:25:15.119630Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "7bad0892aefaeaaa559f9f818bfbdd1c",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279915109",
+      "mt_v": "83e75204f2cbf39929593c3ef6c",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "8fd7ba1c43b4cbddc956912d874a44cb",
+        "110": "7bad0892aefaeaaa559f9f818bfbdd1c",
+        "111": 1779279915113,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 89,
+      "time": "2026-05-20T12:25:13.717091Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "4c023729f2c91f5294e4caeb231dce9e",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279913701",
+      "mt_v": "2aacff6c7ab504d9e4adf72c66u",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "ae066ce8530a48f965a25d1770ba468f",
+        "110": "4c023729f2c91f5294e4caeb231dce9e",
+        "111": 1779279913709,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 90,
+      "time": "2026-05-20T12:25:12.230576Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "ccd810dd060493f1180013c1bc0142ff",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279912213",
+      "mt_v": "359dff0e6bbacbfe1d0c7bc4bep",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "ae2b9004bc58da6f1cccb46f71675754",
+        "110": "ccd810dd060493f1180013c1bc0142ff",
+        "111": 1779279912218,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279911643
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 92,
+      "time": "2026-05-20T12:25:10.830960Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "902f821fd4fc4641ab80a417248fea16",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279910817",
+      "mt_v": "42b54ba3937aaca0fd9bdb40c1m",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "86fd356616d842116a1c1668e4fddbcb",
+        "110": "902f821fd4fc4641ab80a417248fea16",
+        "111": 1779279910821,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 93,
+      "time": "2026-05-20T12:25:09.409319Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "3b8e3ea079ef4ca4bacf25bec5266b0b",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279909398",
+      "mt_v": "9d67c660a4d6e105b66847a977m",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "dc74e0a9de4f49898ce1606a2381738b",
+        "110": "3b8e3ea079ef4ca4bacf25bec5266b0b",
+        "111": 1779279909403,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 94,
+      "time": "2026-05-20T12:25:08.059753Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "b9bc1470ffb177fe50f6eebddbf2e553",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279908046",
+      "mt_v": "75f066d68267695bb61510926es",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "e9e01566fda60efd43ddbfbe6bc68fc4",
+        "110": "b9bc1470ffb177fe50f6eebddbf2e553",
+        "111": 1779279908051,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 95,
+      "time": "2026-05-20T12:25:06.550360Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "2386d26007a671bddd4b34923a6a1b4e",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279906532",
+      "mt_v": "d4ff2c9a906140724aa52a70e8n",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "e270051ddfee9b58fc9c0844ab39fba6",
+        "110": "2386d26007a671bddd4b34923a6a1b4e",
+        "111": 1779279906541,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 96,
+      "time": "2026-05-20T12:25:05.064807Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "7c914251849f8d8a4c7b2544c3a14586",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279905048",
+      "mt_v": "8468817f372d8a1d619c930ec7z",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "08a62c947b16808c0df74525af1e9347",
+        "110": "7c914251849f8d8a4c7b2544c3a14586",
+        "111": 1779279905056,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 97,
+      "time": "2026-05-20T12:25:03.493059Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "0bece91af9736ecea88751cd6f7447ec",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279903469",
+      "mt_v": "c4d05110b8ba990d14436bb6adp",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "082ed4446447bfd8bfb02ecb0d35937f",
+        "110": "0bece91af9736ecea88751cd6f7447ec",
+        "111": 1779279903477,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 98,
+      "time": "2026-05-20T12:25:02.084750Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "9c2bcb1e813e320d7f628f6a26a26aa0",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279902065",
+      "mt_v": "a6ad2af9b94350a64655c239a8m",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "a49f4ae01961720b062bdae05e556443",
+        "110": "9c2bcb1e813e320d7f628f6a26a26aa0",
+        "111": 1779279902073,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279901619
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 101,
+      "time": "2026-05-20T12:25:00.616547Z",
+      "status": 480,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "14f8c46cc59d254659b4cdfe0b7fdefd",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279900599",
+      "mt_v": "079879fd1cce957cfd7a257610t",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "b761138b67dc9c4d008ee7a3b1a00ec9",
+        "110": "14f8c46cc59d254659b4cdfe0b7fdefd",
+        "111": 1779279900606,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": {
+        "code": 4031,
+        "message": "库存不足"
+      }
+    },
+    {
+      "idx": 102,
+      "time": "2026-05-20T12:24:59.235063Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "d7e05374916139617ffcddd0130944f4",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279899214",
+      "mt_v": "0e12146ff404b2e5e237d8bcb5m",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "c12eafecf988f13d122ec436b01e1de9",
+        "110": "d7e05374916139617ffcddd0130944f4",
+        "111": 1779279899222,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 104,
+      "time": "2026-05-20T12:24:57.675330Z",
+      "status": 480,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "db33ae4130e301ebe6bfee87b9b2d732",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279897661",
+      "mt_v": "9e55e1cc5a58afdf4b34382d85v",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "4678698a365c56873f1dd955391af424",
+        "110": "db33ae4130e301ebe6bfee87b9b2d732",
+        "111": 1779279897666,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": {
+        "code": 4031,
+        "message": "库存不足"
+      }
+    },
+    {
+      "idx": 105,
+      "time": "2026-05-20T12:24:56.152432Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "f605080372a0177549cf5a08c03cb4d4",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279896129",
+      "mt_v": "c317fcb8c90c560da2b98bb5566",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "36485e89f3310aa2f34f2c32c535f774",
+        "110": "f605080372a0177549cf5a08c03cb4d4",
+        "111": 1779279896139,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 107,
+      "time": "2026-05-20T12:24:54.724709Z",
+      "status": 480,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "b865b92cd22571a6d7316995a56e445e",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279894696",
+      "mt_v": "4202357b0c4795ba36749b125e0",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "b698f804a8849dd870167bb141e12251",
+        "110": "b865b92cd22571a6d7316995a56e445e",
+        "111": 1779279894704,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": {
+        "code": 4031,
+        "message": "库存不足"
+      }
+    },
+    {
+      "idx": 108,
+      "time": "2026-05-20T12:24:53.285460Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "e80070ce2f3930620b7c08b54639e5ba",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279893259",
+      "mt_v": "d329fee23a0dc393bac1fe68236",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "a0b2990dac12aeff4c703a0caa597731",
+        "110": "e80070ce2f3930620b7c08b54639e5ba",
+        "111": 1779279893267,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 110,
+      "time": "2026-05-20T12:24:51.863409Z",
+      "status": 480,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "757ac49da8e0d9bc7bbe46382147f209",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279891842",
+      "mt_v": "699e88970b0c02578a1f910d10x",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "15821f2f024b7b0185413be70dc8c4d0",
+        "110": "757ac49da8e0d9bc7bbe46382147f209",
+        "111": 1779279891849,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "du_err": "",
+      "response": {
+        "code": 4031,
+        "message": "库存不足"
+      }
+    },
+    {
+      "idx": 112,
+      "time": "2026-05-20T12:24:50.459868Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "3dabd39743aae066377f6fe5b6446d53",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279890424",
+      "mt_v": "efed14584ba8a1cd34ea85b9b9i",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "a4c8bb5b9bfd9ce8209a81180cc79029",
+        "110": "3dabd39743aae066377f6fe5b6446d53",
+        "111": 1779279890445,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279881569
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 113,
+      "time": "2026-05-20T12:24:49.015480Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "1b5c22225018a1c6d5ba4ac593c17b52",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279888998",
+      "mt_v": "12427f7423954397b1821700aa0",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "5af1d044ec97638c25124058560fd493",
+        "110": "1b5c22225018a1c6d5ba4ac593c17b52",
+        "111": 1779279889005,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279881569
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 114,
+      "time": "2026-05-20T12:24:47.474899Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "60262bdca181ed2708c72e6ae6615b72",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279887452",
+      "mt_v": "48fa4eb0a48f793da0dc755f1dk",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "86ee5c65d6f9d868ddc296ddb5a83531",
+        "110": "60262bdca181ed2708c72e6ae6615b72",
+        "111": 1779279887464,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279881569
+      },
+      "du_err": "",
+      "response": "2\n"
+    },
+    {
+      "idx": 115,
+      "time": "2026-05-20T12:24:46.035488Z",
+      "status": 429,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "path": "/xhr/front/trade/priority/rushPurchase/hot/branch/two",
+      "content_hh_bb": "b15d2e0790d7f5d87040384155e29836",
+      "sdk_ver_bb": "V3.5.0_20260403.1_imaotai",
+      "mt_k": "1779279885998",
+      "mt_v": "db0d695f52c8199040d01683318",
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+      "cookie_keys": [
+        "MT-Token-Wap",
+        "MT-Device-ID-Wap",
+        "_sdk_v_",
+        "_d_u"
+      ],
+      "act": {
+        "amount": "1",
+        "itemCode": "11945",
+        "itemPriorityActId": "82135",
+        "userInfoBaseContext": {
+          "addressLat": "",
+          "addressLng": "",
+          "appUserAgent": "android;30;OnePlus;OnePlus7Pro",
+          "deviceId": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+          "mtr": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw=="
+        },
+        "ydLogId": "",
+        "ydToken": ""
+      },
+      "cw": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "104": "mpe1anfj_jwsacjz2g1l_4",
+        "105": "",
+        "106": "0",
+        "108": "0",
+        "109": "ec9e3f37dbf1e4d9a7d5d9982b9fbdee",
+        "110": "b15d2e0790d7f5d87040384155e29836",
+        "111": 1779279886007,
+        "120": [],
+        "130": "1200700212",
+        "140": "v1.0.8",
+        "141": ""
+      },
+      "cw_err": "",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279881569
+      },
+      "du_err": "",
+      "response": "2\n"
+    }
+  ],
+  "app_chain": [
+    {
+      "idx": 11,
+      "time": "2026-05-20T12:26:27.758210Z",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/order/payResult?__timestamp=1779279987742&orderId=627050993",
+      "headers_subset": {
+        "user-agent": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+      },
+      "body": null,
+      "act": null,
+      "response": {
+        "code": 2000,
+        "data": {
+          "paySuccess": true
+        }
+      }
+    },
+    {
+      "idx": 21,
+      "time": "2026-05-20T12:26:26.214450Z",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/order/payResult?__timestamp=1779279986203&orderId=627050993",
+      "headers_subset": {
+        "user-agent": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+      },
+      "body": null,
+      "act": null,
+      "response": {
+        "code": 2000,
+        "data": {
+          "paySuccess": true
+        }
+      }
+    },
+    {
+      "idx": 63,
+      "time": "2026-05-20T12:26:00.672659Z",
+      "status": 200,
+      "url": "https://app.moutai519.com.cn/xhr/front/trade/order/pay",
+      "headers_subset": {
+        "user-agent": "android;30;OnePlus;OnePlus7Pro",
+        "mt-device-id": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+        "mt-r": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==",
+        "mt-sn": "clips_ehwpSC0fLBggRnJAdxYgFiAYLxl9Si5PfEl/TC0afkw=",
+        "mt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtdCIsImV4cCI6MTc4MTg3MTc2OCwidXNlcklkIjoxMjAwNzAwMjEyLCJkZXZpY2VJZCI6ImNsaXBzX2ZCZ3JTaWtSS0I1NEdpSWFLaGdnRlNVWEl4VWhRbnBDSnhFbFJuQkMiLCJpYXQiOjE3NzkyNzk3Njh9.mWZw4SAKFiUq8cSlnD--i4O0nU8eS2tx7b57PhreXSU",
+        "bs-dvid": "hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+      },
+      "body": {
+        "orderId": "627050993",
+        "payMethod": 0
+      },
+      "act": null,
+      "response": {
+        "code": 2000,
+        "data": {
+          "outTradeNo": "627050993",
+          "channelTradeSn": "177928086100120260520177927996118262705099381",
+          "totalAmount": 2699.0,
+          "payResultQueryTimeout": 10,
+          "extInfo": "{\"COUNTDOWN_SECOND\":900,\"MSG_429\":\"网络拥堵，请稍后重试\",\"PUB\":\"001\",\"DEVICE_ID\":\"4d3ac896fb88028502464c88e64c62\"}"
+        }
+      }
+    },
+    {
+      "idx": 64,
+      "time": "2026-05-20T12:26:00.446389Z",
+      "status": 200,
+      "url": "https://app.moutai519.com.cn/xhr/front/trade/order/standard/submit/v2",
+      "headers_subset": {
+        "user-agent": "android;30;OnePlus;OnePlus7Pro",
+        "mt-device-id": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+        "mt-k": "1779279960435",
+        "mt-v": "d0f7919730a83916b7be7fbff2a",
+        "mt-r": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==",
+        "mt-sn": "clips_ehwpSC0fLBggRnJAdxYgFiAYLxl9Si5PfEl/TC0afkw=",
+        "mt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtdCIsImV4cCI6MTc4MTg3MTc2OCwidXNlcklkIjoxMjAwNzAwMjEyLCJkZXZpY2VJZCI6ImNsaXBzX2ZCZ3JTaWtSS0I1NEdpSWFLaGdnRlNVWEl4VWhRbnBDSnhFbFJuQkMiLCJpYXQiOjE3NzkyNzk3Njh9.mWZw4SAKFiUq8cSlnD--i4O0nU8eS2tx7b57PhreXSU",
+        "bs-dvid": "hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+        "mt-info": "a3f9c2b8471de05f9b6c4e1287d5a9c1"
+      },
+      "body": {
+        "transactionId": "1200700212_22102815_compose",
+        "deliverMethod": 1,
+        "itemList": [
+          {
+            "storeId": "0",
+            "spuId": "11945",
+            "count": 1
+          }
+        ],
+        "actParam": "bKg4Jku7u5ALxE6S8zp9EQVkgISO3U5biecNWbrOTFim1Lvc+1mGVGst2WHBWAhLba2LNV5B7nM17FieaBKR/cF/CQm026UM4QhXF/lkzbzZZ9j0NeoCt6a9vWHjNp0mfNLrr3JsdRmx/jI1cT7OnwaW/MJvTg978sUcmb/99gNesiJIP0DNMNhteJNGU2562E9LL538xWUe3rQoK+xaPE5JL5FzFk8sKFCa4SAOvyFUyR4rot9cXd4bctGZ0vfxfmSYoQ/s0x6YVlFZS3Fd9YOooVvUWZJZGMGxsQwBsVorIAP/VYb4tWjOWpPqw5qSvFTlAg4va8wf+ccQQoCXDcDrLq7Qurp3E0eqpz9hGLNthbur91vkaYbZXLM0MlUQHjxoYoVP1IfJ+E8kXRE6dmzQWFiUkbIW9YLoaJGq+mI0Tdf8ffDeNffDnEkSC5g2GXHGsP6DsxxVVp2UtgjT4p4bUgjFumQ2fzsvUkWH7fueNW9F0Cm8BOFz9M9hZQY0SV7LZBz7ygnAqiYAXBhHhAyab0CQ3JaCTquwSVQjE6CLfIWBLcNxc+1vd6c4sUNMdOl1+bCcaPHDy2W8BCMbytPCoQywO9sW5smK3oiU5B+fhg2xuMK1kFA58b6IBXfiDPdnOLe7M8DPzbrrR/WfZwb6g2diF5iOCHD36ckn1IysQmQ9obfRILsky8Rwv1shasK6SJUMCTCilKUd3butXyKjqtz7p7VkUBbeyWGONg7MvPGeLQ6YHpYEZe0on+2AyUNVze/J0hs1oz7t+p7ZucGNvjtQM1EcBaiecAHMS1cQyIOrMuoMZgg1OXAQwo0hr7jk6ctTJC8aqch0zEVLmWwZxEETBz70TTkjUUfCdK2M/uBPVw8Q2CfYFZjxPfHNvZOB4nXxoRprVY+eauJvqRPXelU2LaTwt4+gKijIBes89t5oXkN0f3s8+rl4t0osc/Idbg2LvFS+pvHmVGrnLIL3+xqaY3LPZtpy06d6x8PNNBalEDaqV4sAbSdiBaxEDM+EW/XX10TCp1wbGC9kBa2HDUdW4fS8+h7vghcPSTieIpPgLBGPT0VJE/PE6N1jH9aoqyS3sIkmNtgdtRT0nbu0AhRi6wnJ14EnCOrHF1BouV/L50feNeI4gS24Eb5VEGY/F26BLWxq5N0tNq0PDjuWmOnA5VKN1J2nN01OzDvEiGgI4BM5vkeMxJ0SPBrxhEdaOLumLWYWYXJ+xW723osEh9acFLRq1JTVTkG4NJwCXrJ54AcDXnwdSH9tVy1Y1Ozlag2cvyUZPb5H0wDZAw==",
+        "addressInfo": {
+          "address": "",
+          "cityId": "",
+          "cityName": "",
+          "dft": false,
+          "districtId": "",
+          "districtName": "",
+          "fullAddress": "æ±èçèå·å¸èå·å·¥ä¸å­åºæå¡è¡éæ¦çè·¯9å·éè¾å°åéè18-1902",
+          "mobile": "132****2332",
+          "name": "åç",
+          "provinceId": "",
+          "provinceName": "",
+          "shipAddressId": 41167611,
+          "townId": "",
+          "townName": "",
+          "userId": 1200700212,
+          "grey": false,
+          "recent": false,
+          "longitude": "120.740331",
+          "latitude": "31.295426",
+          "province": "æ±èç",
+          "city": "èå·å¸",
+          "district": "èå·å·¥ä¸å­åº"
+        },
+        "payChannel": 0,
+        "source": "",
+        "sourceId": "",
+        "instantDeliveryInfo": {
+          "instantDeliveryDate": "",
+          "instantDeliveryTimeRange": ""
+        },
+        "ignorePromInconsistent": false
+      },
+      "act": {
+        "transactionId": "1200700212_22102815_compose",
+        "deliverMethod": 1,
+        "itemList": [
+          {
+            "storeId": "0",
+            "spuId": "11945",
+            "count": 1
+          }
+        ],
+        "addressInfo": {
+          "address": "",
+          "cityId": "",
+          "cityName": "",
+          "dft": false,
+          "districtId": "",
+          "districtName": "",
+          "fullAddress": "江苏省苏州市苏州工业园区斜塘街道敦煌路9号金辉尊域雅苑18-1902",
+          "mobile": "132****2332",
+          "name": "商畔",
+          "provinceId": "",
+          "provinceName": "",
+          "shipAddressId": 41167611,
+          "townId": "",
+          "townName": "",
+          "userId": 1200700212,
+          "grey": false,
+          "recent": false,
+          "longitude": "120.740331",
+          "latitude": "31.295426",
+          "province": "江苏省",
+          "city": "苏州市",
+          "district": "苏州工业园区"
+        },
+        "payChannel": 0,
+        "userPriorityInfo": {
+          "priorityRecordId": 22102815,
+          "shopId": "520188003003",
+          "inventorySource": 0
+        },
+        "deliverMethodList": [
+          {
+            "type": 1,
+            "desc": "快递配送",
+            "notes": "",
+            "checked": false
+          }
+        ],
+        "promIdList": [],
+        "source": "",
+        "sourceId": "",
+        "instantDeliveryInfo": {
+          "instantDeliveryDate": "",
+          "instantDeliveryTimeRange": ""
+        },
+        "ignorePromInconsistent": false
+      },
+      "response": {
+        "code": 2000,
+        "data": {
+          "userId": 1200700212,
+          "orderId": 627050993,
+          "needPay": true,
+          "orderType": 0
+        }
+      }
+    },
+    {
+      "idx": 66,
+      "time": "2026-05-20T12:25:38.672520Z",
+      "status": 200,
+      "url": "https://app.moutai519.com.cn/xhr/front/trade/order/standard/compose/v2",
+      "headers_subset": {
+        "user-agent": "android;30;OnePlus;OnePlus7Pro",
+        "mt-device-id": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+        "mt-k": "1779279938665",
+        "mt-v": "7033865699f691e61125efbe802",
+        "mt-r": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==",
+        "mt-sn": "clips_ehwpSC0fLBggRnJAdxYgFiAYLxl9Si5PfEl/TC0afkw=",
+        "mt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtdCIsImV4cCI6MTc4MTg3MTc2OCwidXNlcklkIjoxMjAwNzAwMjEyLCJkZXZpY2VJZCI6ImNsaXBzX2ZCZ3JTaWtSS0I1NEdpSWFLaGdnRlNVWEl4VWhRbnBDSnhFbFJuQkMiLCJpYXQiOjE3NzkyNzk3Njh9.mWZw4SAKFiUq8cSlnD--i4O0nU8eS2tx7b57PhreXSU",
+        "bs-dvid": "hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+        "mt-info": "a3f9c2b8471de05f9b6c4e1287d5a9c1"
+      },
+      "body": {
+        "deliverMethod": 1,
+        "addressInfo": {
+          "shipAddressId": 41167611
+        },
+        "itemList": [
+          {
+            "storeId": "0",
+            "spuId": "11945",
+            "count": 1
+          }
+        ],
+        "actParam": "Ci2ucy8tonUtQ/IDudwMUf0TE4iH2n1sn7A7I7aUKiQTINB5NNw2WJw1b+onpVUeBuCgyDMyuk9ZFCtndl5sQw1gUzdQ3Ek6xmfMBnOcMliU6OPShmzOBlGZP0R8XbRjo+yAfpAMGvKZxE9Zo5pvd/H3At9KwY+9GlXx1GtsDjC9d0pzingeqB3mMf0ayWgSx2BKXryu04fhoqYHjT+vNcXJo3mEXMd5oW6f9KQJNdIMqKDan1gw1gm7b9MP0MqXrwb4/bCCC+tjfCVymcuoX37dWgCOl8T5wE0g3w1SsZGm4Kj0wO5poBM2ORQc41+i"
+      },
+      "act": {
+        "deliverMethod": 1,
+        "itemList": [
+          {
+            "storeId": "0",
+            "spuId": "11945",
+            "count": 1
+          }
+        ],
+        "addressInfo": {
+          "shipAddressId": 41167611
+        },
+        "userPriorityInfo": {
+          "priorityRecordId": 22102815,
+          "shopId": "",
+          "inventorySource": 0
+        },
+        "selfLatitude": "",
+        "selfLongitude": ""
+      },
+      "response": {
+        "code": 2000,
+        "data": {
+          "userId": 0,
+          "deliverMethod": 1,
+          "orderCouponInfo": {},
+          "orderPrice": {
+            "actualPrice": 2699.0,
+            "showActualPrice": "¥2699",
+            "itemPrice": "¥2699",
+            "deductCouponPrice": ""
+          },
+          "transactionId": "1200700212_22102815_compose",
+          "userAddress": {
+            "shipAddressId": 41167611,
+            "selected": true,
+            "defaultTag": true,
+            "fullAddress": "江苏省苏州市苏州工业园区斜塘街道敦煌路9号金辉尊域雅苑18-1902",
+            "name": "商畔",
+            "mobile": "132****2332",
+            "latitude": "31.295426",
+            "longitude": "120.740331",
+            "province": "江苏省",
+            "city": "苏州市",
+            "district": "苏州工业园区"
+          },
+          "invoiceInitVO": {
+            "invoiceEnable": true,
+            "orderId": 0,
+            "editEnable": false,
+            "emailEnable": false,
+            "normalInvoiceVO": {
+              "type": 0,
+              "titleType": 0,
+              "content": "明细",
+              "price": "¥2699",
+              "mobile": "18561001610",
+              "shipAddressId": 0,
+              "realName": "商畔"
+            }
+          },
+          "payChannelList": [
+            {
+              "type": 0,
+              "desc": "线上支付"
+            }
+          ],
+          "deliverMethodList": [
+            {
+              "type": 1,
+              "desc": "快递配送"
+            }
+          ],
+          "orderPriceMap": {
+            "1": {
+              "actualPrice": 2699.0,
+              "showActualPrice": "¥2699",
+              "itemPrice": "¥2699",
+              "deductCouponPrice": ""
+            }
+          },
+          "composeController": {
+            "addressList": [
+              1,
+              2
+            ],
+            "postStationPickUpList": [],
+            "invoiceList": [
+              1,
+              0,
+              2
+            ],
+            "selectAddressFlag": 1,
+            "composeDeliveryMethodDesc": "收货方式"
+          },
+          "consignment": false,
+          "promIdList": [],
+          "userPriorityComposeResult": {
+            "priorityCompose": true,
+            "priorityTitle": "小茅提示：",
+            "priorityTips": "请在2026年05月20日20:35前下单，\n逾期本次交易链路将失效",
+            "priorityItemInfo": {
+              "skuId": "11945",
+              "spuId": "IMTP1000318",
+              "spuName": "53%vol 500ml贵州茅台酒（丙午马年）珍享版",
+              "skuPicUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767625289dec78b.png",
+              "count": 1,
+              "showActualPrice": "¥2699",
+              "unitName": "瓶"
+            },
+            "priorityStoreInfo": {
+              "tenantId": "520188003",
+              "tenantName": "(销售单位：贵阳茅台酒销售有限公司)",
+              "storeId": "520188003003",
+              "storeName": "贵阳市宾阳街道贵州茅台自营店",
+              "storeAddress": "贵阳市观山湖区长岭南路178号茅台国际商务中心C栋1楼1号门面",
+              "lng": 106.58970964983227,
+              "lat": 26.605711703483603,
+              "provinceId": "520000000",
+              "provinceName": "贵州省",
+              "cityId": "520100000",
+              "cityName": "贵阳市",
+              "districtId": "520115000"
+            }
+          }
+        }
+      }
+    },
+    {
+      "idx": 71,
+      "time": "2026-05-20T12:25:29.593019Z",
+      "status": 200,
+      "url": "https://app.moutai519.com.cn/xhr/front/trade/order/standard/compose/v2",
+      "headers_subset": {
+        "user-agent": "android;30;OnePlus;OnePlus7Pro",
+        "mt-device-id": "clips_fBgrSikRKB54GiIaKhggFSUXIxUhQnpCJxElRnBC",
+        "mt-k": "1779279929586",
+        "mt-v": "1b26c9b6fa2bf756f558f8acd2m",
+        "mt-r": "clips_OlU6TmFRag5rCXwbNAQ/Tz1SKlN8THcecBp/HGhHdw==",
+        "mt-sn": "clips_ehwpSC0fLBggRnJAdxYgFiAYLxl9Si5PfEl/TC0afkw=",
+        "mt-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJtdCIsImV4cCI6MTc4MTg3MTc2OCwidXNlcklkIjoxMjAwNzAwMjEyLCJkZXZpY2VJZCI6ImNsaXBzX2ZCZ3JTaWtSS0I1NEdpSWFLaGdnRlNVWEl4VWhRbnBDSnhFbFJuQkMiLCJpYXQiOjE3NzkyNzk3Njh9.mWZw4SAKFiUq8cSlnD--i4O0nU8eS2tx7b57PhreXSU",
+        "bs-dvid": "hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg",
+        "mt-info": "a3f9c2b8471de05f9b6c4e1287d5a9c1"
+      },
+      "body": {
+        "deliverMethod": -1,
+        "addressInfo": {
+          "shipAddressId": 0
+        },
+        "itemList": [
+          {
+            "storeId": "0",
+            "spuId": "11945",
+            "count": 1
+          }
+        ],
+        "actParam": "Ci2ucy8tonUtQ/IDudwMUb27Rr0ysdaxMfQQewrwiZIb8YjiantNHPoEYM4SfJMpFD8/o1TSJwsxbTP5t1Ft+ZyFSNBUBbPHIY60Gn3xWOhc2QMeIyN6i/Q/iDLJ84zlfkFbUu9J4ESJ0wJYPT1TiB3wNahO3wF84nHveGSusP73YLSP0TWW29K0+ibbV+2dh0j1E8pXq8SapFH5QIdpuM1WgFCx++xq1sL4T2lZgFNiLdlCPxCeFnsltDXoYIp06VwWblceg2zk/HDNrLPnCW0B3o3HLK3KxeOlsSQOYWzuAI733Sj6MY2P1wgOp1z/HIGGbIvCetBnij6st3KJNg=="
+      },
+      "act": {
+        "deliverMethod": -1,
+        "itemList": [
+          {
+            "storeId": "0",
+            "spuId": "11945",
+            "count": 1
+          }
+        ],
+        "addressInfo": {
+          "shipAddressId": 0
+        },
+        "userPriorityInfo": {
+          "priorityRecordId": 22102815,
+          "shopId": "",
+          "inventorySource": 0
+        },
+        "selfLatitude": "31.295167",
+        "selfLongitude": "120.741103"
+      },
+      "response": {
+        "code": 2000,
+        "data": {
+          "userId": 0,
+          "deliverMethod": 1,
+          "orderCouponInfo": {},
+          "orderPrice": {
+            "actualPrice": 2699.0,
+            "showActualPrice": "¥2699",
+            "itemPrice": "¥2699",
+            "deductCouponPrice": ""
+          },
+          "transactionId": "1200700212_22102815_compose",
+          "invoiceInitVO": {
+            "invoiceEnable": false,
+            "orderId": 0,
+            "editEnable": false,
+            "emailEnable": false
+          },
+          "payChannelList": [
+            {
+              "type": 0,
+              "desc": "线上支付"
+            }
+          ],
+          "deliverMethodList": [
+            {
+              "type": 1,
+              "desc": "快递配送"
+            }
+          ],
+          "orderPriceMap": {
+            "1": {
+              "actualPrice": 2699.0,
+              "showActualPrice": "¥2699",
+              "itemPrice": "¥2699",
+              "deductCouponPrice": ""
+            }
+          },
+          "composeController": {
+            "addressList": [
+              1,
+              2
+            ],
+            "postStationPickUpList": [],
+            "invoiceList": [],
+            "selectAddressFlag": 1,
+            "composeDeliveryMethodDesc": "收货方式"
+          },
+          "consignment": false,
+          "promIdList": [],
+          "userPriorityComposeResult": {
+            "priorityCompose": true,
+            "priorityTitle": "小茅提示：",
+            "priorityTips": "请在2026年05月20日20:35前下单，\n逾期本次交易链路将失效",
+            "priorityItemInfo": {
+              "skuId": "11945",
+              "spuId": "IMTP1000318",
+              "spuName": "53%vol 500ml贵州茅台酒（丙午马年）珍享版",
+              "skuPicUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767625289dec78b.png",
+              "count": 1,
+              "showActualPrice": "¥2699",
+              "unitName": "瓶"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "bangcle": [
+    {
+      "idx": 4,
+      "time": "2026-05-20T12:26:34.707563Z",
+      "method": "GET",
+      "status": 200,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": "{\"v\":[{\"v\":\"v1.0.8\"}],\"w\":true}"
+    },
+    {
+      "idx": 7,
+      "time": "2026-05-20T12:26:34.547198Z",
+      "method": "POST",
+      "status": 429,
+      "url": "https://fk1.moutai519.com.cn/bangcle/bbprbdata/upload",
+      "body_len": 64,
+      "body_head": "2918f72e344d2400e68627b849f017084bd831e26d0b4ea4515d17c51249a14d",
+      "decoded": 10001,
+      "err": "",
+      "response": ""
+    },
+    {
+      "idx": 9,
+      "time": "2026-05-20T12:26:32.361407Z",
+      "method": "GET",
+      "status": 429,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": ""
+    },
+    {
+      "idx": 10,
+      "time": "2026-05-20T12:26:32.251128Z",
+      "method": "OPTIONS",
+      "status": 200,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": ""
+    },
+    {
+      "idx": 12,
+      "time": "2026-05-20T12:26:27.142278Z",
+      "method": "GET",
+      "status": 200,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": "{\"v\":[{\"v\":\"v1.0.8\"}],\"w\":true}"
+    },
+    {
+      "idx": 14,
+      "time": "2026-05-20T12:26:26.943010Z",
+      "method": "OPTIONS",
+      "status": 200,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": ""
+    },
+    {
+      "idx": 17,
+      "time": "2026-05-20T12:26:26.809775Z",
+      "method": "POST",
+      "status": 429,
+      "url": "https://fk1.moutai519.com.cn/bangcle/bbprbdata/upload",
+      "body_len": 64,
+      "body_head": "1302c3ec43cabd4a0c47fa5b0359ef5a45898637fb35e68a566e24c5f53e8609",
+      "decoded": 10001,
+      "err": "",
+      "response": ""
+    },
+    {
+      "idx": 68,
+      "time": "2026-05-20T12:25:32.330072Z",
+      "method": "GET",
+      "status": 429,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": ""
+    },
+    {
+      "idx": 69,
+      "time": "2026-05-20T12:25:32.042626Z",
+      "method": "OPTIONS",
+      "status": 200,
+      "url": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/2",
+      "body_len": 0,
+      "body_head": "",
+      "decoded": null,
+      "err": "",
+      "response": ""
+    }
+  ],
+  "h5_other_du_samples": [
+    {
+      "idx": 2,
+      "time": "2026-05-20T12:26:35.519364Z",
+      "method": "GET",
+      "status": 404,
+      "url": "https://h5.moutai519.com.cn/favicon.ico",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1dacg_zm0dxr7b8u_4",
+        "107": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/order/list",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279994532
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 3,
+      "time": "2026-05-20T12:26:35.416381Z",
+      "method": "GET",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/order/list/get?__timestamp=1779279995408&status=-1&size=10",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1dacg_zm0dxr7b8u_4",
+        "107": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/order/list",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279994532
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 8,
+      "time": "2026-05-20T12:26:34.371141Z",
+      "method": "GET",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/mt/order/list?appConfig=1_0_2&status=-1",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279993208
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 13,
+      "time": "2026-05-20T12:26:26.959012Z",
+      "method": "GET",
+      "status": 404,
+      "url": "https://h5.moutai519.com.cn/favicon.ico",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1d4dd_7ud3hqxztb8_4",
+        "107": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/payResult",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279986791
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 24,
+      "time": "2026-05-20T12:26:25.997920Z",
+      "method": "GET",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/mt/payResult?appConfig=1_1_1&orderId=627050993&isSuc=1&payResultQueryTimeout=10&orderType=1",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279982237
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 74,
+      "time": "2026-05-20T12:25:26.932913Z",
+      "method": "POST",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/trade/priority/verify/code",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279921947
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 100,
+      "time": "2026-05-20T12:25:00.761774Z",
+      "method": "POST",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/mall/item/purchaseInfoV2",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 103,
+      "time": "2026-05-20T12:24:57.810477Z",
+      "method": "POST",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/mall/item/purchaseInfoV2",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 106,
+      "time": "2026-05-20T12:24:54.840216Z",
+      "method": "POST",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/mall/item/purchaseInfoV2",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    },
+    {
+      "idx": 109,
+      "time": "2026-05-20T12:24:51.993717Z",
+      "method": "POST",
+      "status": 200,
+      "url": "https://h5.moutai519.com.cn/xhr/front/mall/item/purchaseInfoV2",
+      "du": {
+        "101": "10001",
+        "103": "h32e27375b115178fd5ec94910ae94ea",
+        "105": "mpe1anfj_jwsacjz2g1l_4",
+        "107": "mozilla/5.0 (linux; android 11; gm1910 build/rkq1.201022.002; wv",
+        "109": "https://h5.moutai519.com.cn/mt/item/smsp-detail",
+        "111": "bid-3277198729771-94ea-ef40",
+        "113": 1779279891597
+      },
+      "ua": "Mozilla/5.0 (Linux; Android 11; GM1910 Build/RKQ1.201022.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/87.0.4280.141 Mobile Safari/537.36 moutaiapp/1.9.7 device-id/920cc27070e3d40d7a55b6bdff98d3b8 BS-DVID/hStHx78coIPvzaEEJrO153lggZeNnHQtydZup3wdrCiog719DxdD1f0o0_Rjh_tVW_0f2zyqMtMEK9Dqn2X-dVg"
+    }
+  ]
+}

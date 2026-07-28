@@ -1,0 +1,80 @@
+{
+  "_comment": "与 mt1.9.6/mt/test-full-flow.js ITEM_LIST 逐项一致；抢购/商品管理默认只展示本列表（8 条）。",
+  "items": [
+    {
+      "code": "11942",
+      "name": "53%vol 500ml贵州外卖酒（丙午马年）经典版",
+      "spuId": "IMTP1000320",
+      "itemPriorityActId": 72343,
+      "amount": 6,
+      "referer": "https://h5.moutai519.com.cn/mt/item/mm-485-detail-group?appConfig=2_1_2",
+      "branch": "two",
+      "needCodeField": true
+    },
+    {
+      "code": "741",
+      "name": "飞天53%vol 500ml贵州外卖酒（带杯）",
+      "spuId": "IMTP1000313",
+      "itemPriorityActId": 72346,
+      "amount": 2,
+      "referer": "https://h5.moutai519.com.cn/mt/item/smsp-detail?appConfig=2_1_2",
+      "branch": "one"
+    },
+    {
+      "code": "11894",
+      "name": "53%vol 500ml贵州外卖酒（鼓乐飞天）",
+      "spuId": "IMTP1000321",
+      "itemPriorityActId": 72342,
+      "amount": 1,
+      "referer": "https://h5.moutai519.com.cn/mt/item/gyft-8392-detail?appConfig=2_1_2",
+      "branch": "three"
+    },
+    {
+      "code": "11947",
+      "name": "53%vol 500ml×2贵州外卖酒（丙午马年）礼盒装",
+      "spuId": "IMTP1000319",
+      "itemPriorityActId": 72341,
+      "amount": 1,
+      "referer": "https://h5.moutai519.com.cn/mt/item/mm-485-detail-group?appConfig=2_1_2",
+      "branch": "two",
+      "needCodeField": true
+    },
+    {
+      "code": "11945",
+      "name": "53%vol 500ml贵州茅台酒（丙午马年）珍享版",
+      "spuId": "IMTP1000318",
+      "itemPriorityActId": 72343,
+      "amount": 1,
+      "referer": "https://h5.moutai519.com.cn/mt/item/mm-zx-271-detail?appConfig=2_1_2",
+      "branch": "two",
+      "needCodeField": true
+    },
+    {
+      "code": "483",
+      "name": "飞天53%vol 1L贵州茅台酒",
+      "spuId": "IMTP1000229",
+      "itemPriorityActId": 76036,
+      "amount": 6,
+      "referer": "https://h5.moutai519.com.cn/mt/item/1000ml-detail?appConfig=2_1_2",
+      "branch": ""
+    },
+    {
+      "code": "10220",
+      "name": "陈年贵州茅台酒(15年) 53%vol 500ml",
+      "spuId": "IMTP1000262",
+      "itemPriorityActId": 76090,
+      "amount": 6,
+      "referer": "https://h5.moutai519.com.cn/mt/item/grad-detail?appConfig=2_1_2&gt=mt_53_15th",
+      "branch": ""
+    },
+    {
+      "code": "1741",
+      "name": "53%vol 500ml贵州茅台酒(精品)",
+      "spuId": "IMTP1000264",
+      "itemPriorityActId": 76161,
+      "amount": 6,
+      "referer": "https://h5.moutai519.com.cn/mt/item/jpmt-detail?appConfig=2_1_2",
+      "branch": "three"
+    }
+  ]
+}

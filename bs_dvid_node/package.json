@@ -1,0 +1,9 @@
+{
+  "name": "bs-dvid-moutai",
+  "private": true,
+  "description": "浩天 BS-DVID 获取（与 mt1.9.6 bs-dvid.js 同源）",
+  "dependencies": {
+    "https-proxy-agent": "^7.0.6",
+    "socks-proxy-agent": "^8.0.4"
+  }
+}

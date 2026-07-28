@@ -1,0 +1,8 @@
+# One server per line. Blank lines and # comments are ignored.
+# Format:
+#   SERVER_IP
+#   SERVER_IP:FRPS_PORT
+#
+220.197.14.204
+220.197.44.134
+220.197.44.134

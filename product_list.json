@@ -1,0 +1,869 @@
+{
+  "code": 2000,
+  "data": {
+    "categoryList": [
+      {
+        "id": "0",
+        "name": "畅享云购"
+      },
+      {
+        "id": "10",
+        "name": "享约申购"
+      }
+    ],
+    "categoryItemList": [
+      {
+        "id": "1004",
+        "name": "贵州茅台酒",
+        "itemList": [
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "741",
+              "spuId": "IMTP1000313",
+              "itemName": "飞天53%vol 500ml贵州茅台酒（带杯）",
+              "outPrice": 1539,
+              "priceStringWithYuan": "¥1539.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767149919aff43a.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fsmsp-detail%3FappConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "1741",
+              "spuId": "IMTP1000264",
+              "itemName": "53%vol 500ml贵州茅台酒（精品）",
+              "outPrice": 2299,
+              "priceStringWithYuan": "¥2299.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17671889367bce6f.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fjpmt-detail%3FappConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11942111",
+              "spuId": "IMTP1000327",
+              "itemName": "53%vol 500ml贵州茅台酒（丙午马年）经典版/礼盒装",
+              "outPrice": 1899,
+              "priceStringWithYuan": "¥1899.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17676274758cc868.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fmm-485-detail-group%3FappConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "483",
+              "spuId": "IMTP1000229",
+              "itemName": "飞天53%vol 1L贵州茅台酒",
+              "outPrice": 2989,
+              "priceStringWithYuan": "¥2989.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767189059427de2.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2F1000ml-detail%3FappConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "10193",
+              "spuId": "IMTP1000006",
+              "itemName": "飞天53%vol 100ml贵州茅台酒（i茅台）",
+              "outPrice": 299,
+              "priceStringWithYuan": "¥299.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767940672be92b3.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fxft-detail%3FappConfig%3D2_1_2%26sourceId%3DIMTP1000006",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "425",
+              "spuId": "IMTP1000003",
+              "itemName": "飞天43%vol 500ml贵州茅台酒（带杯）",
+              "outPrice": 829,
+              "priceStringWithYuan": "¥829.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/176840878798f071.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fgrad-detail%3Fgt%3Dft_43%26appConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11894",
+              "spuId": "IMTP1000321",
+              "itemName": "53%vol 500ml贵州茅台酒（鼓乐飞天）",
+              "outPrice": 2699,
+              "priceStringWithYuan": "¥2699.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767619421c7d455.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fgyft-8392-detail%3FappConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "10220",
+              "spuId": "IMTP1000262",
+              "itemName": "53%vol 500ml陈年贵州茅台酒（15）",
+              "outPrice": 4199,
+              "priceStringWithYuan": "¥4199.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767152377454e31.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fgrad-detail%3FappConfig%3D2_1_2%26gt%3Dmt_53_15th",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11652",
+              "spuId": "IMTP1000260",
+              "itemName": "贵州茅台酒（黄小西吃晚饭）系列",
+              "outPrice": 2499,
+              "priceStringWithYuan": "¥2499.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1757346779a1d8ae.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fhxx-detail%3FappConfig%3D2_1_2%26sourceId%3DIMTP1000260",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11945",
+              "spuId": "IMTP1000318",
+              "itemName": "53%vol 500ml贵州茅台酒（丙午马年）珍享版",
+              "outPrice": 2499,
+              "priceStringWithYuan": "¥2499.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767631790b5fa3d.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2Fmm-zx-271-detail%3FappConfig%3D2_1_2",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "2181",
+              "spuId": "IMTP1000002",
+              "itemName": "43%vol 500ml贵州茅台酒（喜宴·红）",
+              "outPrice": 829,
+              "priceStringWithYuan": "¥829.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1748188840899797.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000002",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          }
+        ],
+        "selectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202512301400_11.png",
+        "unselectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202512301400_1.png"
+      },
+      {
+        "id": "1005",
+        "name": "茅台酱香酒",
+        "itemList": [
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "10060",
+              "spuId": "IMTP1000296",
+              "itemName": "赖茅酒（端曲）",
+              "outPrice": 368,
+              "priceStringWithYuan": "¥368.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1764766857f9137d.png",
+              "unitId": "10",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000296",
+              "itemProms": [
+                {
+                  "promTag": "随单赠",
+                  "startTime": 1774838880000,
+                  "endTime": 1775404799976
+                }
+              ],
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "2058",
+              "spuId": "IMTP1000298",
+              "itemName": "赖茅酒（传承·蓝）",
+              "outPrice": 468,
+              "priceStringWithYuan": "¥468.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17647666948c48c4.png",
+              "unitId": "10",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000298",
+              "itemProms": [
+                {
+                  "promTag": "随单赠",
+                  "startTime": 1774838880000,
+                  "endTime": 1775404799976
+                }
+              ],
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11704",
+              "spuId": "IMTP1000317",
+              "itemName": "53%vol 500ml茅台1935酒（尊享）",
+              "outPrice": 998,
+              "priceStringWithYuan": "¥998.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1767167822f3729d.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000317",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "10056",
+              "spuId": "IMTP1000040",
+              "itemName": "53%vol 500ml茅台1935酒",
+              "outPrice": 738,
+              "priceStringWithYuan": "¥738.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1716103023bdab6a.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000040",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11782",
+              "spuId": "IMTP1000292",
+              "itemName": "茅台1935·中国国家地理文创酒（北纬30°）",
+              "outPrice": 1198,
+              "priceStringWithYuan": "¥1198.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1761814328454e31.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000292",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11853",
+              "spuId": "IMTP1000295",
+              "itemName": "53%vol 12.5L茅台王子酒（25周年纪念）",
+              "outPrice": 11888,
+              "priceStringWithYuan": "¥11888.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/176242982820be9c.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000295",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11089",
+              "spuId": "IMTP1000190",
+              "itemName": "53%vol 500ml茅台王子酒（酱香经典）（2.0）",
+              "outPrice": 398,
+              "priceStringWithYuan": "¥398.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1736739955af6869.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000190",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "1865",
+              "spuId": "IMTP1000004",
+              "itemName": "53%vol 500ml茅台王子酒（金王子）",
+              "outPrice": 338,
+              "priceStringWithYuan": "¥338.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/167565331057dc4c.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000004",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "10849",
+              "spuId": "IMTP1000104",
+              "itemName": "53%vol 500ml汉酱酒（匠心传承）",
+              "outPrice": 618,
+              "priceStringWithYuan": "¥618.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1715159398006924.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000104",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11346",
+              "spuId": "IMTP1000243",
+              "itemName": "53%vol 500ml汉酱酒（匠心传承文创）",
+              "outPrice": 518,
+              "priceStringWithYuan": "¥518.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17533599832b6e60.jpeg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000243",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "10065",
+              "spuId": "IMTP1000178",
+              "itemName": "51%vol 500ml汉酱酒（3.0）",
+              "outPrice": 458,
+              "priceStringWithYuan": "¥458.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17328027775ace9b.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000178",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "11077",
+              "spuId": "IMTP1000176",
+              "itemName": "53%vol 1.5L贵州大曲酒（似水流年）",
+              "outPrice": 788,
+              "priceStringWithYuan": "¥788.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1730711903498365.jpg",
+              "unitId": "30",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000176",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "1472",
+              "spuId": "IMTP1000164",
+              "itemName": "53%vol 500ml贵州大曲酒（70年代）",
+              "outPrice": 348,
+              "priceStringWithYuan": "¥348.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1722073354d81159.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000164",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "2057",
+              "spuId": "IMTP1000179",
+              "itemName": "53%vol 500ml贵州大曲酒（80年代）",
+              "outPrice": 258,
+              "priceStringWithYuan": "¥258.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17328028155ace9b.png",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000179",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          }
+        ],
+        "selectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202512301400_22.png",
+        "unselectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202512301400_2.png"
+      },
+      {
+        "id": "1006",
+        "name": "茅台文创",
+        "itemList": [
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0020020001",
+              "spuId": "IMTP1000108",
+              "itemName": "茅台生肖系列酒具",
+              "outPrice": 1188,
+              "priceStringWithYuan": "¥1188.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1706607065caf1ce.png",
+              "unitId": "40",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000108",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0050010002",
+              "spuId": "IMTP1000286",
+              "itemName": "宋韵流光系列茶盏套装",
+              "outPrice": 198,
+              "priceStringWithYuan": "¥198.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1758185181a1d8ae.jpg",
+              "unitId": "40",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000286",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0050010001",
+              "spuId": "IMTP1000287",
+              "itemName": "梨云·旅行茶具套装",
+              "outPrice": 368,
+              "priceStringWithYuan": "¥368.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1758185339bdab6a.jpg",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000287",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0020010011",
+              "spuId": "IMTP1000285",
+              "itemName": "冭和令系列保温杯",
+              "outPrice": 338,
+              "priceStringWithYuan": "¥338.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/175818466598bb30.jpg",
+              "unitId": "40",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000285",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010040013",
+              "spuId": "IMTP1000215",
+              "itemName": "茅台文旅×富光名列前茅系列水壶",
+              "outPrice": 109,
+              "priceStringWithYuan": "¥109.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1751874719bdab6a.jpg",
+              "unitId": "25",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000215",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0050020001",
+              "spuId": "IMTP1000289",
+              "itemName": "琉光映系列酒具",
+              "outPrice": 988,
+              "priceStringWithYuan": "¥988.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1758185604a1d8ae.jpg",
+              "unitId": "40",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000289",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0020040001",
+              "spuId": "IMTP1000199",
+              "itemName": "焕瓷集·餐具",
+              "outPrice": 1898,
+              "priceStringWithYuan": "¥1898.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1744223179f08159.jpg",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000199",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010030002",
+              "spuId": "IMTP1000107",
+              "itemName": "小茅·臻情话",
+              "outPrice": 520,
+              "priceStringWithYuan": "¥520.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17066071260d8fcc.jpg",
+              "unitId": "40",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000107",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0030020001",
+              "spuId": "IMTP1000201",
+              "itemName": "下酒菜·小茅IP潮流毛绒挂件",
+              "outPrice": 58,
+              "priceStringWithYuan": "¥58.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17442238446de3ae.jpg",
+              "unitId": "25",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000201",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0030010001",
+              "spuId": "IMTP1000097",
+              "itemName": "小茅龙年公仔",
+              "outPrice": 198,
+              "priceStringWithYuan": "¥198.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1704207779c7d111.png",
+              "unitId": "25",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000097",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0030010012",
+              "spuId": "IMTP1000120",
+              "itemName": "小茅·桃云公仔",
+              "outPrice": 328,
+              "priceStringWithYuan": "¥328.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1709789567562f91.png",
+              "unitId": "40",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000120",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010010034",
+              "spuId": "IMTP1000093",
+              "itemName": "小茅达人系列-鼠标垫",
+              "outPrice": 12,
+              "priceStringWithYuan": "¥12.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17020299341384df.jpg",
+              "unitId": "24",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000093",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010040011",
+              "spuId": "IMTP1000202",
+              "itemName": "小茅开瓶器",
+              "outPrice": 32,
+              "priceStringWithYuan": "¥32.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17442242056de3ae.jpg",
+              "unitId": "25",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000202",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010040008",
+              "spuId": "IMTP1000162",
+              "itemName": "天人共酿-小茅酿酒系列盲盒手办套装",
+              "outPrice": 688,
+              "priceStringWithYuan": "¥688.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1721874992caf1ce.png",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000162",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0030010011",
+              "spuId": "IMTP1000099",
+              "itemName": "小茅龙年公仔礼盒装",
+              "outPrice": 328,
+              "priceStringWithYuan": "¥328.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17039267195865f7.png",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000099",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0040010001",
+              "spuId": "IMTP1000146",
+              "itemName": "龙腾九霄工艺盘",
+              "outPrice": 1988,
+              "priceStringWithYuan": "¥1988.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1715998755ef7c7a.png",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000146",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010030007",
+              "spuId": "IMTP1000163",
+              "itemName": "天人共酿徽章",
+              "outPrice": 998,
+              "priceStringWithYuan": "¥998.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1721874807e28b6a.png",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000163",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010010022",
+              "spuId": "IMTP1000075",
+              "itemName": "小茅达人系列-通用款帆布包",
+              "outPrice": 118,
+              "priceStringWithYuan": "¥118.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/16953029407d1da0.jpg",
+              "unitId": "25",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000075",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010010029",
+              "spuId": "IMTP1000082",
+              "itemName": "小茅手信",
+              "outPrice": 198,
+              "priceStringWithYuan": "¥198.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/16992747188b25c6.jpg",
+              "unitId": "40",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000082",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010010047",
+              "spuId": "IMTP1000119",
+              "itemName": "小茅达人系列-潮流帆布包",
+              "outPrice": 68,
+              "priceStringWithYuan": "¥68.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17102430430d8fcc.jpg",
+              "unitId": "25",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000119",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0010040009",
+              "spuId": "IMTP1000200",
+              "itemName": "小茅达人系列-双肩包",
+              "outPrice": 288,
+              "priceStringWithYuan": "¥288.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17442240721cc035.jpg",
+              "unitId": "25",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000200",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "WC0020010006",
+              "spuId": "IMTP1000193",
+              "itemName": "焕瓷集·马克杯",
+              "outPrice": 358,
+              "priceStringWithYuan": "¥358.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1744221440beb1d7.jpg",
+              "unitId": "25",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000193",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          }
+        ],
+        "selectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202512301400_33.png",
+        "unselectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202512301400_3.png"
+      },
+      {
+        "id": "1007",
+        "name": "茅台潮饮",
+        "itemList": [
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "12027",
+              "spuId": "IMTP1000341",
+              "itemName": "UMEET 遇见生态美系列-蓝莓气泡酒礼盒装",
+              "outPrice": 198,
+              "priceStringWithYuan": "¥198.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/17738982924e691f.jpg",
+              "unitId": "20",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000341",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "12026",
+              "spuId": "IMTP1000342",
+              "itemName": "UMEET 遇见生态美系列-蓝莓气泡酒单瓶装",
+              "outPrice": 99,
+              "priceStringWithYuan": "¥99.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/177389832313a827.jpg",
+              "unitId": "10",
+              "unitName": "",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000342",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          },
+          {
+            "type": 1,
+            "listItem": {
+              "itemCode": "12036",
+              "spuId": "IMTP1000345",
+              "itemName": "umeet 二倍浓缩蓝莓汁（复原）袋装",
+              "outPrice": 49,
+              "priceStringWithYuan": "¥49.00",
+              "pictureUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/1775053315d24995.png",
+              "unitId": "20",
+              "unitName": "起",
+              "jumpUrlV2": "moutaiapp://webview?url=https%3A%2F%2Fh5.moutai519.com.cn%2Fmt%2Fitem%2FdetailV2%3FappConfig%3D2_1_2%26id%3DIMTP1000345",
+              "retailPriceShowTime": 1767186000000,
+              "retailPriceShowText": "零售价："
+            }
+          }
+        ],
+        "selectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202602050944_44.png",
+        "unselectedLogoUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/yungou_202602050944_4.png"
+      }
+    ],
+    "topBanner": [
+      {
+        "picUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/176714641327aaa3.png",
+        "targetJump": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>私家车 · 用户中心</title>
+  <style>
+    /* ── Modern Light Theme ── */
+    :root {
+      --bg:       #f5f6fa;
+      --bg2:      #ffffff;
+      --bg3:      #f0f1f5;
+      --border:   #e5e7eb;
+      --accent:   #b8944e;
+      --accent2:  #d4a853;
+      --accent-light: rgba(184,148,78,0.08);
+      --accent-ring:  rgba(184,148,78,0.15);
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --yellow:   #f59e0b;
+      --blue:     #3b82f6;
+      --text:     #1a1a2e;
+      --text2:    #6b7280;
+      --text3:    #9ca3af;
+      --radius:   12px;
+      --shadow-sm:  0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-md:  0 2px 20px rgba(0,0,0,0.06);
+      --shadow-lg:  0 8px 40px rgba(0,0,0,0.08);
+      --shadow-xl:  0 20px 60px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100%;
+      padding: 48px 16px 64px;
+      -webkit-font-smoothing: antialiased;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(184,148,78,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 30% at 80% 100%, rgba(59,130,246,0.03) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 25% at 10% 80%, rgba(184,148,78,0.03) 0%, transparent 50%);
+    }
+    .hidden { display: none !important; }
+
+    /* ── 品牌头部 ── */
+    .brand-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .brand-icon {
+      font-size: 52px;
+      margin-bottom: 14px;
+      line-height: 1;
+      filter: drop-shadow(0 4px 12px rgba(184,148,78,0.2));
+      display: block;
+      animation: iconFloat 4s ease-in-out infinite;
+    }
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0); filter: drop-shadow(0 4px 12px rgba(184,148,78,0.2)); }
+      50% { transform: translateY(-4px); filter: drop-shadow(0 8px 20px rgba(184,148,78,0.25)); }
+    }
+    .brand-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 6px;
+      letter-spacing: .5px;
+      font-weight: 400;
+    }
+
+    /* ── 主容器 ── */
+    .main-container {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg2);
+      border: 1px solid rgba(0,0,0,0.04);
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+      box-shadow: var(--shadow-xl);
+      transition: transform .3s ease, box-shadow .3s ease;
+      position: relative;
+    }
+    .main-container::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50px; right: 50px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(184,148,78,0.15), transparent);
+      border-radius: 0 0 4px 4px;
+    }
+    .main-container:hover {
+      box-shadow: 0 24px 70px rgba(0,0,0,0.12);
+      transform: translateY(-1px);
+    }
+
+    /* ── Tab ── */
+    .tab-box {
+      display: flex;
+      background: var(--bg);
+      border-radius: 16px;
+      padding: 4px;
+      margin-bottom: 26px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+    .tab-item {
+      flex: 1;
+      text-align: center;
+      padding: 11px 0;
+      font-size: 14px;
+      color: var(--text3);
+      cursor: pointer;
+      border-radius: 13px;
+      transition: all .25s ease;
+      font-weight: 500;
+      user-select: none;
+      letter-spacing: .2px;
+    }
+    .tab-item:not(.active):hover {
+      color: var(--text2);
+      background: rgba(184,148,78,0.05);
+    }
+    .tab-item.active {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(184,148,78,0.3);
+      letter-spacing: .3px;
+    }
+
+    /* ── 步骤提示 ── */
+    .step-hint {
+      font-size: 12px;
+      color: var(--text3);
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: .5px;
+      font-weight: 400;
+    }
+    .step-hint span { color: var(--accent); font-weight: 600; }
+
+    /* ── 分区标题 ── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+    .section-label::before,
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+    .section-label::after {
+      background: linear-gradient(90deg, transparent, var(--border));
+    }
+    .section-label span {
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 1.5px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* ── 输入框 ── */
+    .input-group { margin-bottom: 13px; }
+    .input-wrap {
+      position: relative;
+    }
+    input, select, textarea {
+      width: 100%;
+      height: 50px;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0 16px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      font-family: inherit;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    textarea {
+      height: 76px;
+      resize: none;
+      padding: 14px 16px;
+    }
+    input::placeholder,
+    textarea::placeholder { color: var(--text3); }
+    input:hover:not(:focus), select:hover:not(:focus):not(:disabled), textarea:hover:not(:focus) {
+      border-color: #d1d5db;
+      background: var(--bg);
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring), var(--shadow-sm);
+      background: var(--bg2);
+    }
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 14px;
+      cursor: pointer;
+    }
+    select:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      background-color: var(--bg);
+    }
+    select:not(:disabled):hover {
+      border-color: var(--accent);
+      background-color: var(--bg);
+    }
+    select option { background: var(--bg2); color: var(--text); }
+
+    .phone-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .phone-row input { flex: 1; }
+    .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+
+    /* ── 获取验证码按钮 ── */
+    .btn-code {
+      height: 50px;
+      min-width: 112px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text3);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: not-allowed;
+      flex-shrink: 0;
+      transition: all .25s ease;
+      white-space: nowrap;
+      letter-spacing: .2px;
+    }
+    .btn-code.enabled {
+      color: var(--accent);
+      border-color: rgba(184,148,78,0.4);
+      cursor: pointer;
+      font-weight: 600;
+      background: var(--accent-light);
+    }
+    .btn-code.enabled:active { transform: scale(0.97); background: rgba(184,148,78,0.12); }
+    .btn-code.enabled:hover {
+      background: rgba(184,148,78,0.1);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+      transform: translateY(-2px);
+    }
+
+    /* ── 提交区 ── */
+    .btn-submit-wrapper {
+      width: 100%;
+      max-width: 420px;
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-submit {
+      width: 100%;
+      height: 56px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #ffffff;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all .25s ease;
+      font-family: inherit;
+      box-shadow: 0 4px 20px rgba(184,148,78,0.3);
+    }
+    .btn-submit:hover:not(:disabled) {
+      box-shadow: 0 8px 30px rgba(184,148,78,0.4);
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+    .btn-submit:active:not(:disabled) {
+      transform: scale(0.97) translateY(0);
+      box-shadow: 0 2px 10px rgba(184,148,78,0.25);
+    }
+    .btn-submit:disabled {
+      background: var(--bg) !important;
+      color: var(--text3) !important;
+      box-shadow: none !important;
+      border: 1.5px solid var(--border);
+      cursor: not-allowed;
+    }
+
+    #btnCheckBlack {
+      background: var(--bg2) !important;
+      color: var(--text2) !important;
+      border: 1.5px solid var(--border) !important;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: normal;
+      box-shadow: var(--shadow-sm) !important;
+      height: 46px;
+      border-radius: 14px;
+    }
+    #btnCheckBlack:not(:disabled) {
+      color: var(--text) !important;
+      border-color: var(--border) !important;
+    }
+    #btnCheckBlack:not(:disabled):hover {
+      background: var(--bg) !important;
+      border-color: #d1d5db !important;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md) !important;
+    }
+    #btnCheckBlack:active:not(:disabled) {
+      background: var(--bg3) !important;
+      transform: scale(0.97);
+    }
+    #btnCheckBlack:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    /* ── Toast (Glassmorphism) ── */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%) scale(0.9);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.6);
+      color: var(--text);
+      padding: 20px 32px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      z-index: 999;
+      text-align: center;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      max-width: 84%;
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.1),
+        0 0 0 1px rgba(184,148,78,0.08);
+      opacity: 0;
+      transition:
+        opacity .25s cubic-bezier(.34,1.56,.64,1),
+        transform .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .toast.visible {
+      display: block;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* ── Selection & Scrollbar ── */
+    ::selection { background: rgba(184,148,78,0.2); color: var(--text); }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(184,148,78,0.15); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(184,148,78,0.3); }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+<body>
+
+  <div class="brand-header">
+    <div class="brand-icon">🍵</div>
+    <div class="brand-title">私家车</div>
+    <div class="brand-sub">用户中心 · 快速上号</div>
+  </div>
+
+  <div class="main-container">
+    <!-- Tab -->
+    <div class="tab-box">
+      <div class="tab-item active" id="tabNew" onclick="switchTab('new')">新用户注册</div>
+      <div class="tab-item" id="tabOld" onclick="switchTab('old')">老用户登录</div>
+    </div>
+
+    <!-- 注册区 -->
+    <div id="areaNew">
+      <div class="step-hint">填写信息 → 获取验证码 → <span>一键完成上号</span></div>
+
+      <div class="section-label"><span>实名信息</span></div>
+      <div class="input-group">
+        <input type="text" id="realName" placeholder="真实姓名" maxlength="20" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <input type="text" id="idCard" placeholder="身份证号码（18位）" maxlength="18" autocomplete="off">
+      </div>
+      <div class="section-label" style="margin-top:8px"><span>账号备注（可选）</span></div>
+      <div class="input-group">
+        <input type="text" id="newRemark" placeholder="团队名字＋自己名字" maxlength="40" autocomplete="off">
+      </div>
+
+      <div class="section-label" style="margin-top:8px"><span>收货地址</span></div>
+      <div class="grid-row">
+        <select id="provinceSelect"><option value="">省份</option></select>
+        <select id="citySelect" disabled><option value="">城市</option></select>
+      </div>
+      <div class="grid-row">
+        <select id="districtSelect" disabled><option value="">区 / 县</option></select>
+        <select id="townSelect" disabled><option value="">街道（可选）</option></select>
+      </div>
+      <div class="input-group">
+        <textarea id="detailAddress" placeholder="详细地址（如：XX小区X号楼X室）"></textarea>
+      </div>
+
+      <input type="hidden" id="provinceId"><input type="hidden" id="cityId">
+      <input type="hidden" id="districtId"><input type="hidden" id="townId">
+      <input type="hidden" id="provinceName"><input type="hidden" id="cityName">
+      <input type="hidden" id="districtName"><input type="hidden" id="townName">
+    </div>
+
+    <!-- 老用户区 -->
+    <div id="areaOld" class="hidden">
+      <div class="step-hint">仅登录账号，可选填写备注用于后台识别</div>
+      <div class="section-label"><span>账号备注（可选）</span></div>
+      <div class="input-group">
+        <input type="text" id="oldRemark" placeholder="例如：团队名字＋自己名字" maxlength="40" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- 手机验证（两个 tab 共用） -->
+    <div class="section-label" id="phoneDivider"><span>手机验证</span></div>
+    <div class="phone-row">
+      <input type="tel" id="phone" placeholder="输入绑定的手机号" maxlength="11" inputmode="numeric">
+      <button type="button" id="btnGetCode" class="btn-code" disabled>获取验证码</button>
+    </div>
+    <div class="input-group">
+      <input type="tel" id="vcode" placeholder="6位短信验证码" maxlength="6" inputmode="numeric">
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div class="btn-submit-wrapper">
+    <button type="button" id="btnSubmit" class="btn-submit" disabled>注册并上号</button>
+    <button type="button" id="btnCheckBlack" class="btn-submit" disabled>查黑号状态</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  var remoteToken = new URLSearchParams(location.search).get('token') || '';
+  var isNewMode = true;
+  var codeCountdown = 0;
+  var codeTimer = null;
+  var lastLoginPhone = '';
+
+  var $ = function(id){ return document.getElementById(id); };
+  var elPhone     = $('phone');
+  var elVcode     = $('vcode');
+  var elBtnCode   = $('btnGetCode');
+  var elBtnSubmit = $('btnSubmit');
+  var elBtnBlack  = $('btnCheckBlack');
+  var elAreaNew   = $('areaNew');
+  var elAreaOld   = $('areaOld');
+  var elDivider   = $('phoneDivider');
+
+  window.switchTab = function(mode) {
+    isNewMode = (mode === 'new');
+    $('tabNew').classList.toggle('active', isNewMode);
+    $('tabOld').classList.toggle('active', !isNewMode);
+    elAreaNew.classList.toggle('hidden', !isNewMode);
+    elAreaOld.classList.toggle('hidden', isNewMode);
+    elDivider.classList.toggle('hidden', !isNewMode);
+    elBtnSubmit.innerText = isNewMode ? '注册并上号' : '立即登录';
+    elPhone.value = ''; elVcode.value = '';
+    resetCodeBtn();
+    updateButtons();
+  };
+
+  function isValidPhone(v){ return /^1[3-9]\d{9}$/.test(v.trim()); }
+  function isValidId(v){ return /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/.test(v.trim()); }
+
+  function infoComplete() {
+    if (!isValidPhone(elPhone.value)) return false;
+    if (!isNewMode) return true;
+    var name   = $('realName').value.trim();
+    var idcard = $('idCard').value.trim();
+    var detail = $('detailAddress').value.trim();
+    var prov   = $('provinceId').value;
+    var city   = $('cityId').value;
+    var dist   = $('districtId').value;
+    return !!(name && isValidId(idcard) && detail && prov && city && dist);
+  }
+
+  function canSubmit() {
+    return infoComplete() && elVcode.value.trim().length === 6;
+  }
+
+  function updateButtons() {
+    var canInfo = infoComplete();
+    if (codeCountdown <= 0) {
+      elBtnCode.disabled = !canInfo;
+      elBtnCode.classList.toggle('enabled', canInfo);
+    }
+    elBtnSubmit.disabled = !canSubmit();
+    elBtnBlack.disabled  = !isValidPhone(elPhone.value);
+  }
+
+  elPhone.addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g,'').slice(0,11);
+    updateButtons();
+  });
+  elVcode.addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g,'').slice(0,6);
+    updateButtons();
+  });
+  ['realName','idCard','detailAddress','oldRemark','newRemark'].forEach(function(id){
+    var el = $(id); if(el) el.addEventListener('input', updateButtons);
+  });
+  ['provinceSelect','citySelect','districtSelect','townSelect'].forEach(function(id){
+    var el = $(id); if(el) el.addEventListener('change', updateButtons);
+  });
+
+  function startCountdown() {
+    codeCountdown = 60;
+    elBtnCode.disabled = true;
+    elBtnCode.classList.remove('enabled');
+    elBtnCode.innerText = codeCountdown + 's';
+    codeTimer = setInterval(function(){
+      codeCountdown--;
+      if (codeCountdown <= 0) { resetCodeBtn(); }
+      else { elBtnCode.innerText = codeCountdown + 's'; }
+    }, 1000);
+  }
+  function resetCodeBtn() {
+    clearInterval(codeTimer);
+    codeCountdown = 0;
+    elBtnCode.innerText = '获取验证码';
+    updateButtons();
+  }
+
+  var _toastTimer = null;
+  function toast(msg, dur) {
+    var el = $('toast');
+    el.innerText = msg || '';
+    el.classList.add('visible');
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function(){
+      el.classList.remove('visible');
+      setTimeout(function(){ el.style.display = ''; }, 200);
+    }, dur || 2500);
+  }
+
+  function api(path, body) {
+    var headers = { 'Content-Type': 'application/json' };
+    if (remoteToken) headers['X-Remote-Login-Token'] = remoteToken;
+    var payload = Object.assign({}, body);
+    if (remoteToken) payload.remoteToken = remoteToken;
+    return fetch(path, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(payload)
+    }).then(function(r){
+      return r.json().then(function(j){ return { status: r.status, json: j }; });
+    });
+  }
+
+  function ensureLoggedPersisted(phone) {
+    // /api/state 不包含 accounts，远程上号需从账号接口读取实际落盘状态
+    return api('/api/accounts/list', {}).then(function(x){
+      var j = x.json;
+      var arr = (j && j.data && j.data.accounts) || [];
+      var p = String(phone || '').trim();
+      var hit = null;
+      for (var i = 0; i < arr.length; i++) {
+        var a = arr[i] || {};
+        if (String(a.phone || '').trim() === p) {
+          hit = a;
+          break;
+        }
+      }
+      if (!hit) return { ok: false, message: '账号未写入后端，请重试上号' };
+      if (String(hit.status || '') !== '已登录') {
+        return { ok: false, message: '账号状态未完成落盘（当前：' + String(hit.status || '未知') + '），请重试上号' };
+      }
+      return { ok: true };
+    }).catch(function(){
+      return { ok: false, message: '后端状态校验失败，请检查网络后重试' };
+    });
+  }
+
+  function mtOk(code) {
+    return code === 2000 || code === '2000' || parseInt(code, 10) === 2000;
+  }
+
+  function normalizeLoginFailMessage(msg) {
+    var s = String(msg || '');
+    var expiredKeywords = ['验证码过期', '验证码已过期', '验证码失效', '短信验证码过期', '短信验证码失效'];
+    if (expiredKeywords.some(function(kw){ return s.indexOf(kw) !== -1; })) {
+      return '验证码已过期，请重新获取验证码后再登录';
+    }
+    return s || '登录失败';
+  }
+
+  elBtnCode.addEventListener('click', function(){
+    if (!infoComplete()) return;
+    elBtnCode.disabled = true;
+    elBtnCode.innerText = '发送中...';
+    api('/api/accounts/send_code', {
+      phone: elPhone.value.trim(),
+      deferPoolPersistUntilOnboard: false,
+    })
+      .then(function(x){
+        var j = x.json;
+        if (x.status === 403) { toast('口令无效，请联系管理员获取正确链接'); resetCodeBtn(); return; }
+        var d = j && j.data;
+        if (j && j.ok && mtOk(d && d.code)) {
+          toast('验证码已发送，请查收短信 ✓');
+          startCountdown();
+          elVcode.focus();
+        } else {
+          toast((d && d.message) || (j && j.message) || '发送失败，请稍后重试');
+          resetCodeBtn();
+        }
+      })
+      .catch(function(){
+        if (isNewMode) {
+          api('/api/accounts/remote_onboard_deferred_flush', { phone: elPhone.value.trim() }).catch(function(){});
+        }
+        toast('网络异常，请检查连接'); resetCodeBtn();
+      });
+  });
+
+  elBtnSubmit.addEventListener('click', function(){
+    if (!canSubmit()) return;
+    var phone = elPhone.value.trim();
+    var code  = elVcode.value.trim();
+    elBtnSubmit.disabled = true;
+    elBtnSubmit.innerText = '处理中...';
+
+    api('/api/accounts/login', {
+      phone: phone,
+      code: code,
+      nickname: isNewMode ? ($('realName').value.trim() || phone) : undefined,
+      remark: isNewMode ? $('newRemark').value.trim() : $('oldRemark').value.trim(),
+      deferPoolPersistUntilOnboard: false,
+    })
+    .then(function(x){
+      var j = x.json;
+      if (x.status === 403) {
+        if (isNewMode) {
+          api('/api/accounts/remote_onboard_deferred_flush', { phone: phone }).catch(function(){});
+        }
+        toast('口令无效，请联系管理员'); resetSubmit(); return;
+      }
+      var res = j && j.data && j.data.result;
+      if (!j || !j.ok || !mtOk(res && res.code)) {
+        if (isNewMode) {
+          api('/api/accounts/remote_onboard_deferred_flush', { phone: phone }).catch(function(){});
+        }
+        toast(normalizeLoginFailMessage((res && res.message) || (j && j.message) || '登录失败'));
+        resetSubmit(); return;
+      }
+      lastLoginPhone = phone;
+      if (!isNewMode) {
+        toast('登录成功 ✓');
+        resetSubmit();
+        elBtnBlack.disabled = false;
+        return;
+      }
+      ensureLoggedPersisted(phone).then(function(v){
+        if (!v.ok) {
+          api('/api/accounts/remote_onboard_deferred_flush', { phone: phone }).catch(function(){});
+          toast('登录成功但状态未就绪：' + (v.message || '请重试'));
+          resetSubmit();
+          return Promise.reject(new Error('persist-check-failed'));
+        }
+        toast('登录成功 ✓\n实名与地址均成功后将写入本机账号库，正在提交实名…');
+        return submitRealnameAuto(phone);
+      })
+        .then(function(rnMsg){
+          return submitAddress(phone).then(function(adOk){
+            return { rnMsg: rnMsg, adOk: adOk };
+          });
+        })
+        .then(function(result){
+          var msg2 = result.adOk ? '地址添加成功 ✓' : '地址提交异常';
+          var head = result.adOk
+            ? '上号完成！实名与地址均已提交，账号已写入本机。'
+            : '地址步骤未成功：账号已写入本机，请到主控补交地址或重试。';
+          toast(head + '\n' + result.rnMsg + '\n' + msg2, 6000);
+          resetSubmit();
+          elBtnBlack.disabled = false;
+        })
+        .catch(function(err){
+          if (isNewMode) {
+            api('/api/accounts/remote_onboard_deferred_flush', { phone: phone }).catch(function(){});
+          }
+          if (err && err.message === 'persist-check-failed') return;
+          toast('提交过程中发生异常，请检查账号状态');
+          resetSubmit();
+        });
+    })
+    .catch(function(){
+      if (isNewMode) {
+        api('/api/accounts/remote_onboard_deferred_flush', { phone: phone }).catch(function(){});
+      }
+      toast('网络异常'); resetSubmit();
+    });
+  });
+
+  function resetSubmit() {
+    elBtnSubmit.disabled = !canSubmit();
+    elBtnSubmit.innerText = isNewMode ? '注册并上号' : '立即登录';
+  }
+
+  function submitRealnameAuto(phone) {
+    var name   = $('realName').value.trim();
+    var idCard = $('idCard').value.trim();
+    var NEED_FIND_KEYWORDS = ['已实名','已被使用','已被绑定','已绑定','该身份','身份证已','实名信息','需找回','找回身份','findIdentity','请找回'];
+    var IDENTITY_CERTIFIED_KEYWORDS = ['身份证被认证','身份证已认证','证件已认证','证件被认证','请先找回身份'];
+    var DUPLICATE_OK_KEYWORDS = ['重复提交', '请稍后再试'];
+    /** 找回身份后网关常返回「稍后重试」类软限流，仅查实名状态不够，需再 POST 一次 submit 才过 */
+    var REALNAME_RESUBMIT_SOFT_KEYWORDS = [
+      '稍后重试', '稍后再试', '请稍后', '请稍候', '操作频繁', '系统繁忙', '繁忙', '限流', 'too many', 'try again',
+    ];
+    var RESUBMIT_DELAY_MS = 3000;
+    var REALNAME_SOFT_RETRY_DELAY_MS = 2800;
+
+    function sleep(ms) {
+      return new Promise(function(resolve){ setTimeout(resolve, ms); });
+    }
+
+    function realnameMsgNeedsResubmit(msg) {
+      var s = String(msg || '');
+      return REALNAME_RESUBMIT_SOFT_KEYWORDS.some(function(kw){ return s.indexOf(kw) !== -1; });
+    }
+
+    function verifyRealnameStatus() {
+      return api('/api/accounts/realname/query', { phone: phone })
+        .then(function(x){
+          var j = x.json;
+          var res = j && j.data && j.data.result;
+          var vs = null;
+          if (res && res.verifyStatus != null) vs = res.verifyStatus;
+          else if (res && res.data && res.data.verifyStatus != null) vs = res.data.verifyStatus;
+          var n = parseInt(vs, 10);
+          return { ok: n === 1, verifyStatus: isNaN(n) ? null : n };
+        })
+        .catch(function(){
+          return { ok: false, verifyStatus: null };
+        });
+    }
+
+    function ensureRealnameCommitted(retries, waitMs) {
+      return verifyRealnameStatus().then(function(v){
+        if (v.ok) return { ok: true, verifyStatus: 1 };
+        if (retries <= 0) return { ok: false, verifyStatus: v.verifyStatus };
+        return sleep(waitMs).then(function(){
+          return ensureRealnameCommitted(retries - 1, waitMs);
+        });
+      });
+    }
+
+    function doSubmit() {
+      return api('/api/accounts/realname/submit', {
+        phone: phone, name: name, idCard: idCard, force: true
+      }).then(function(x){
+        var j = x.json;
+        var res = j && j.data && j.data.result;
+        var code = res && res.code;
+        if (res && res.alreadyVerified) {
+          return ensureRealnameCommitted(2, 1200).then(function(v){
+            return v.ok
+              ? { ok: true, needFind: false }
+              : { ok: false, needFind: false, msg: '实名状态未更新（verifyStatus=' + String(v.verifyStatus == null ? '未知' : v.verifyStatus) + '）' };
+          });
+        }
+        if (j && j.ok && (mtOk(code) || code === 2000)) {
+          return ensureRealnameCommitted(2, 1200).then(function(v){
+            return v.ok
+              ? { ok: true, needFind: false }
+              : { ok: false, needFind: false, msg: '实名提交成功但状态未更新（verifyStatus=' + String(v.verifyStatus == null ? '未知' : v.verifyStatus) + '）' };
+          });
+        }
+        var msg = String((res && res.message) || (j && j.message) || '');
+        var duplicateOk = DUPLICATE_OK_KEYWORDS.some(function(kw){ return msg.indexOf(kw) !== -1; });
+        if (duplicateOk) {
+          return ensureRealnameCommitted(2, 1200).then(function(v){
+            return v.ok
+              ? { ok: true, needFind: false }
+              : { ok: false, needFind: false, msg: '实名接口返回可忽略提示，但实名状态未完成（verifyStatus=' + String(v.verifyStatus == null ? '未知' : v.verifyStatus) + '）' };
+          });
+        }
+        var needFind = NEED_FIND_KEYWORDS.some(function(kw){ return msg.indexOf(kw) !== -1; });
+        var idCertified = IDENTITY_CERTIFIED_KEYWORDS.some(function(kw){ return msg.indexOf(kw) !== -1; });
+        return { ok: false, needFind: needFind, idCertified: idCertified, msg: msg };
+      }).then(function(result){
+        if (result && !result.ok) {
+          result.needFind = !!(result.needFind || result.idCertified);
+        }
+        return result;
+      }).catch(function(){ return { ok: false, needFind: false, msg: '网络异常' }; });
+    }
+
+    return api('/api/accounts/find_identity', {
+      phone: phone, name: name, idCard: idCard
+    }).then(function(x){
+      var j = x.json;
+      var res = j && j.data && j.data.result;
+      var findOk = !!(j && j.ok && mtOk((res && res.code) || (j.data && j.data.code)));
+      if (!findOk) {
+        var findMsg = (res && res.message) || (j && j.data && j.data.message) || (j && j.message) || '失败';
+        return '⚠️ 找回身份：' + findMsg;
+      }
+      return '找回身份成功 ✓';
+    }).catch(function(){
+      return '⚠️ 找回身份网络异常';
+    }).then(function(findDesc){
+      return sleep(RESUBMIT_DELAY_MS).then(function(){
+        return doSubmit();
+      }).then(function(r1){
+        if (r1.ok) return findDesc + '\n实名认证成功 ✓';
+        if (realnameMsgNeedsResubmit(r1.msg)) {
+          return sleep(REALNAME_SOFT_RETRY_DELAY_MS).then(function(){
+            return doSubmit();
+          }).then(function(r2){
+            if (r2.ok) return findDesc + '\n实名认证成功 ✓（接口提示限流，已自动重试提交）';
+            return findDesc + '\n实名提交失败：' + (r2.msg || r1.msg || '未知');
+          });
+        }
+        return findDesc + '\n实名提交失败：' + (r1.msg || '未知');
+      });
+    });
+  }
+
+  function submitAddress(phone) {
+    return api('/api/accounts/address_upsert', {
+      phone: phone,
+      address: {
+        shipAddressId: 0,
+        name:          $('realName').value.trim(),
+        mobile:        phone,
+        address:       $('detailAddress').value.trim(),
+        provinceId:    $('provinceId').value,
+        provinceName:  $('provinceName').value,
+        cityId:        $('cityId').value,
+        cityName:      $('cityName').value,
+        districtId:    $('districtId').value,
+        districtName:  $('districtName').value,
+        townId:        ($('townId').value || '').trim() || '-1',
+        townName:      ($('townId').value || '').trim() ? ($('townName').value || '').trim() : '',
+        dft:           true,
+        grey:          false,
+        recent:        false
+      }
+    }).then(function(x){
+      var j = x.json;
+      var res = j && j.data && j.data.result;
+      return !!(j && j.ok && mtOk(res && res.code));
+    }).catch(function(){ return false; });
+  }
+
+  elBtnBlack.addEventListener('click', function(){
+    var phone = lastLoginPhone || elPhone.value.trim();
+    if (!isValidPhone(phone)) { toast('请先登录成功后再检测'); return; }
+    elBtnBlack.disabled = true;
+    elBtnBlack.innerText = '检测中...';
+    api('/api/accounts/remote_black_check', { phone: phone, maxRetries: 50 })
+      .then(function(x){
+        var j = x.json;
+        if (x.status === 403) { toast('口令无效'); return; }
+        var r = (j && j.data && j.data.result) || {};
+        var tagMap = { normal:'✅ 正常账号', blacklisted:'❌ 黑号', possibly_blacklisted:'⚠️ 疑似黑号', token_expired:'🔑 Token失效', probe_error:'❓ 检测异常' };
+        var tag   = r.risk_tag || r.status || 'probe_error';
+        var label = tagMap[tag] || tag;
+        toast(label + (r.message ? '\n' + r.message : ''), 4000);
+      })
+      .catch(function(){ toast('网络异常'); })
+      .finally(function(){
+        elBtnBlack.disabled = false;
+        elBtnBlack.innerText = '查黑号状态';
+        updateButtons();
+      });
+  });
+
+  // ── 省市区级联 ──
+  var PCAS_CACHE_KEY = 'rush_addr_region_pcas_v1';
+  var REGION_TREE = {};
+
+  function normRegionCode(code) {
+    var raw = String(code == null ? '' : code).trim().replace(/\D/g, '');
+    if (!raw) return '';
+    if (raw.length >= 9) return raw.slice(0, 9);
+    if (raw.length === 6) return raw + '000';
+    if (raw.length === 4) return raw + '00000';
+    if (raw.length === 2) return raw + '0000000';
+    return raw;
+  }
+
+  function upsertRemoteRegion(pid, pname, cid, cname, did, dname, tid, tname) {
+    tid = tid || ''; tname = tname || '';
+    if (!pid || !pname || !cid || !cname || !did || !dname) return;
+    if (!REGION_TREE[pid]) REGION_TREE[pid] = { name: pname, cities: {} };
+    REGION_TREE[pid].name = pname;
+    if (!REGION_TREE[pid].cities[cid]) REGION_TREE[pid].cities[cid] = { name: cname, districts: {} };
+    REGION_TREE[pid].cities[cid].name = cname;
+    if (!REGION_TREE[pid].cities[cid].districts[did]) {
+      REGION_TREE[pid].cities[cid].districts[did] = { name: dname, towns: {} };
+    }
+    REGION_TREE[pid].cities[cid].districts[did].name = dname;
+    if (tid && tname) REGION_TREE[pid].cities[cid].districts[did].towns[tid] = tname;
+  }
+
+  function mergePcasRows(rows) {
+    var provinces = Array.isArray(rows) ? rows : [];
+    for (var pi = 0; pi < provinces.length; pi++) {
+      var p = provinces[pi];
+      if (!p || typeof p !== 'object') continue;
+      var pid = normRegionCode(p.code);
+      var pname = String(p.name || '').trim();
+      var cities = Array.isArray(p.children) ? p.children : [];
+      for (var ci = 0; ci < cities.length; ci++) {
+        var c = cities[ci];
+        if (!c || typeof c !== 'object') continue;
+        var cid = normRegionCode(c.code);
+        var cname = String(c.name || '').trim();
+        var districts = Array.isArray(c.children) ? c.children : [];
+        for (var di = 0; di < districts.length; di++) {
+          var d = districts[di];
+          if (!d || typeof d !== 'object') continue;
+          var did = normRegionCode(d.code);
+          var dname = String(d.name || '').trim();
+          upsertRemoteRegion(pid, pname, cid, cname, did, dname, '', '');
+          var towns = Array.isArray(d.children) ? d.children : [];
+          for (var ti = 0; ti < towns.length; ti++) {
+            var t = towns[ti];
+            if (!t || typeof t !== 'object') continue;
+            var tid = normRegionCode(t.code);
+            var tname = String(t.name || '').trim();
+            upsertRemoteRegion(pid, pname, cid, cname, did, dname, tid, tname);
+          }
+        }
+      }
+    }
+  }
+
+  function pcasFetchUrls() {
+    var out = [];
+    try {
+      if (location.origin && location.protocol !== 'file:') {
+        out.push(location.origin.replace(/\/$/, '') + '/api/address/pcas');
+      }
+    } catch (e1) {}
+    out.push(
+      'https://cdn.jsdelivr.net/gh/modood/Administrative-divisions-of-China@master/dist/pcas-code.json',
+      'https://fastly.jsdelivr.net/gh/modood/Administrative-divisions-of-China@master/dist/pcas-code.json'
+    );
+    return out;
+  }
+
+  function fetchPcasAt(urls, idx) {
+    if (idx >= urls.length) return Promise.reject(new Error('pcas_all_failed'));
+    var ctrl = new AbortController();
+    var tm = setTimeout(function () { try { ctrl.abort(); } catch (e2) {} }, 90000);
+    return fetch(urls[idx], { signal: ctrl.signal })
+      .then(function (r) {
+        clearTimeout(tm);
+        if (!r.ok) throw new Error('http');
+        return r.json();
+      })
+      .then(function (j) {
+        if (!Array.isArray(j) || j.length < 10) throw new Error('bad_json');
+        return j;
+      })
+      .catch(function () {
+        clearTimeout(tm);
+        return fetchPcasAt(urls, idx + 1);
+      });
+  }
+
+  function loadRegionDatabase() {
+    var sel = $('provinceSelect');
+    sel.innerHTML = '<option value="">正在加载行政区…</option>';
+    sel.disabled = true;
+    try {
+      var cached = localStorage.getItem(PCAS_CACHE_KEY);
+      if (cached) mergePcasRows(JSON.parse(cached));
+    } catch (e3) {}
+    if (Object.keys(REGION_TREE).length >= 5) {
+      sel.disabled = false;
+      renderProvinces();
+      return Promise.resolve();
+    }
+    return fetchPcasAt(pcasFetchUrls(), 0)
+      .then(function (j) {
+        mergePcasRows(j);
+        try { localStorage.setItem(PCAS_CACHE_KEY, JSON.stringify(j)); } catch (e4) {}
+        sel.disabled = false;
+        renderProvinces();
+      })
+      .catch(function (err) {
+        console.warn(err);
+        toast('全国地址库加载失败，请与主控页同域打开或检查网络后刷新', 4000);
+        sel.disabled = false;
+        renderProvinces();
+      });
+  }
+
+  function renderProvinces() {
+    var sel = $('provinceSelect');
+    sel.innerHTML = '<option value="">省份</option>';
+    var keys = Object.keys(REGION_TREE).sort();
+    if (!keys.length) { sel.innerHTML = '<option value="">（地址库未加载）</option>'; return; }
+    keys.forEach(function (pid) {
+      var o = document.createElement('option');
+      o.value = pid;
+      o.textContent = REGION_TREE[pid].name;
+      sel.appendChild(o);
+    });
+  }
+
+  $('provinceSelect').addEventListener('change', function () {
+    var pid = this.value;
+    var pname = this.options[this.selectedIndex] ? this.options[this.selectedIndex].text : '';
+    $('provinceId').value = pid;
+    $('provinceName').value = pid ? pname : '';
+    var cs = $('citySelect');
+    cs.innerHTML = '<option value="">城市</option>'; cs.disabled = true;
+    var ds = $('districtSelect');
+    ds.innerHTML = '<option value="">区 / 县</option>'; ds.disabled = true;
+    var ts = $('townSelect');
+    ts.innerHTML = '<option value="">街道（可选）</option>'; ts.disabled = true;
+    $('cityId').value = ''; $('districtId').value = ''; $('townId').value = '';
+    $('cityName').value = ''; $('districtName').value = ''; $('townName').value = '';
+    var prov = REGION_TREE[pid];
+    if (prov && prov.cities) {
+      Object.keys(prov.cities).sort().forEach(function (cid) {
+        var c = prov.cities[cid];
+        var o = document.createElement('option');
+        o.value = cid; o.textContent = c.name;
+        cs.appendChild(o);
+      });
+      cs.disabled = false;
+    }
+    updateButtons();
+  });
+
+  $('citySelect').addEventListener('change', function () {
+    var pid = $('provinceId').value;
+    var cid = this.value;
+    var cname = this.options[this.selectedIndex] ? this.options[this.selectedIndex].text : '';
+    $('cityId').value = cid; $('cityName').value = cid ? cname : '';
+    var ds = $('districtSelect');
+    ds.innerHTML = '<option value="">区 / 县</option>'; ds.disabled = true;
+    var ts = $('townSelect');
+    ts.innerHTML = '<option value="">街道（可选）</option>'; ts.disabled = true;
+    $('districtId').value = ''; $('townId').value = '';
+    $('districtName').value = ''; $('townName').value = '';
+    var city = REGION_TREE[pid] && REGION_TREE[pid].cities[cid];
+    if (city && city.districts) {
+      Object.keys(city.districts).sort().forEach(function (did) {
+        var d = city.districts[did];
+        var o = document.createElement('option');
+        o.value = did; o.textContent = d.name;
+        ds.appendChild(o);
+      });
+      ds.disabled = false;
+    }
+    updateButtons();
+  });
+
+  $('districtSelect').addEventListener('change', function () {
+    var pid = $('provinceId').value;
+    var cid = $('cityId').value;
+    var did = this.value;
+    var dname = this.options[this.selectedIndex] ? this.options[this.selectedIndex].text : '';
+    $('districtId').value = did; $('districtName').value = did ? dname : '';
+    var ts = $('townSelect');
+    ts.innerHTML = '<option value="">街道（可选）</option>'; ts.disabled = true;
+    $('townId').value = ''; $('townName').value = '';
+    var dnode = REGION_TREE[pid] && REGION_TREE[pid].cities[cid] && REGION_TREE[pid].cities[cid].districts[did];
+    var towns = (dnode && dnode.towns) || {};
+    Object.keys(towns).sort().forEach(function (tid) {
+      var tn = towns[tid];
+      var tname = typeof tn === 'string' ? tn : String((tn && tn.name) || '');
+      if (!tname) return;
+      var o = document.createElement('option');
+      o.value = tid; o.textContent = tname;
+      ts.appendChild(o);
+    });
+    if (ts.options.length > 1) ts.disabled = false;
+    updateButtons();
+  });
+
+  $('townSelect').addEventListener('change', function () {
+    $('townId').value = this.value;
+    $('townName').value = this.value && this.options[this.selectedIndex] ? this.options[this.selectedIndex].text : '';
+  });
+
+  loadRegionDatabase().finally(function () { switchTab('new'); });
+})();
+</script>
+</body>
+</html>

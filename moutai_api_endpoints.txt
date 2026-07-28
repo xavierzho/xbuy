@@ -1,0 +1,79 @@
+# i 茅台相关接口清单（本 py_out 仓库代码中出现的路径）
+# 非官方穷举；未在工程内出现的路径未列出。
+# 生成说明：见 scan_imt_apis.py；试连：py scan_imt_apis.py --live
+
+## 基础域名
+API_HOST  = https://app.moutai519.com.cn
+H5_HOST   = https://h5.moutai519.com.cn
+PAY_HOST  = https://payapi.moutai519.com.cn
+
+================================================================================
+## ① App 域 app.moutai519.com.cn
+================================================================================
+
+--- 用户 / 登录 ---
+POST   /xhr/front/user/register/vcode
+POST   /xhr/front/user/register/login
+POST   /xhr/front/user/realNameAuth
+GET    /xhr/front/user/address/ship/query
+
+--- 优先购列表 / 查询（多为 GET）---
+GET    /xhr/front/trade/priority/act/list
+GET    /xhr/front/trade/priority/item/list
+GET    /xhr/front/trade/priority/actItem/list
+GET    /xhr/front/trade/priority/product/list
+GET    /xhr/front/item/priority/list
+GET    /xhr/front/trade/priority/shop/item/list
+GET    /xhr/front/trade/priority/shopItem/list
+GET    /xhr/front/shop/item/list
+
+--- 标准订单 compose / submit / pay ---
+POST   /xhr/front/trade/order/standard/compose/v2
+POST   /xhr/front/trade/order/standard/submit/v2
+POST   /xhr/front/trade/order/pay
+
+================================================================================
+## ② H5 域 h5.moutai519.com.cn
+================================================================================
+
+--- 商品 / 申购信息 ---
+POST   /xhr/front/mall/item/purchaseInfoV2
+
+--- 抢购 rushPurchase ---
+POST   /xhr/front/trade/priority/rushPurchase/hot/branch/one
+POST   /xhr/front/trade/priority/rushPurchase/hot/branch/two
+POST   /xhr/front/trade/priority/rushPurchase/hot/branch/three
+POST   /xhr/front/trade/priority/rushPurchase/hot/branch/four
+POST   /xhr/front/trade/priority/rushPurchase
+
+--- H5 POST 列表（与部分 App 路径同名，域名在 H5）---
+POST   /xhr/front/trade/priority/act/list
+POST   /xhr/front/trade/priority/item/queryList
+POST   /xhr/front/trade/priority/actItem/queryList
+
+--- 优先购组单 / 提交订单（H5 路径）---
+POST   /xhr/front/trade/priority/composeOrder
+POST   /xhr/front/trade/priority/submitOrder
+
+================================================================================
+## ③ 支付域 payapi.moutai519.com.cn
+================================================================================
+POST   /settle-api-server/anon/pay/requestPay
+
+================================================================================
+## ④ 仅在 probe_items.py 探测中出现（主流程未全部接入）
+================================================================================
+POST   /xhr/front/trade/priority/rushPurchase/item/list
+POST   /xhr/front/trade/priority/hot/item/list
+POST   /xhr/front/trade/priority/hot/list
+
+================================================================================
+## ⑤ 非茅台域名（支付转链，代码里有）
+================================================================================
+POST   http://mcgw.alipay.com/gateway.do
+
+================================================================================
+## ⑥ 说明
+================================================================================
+- 商品详情页 https://h5.moutai519.com.cn/mt/item/... 仅作 Referer / 预热，非 /xhr 业务接口。
+- 完整 URL 示例：{H5_HOST}{路径} 或 {API_HOST}{路径}

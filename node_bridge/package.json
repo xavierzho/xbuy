@@ -1,0 +1,16 @@
+{
+  "name": "moutai-http-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "description": "本地 Node 转发茅台 HTTPS（供 py_out 在 MT_HTTP_BACKEND=node 时使用）",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "https-proxy-agent": "^7.0.6",
+    "sm-crypto": "^0.3.14",
+    "socks-proxy-agent": "^8.0.5"
+  }
+}

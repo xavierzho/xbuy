@@ -1,0 +1,53 @@
+local_proxy.env
+local_proxy_pool.txt
+account_addresses.sqlite3
+accounts.json
+accounts_*.txt
+ui_state.json
+remote_tunnel_url.txt
+debug_last_api.json
+state_backups/
+
+# OS / editor noise
+.DS_Store
+.idea/
+
+# Python / Node local artifacts
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+package-lock.json
+
+# Runtime logs and scratch output
+*.log
+*.err
+*.out
+*.pid
+*~
+py_out/
+logs/
+抢购记录/
+账号记录/
+
+# Local binaries / packed runtime artifacts
+*.exe
+*.dll
+*.bin
+*.wasm
+*.spec
+
+# Reverse-engineering generated artifacts and large dumps
+imoutai-decompiled/
+imoutai-*-decompiled/
+extracted/
+reports/tombstones/
+phantom-frida/build/
+phantom-frida/output/
+phantom-frida/.theos/
+frida_hook_libart/Dump Dex/
+frida_hook_libart/gadget/cache/
+frida_hook_libart/gadget/work/
+tools/TraceLens/.theos/
+tools/TraceLens/logs/
+tools/TraceLens/packages/
