@@ -1801,14 +1801,17 @@ def start_distributed_ws_server() -> None:
 
     def _run() -> None:
         global _dist_server_started, _dist_loop
+        server = None
+        loop: asyncio.AbstractEventLoop | None = None
         try:
             import websockets
 
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             _dist_loop = loop
-            server = loop.run_until_complete(
-                websockets.serve(
+
+            async def _start_server():
+                return await websockets.serve(
                     _dist_ws_handler,
                     DIST_WS_HOST,
                     DIST_WS_PORT,
@@ -1816,14 +1819,19 @@ def start_distributed_ws_server() -> None:
                     ping_interval=20,
                     ping_timeout=20,
                 )
-            )
+
+            server = loop.run_until_complete(_start_server())
             print(f"[dist] WebSocket 主控已监听 ws://{DIST_WS_HOST}:{DIST_WS_PORT}", flush=True)
             loop.run_forever()
-            server.close()
-            loop.run_until_complete(server.wait_closed())
         except Exception as ex:
             print(f"[dist] WebSocket 主控启动失败: {ex}", file=sys.stderr, flush=True)
         finally:
+            if server is not None and loop is not None:
+                try:
+                    server.close()
+                    loop.run_until_complete(server.wait_closed())
+                except Exception:
+                    pass
             with _dist_lock:
                 _dist_server_started = False
                 _dist_loop = None

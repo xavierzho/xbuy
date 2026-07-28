@@ -11,6 +11,8 @@
 - `app.py`: 核心业务流程。
 - `start.py`: 中文启动脚本。
 - `start_distributed_worker.sh` / `start_distributed_worker.bat`: 分布式 worker 启动脚本。
+- `scripts/run_webui.sh`: 服务化启动入口，适合 Linux/macOS/CI/systemd 自动化部署。
+- `scripts/bootstrap.sh`: 跨平台依赖初始化和 Go bridge 编译脚本。
 
 `../xbuy` 原始项目里也有 `start.py`，作用是直接拉起 `webui_server.py`。
 
@@ -31,6 +33,7 @@
 - `go_bridge/`: Go bridge、runtime 和测试。
 - `local_yidun/`: 本地服务组件。
 - `frp_mt_ws/`, `cloudflared.exe`: 远程访问和隧道相关工具。
+- `scripts/`, `deploy/`: 自动化部署脚本和 systemd 模板。
 
 ## 原始项目多出的目录
 
