@@ -394,14 +394,16 @@ static NSString *BBWasmLensSafeName(NSString *text) {
     return name;
 }
 
-static void BBWasmLensWriteData(NSString *prefix, NSString *reason, NSData *data) {
+static void BBWasmLensWriteDataExt(NSString *prefix, NSString *reason, NSData *data, NSString *ext) {
     if (data.length == 0) return;
     NSString *dir = BBWasmLensOutputDir();
     long long ms = (long long)([[NSDate date] timeIntervalSince1970] * 1000);
-    NSString *file = [NSString stringWithFormat:@"%@_%lld_%@.json",
+    NSString *suffix = (ext.length > 0) ? ext : @"json";
+    NSString *file = [NSString stringWithFormat:@"%@_%lld_%@.%@",
                       prefix ?: @"dump",
                       ms,
-                      BBWasmLensSafeName(reason ?: @"unknown")];
+                      BBWasmLensSafeName(reason ?: @"unknown"),
+                      suffix];
     NSString *path = [dir stringByAppendingPathComponent:file];
     NSError *error = nil;
     if ([data writeToFile:path options:NSDataWritingAtomic error:&error]) {
@@ -411,6 +413,10 @@ static void BBWasmLensWriteData(NSString *prefix, NSString *reason, NSData *data
     } else {
         LogMsg([NSString stringWithFormat:@"[BBWASM] write failed path=%@ error=%@", path, error]);
     }
+}
+
+static void BBWasmLensWriteData(NSString *prefix, NSString *reason, NSData *data) {
+    BBWasmLensWriteDataExt(prefix, reason, data, @"json");
 }
 
 static void BBWasmLensWriteString(NSString *prefix, NSString *reason, NSString *text) {
@@ -424,6 +430,20 @@ static BOOL BBWasmLensIsBangcleWasmURL(NSURL *url) {
            [u containsString:@"fk1.moutai519.com.cn/bangcle/api/v1/1/2"] ||
            [u containsString:@"/bangcle/api/v1/1/1"] ||
            [u containsString:@"/bangcle/api/v1/1/2"];
+}
+
+static BOOL BBWasmLensIsSDKScriptURL(NSURL *url) {
+    NSString *u = (url.absoluteString ?: @"").lowercaseString;
+    BOOL h5 = [u containsString:@"h5.moutai519.com.cn"] || [u containsString:@"moutai519.com.cn"];
+    BOOL js = [u containsString:@".js"] || [u containsString:@"chunk"] || [u containsString:@"bundle"] || [u containsString:@"mt-wap"];
+    return h5 && js;
+}
+
+static BOOL BBWasmLensIsBangcleUploadURL(NSURL *url) {
+    NSString *u = (url.absoluteString ?: @"").lowercaseString;
+    return [u containsString:@"/bbprbdata/upload"] ||
+           [u containsString:@"/bangcle/api/v1/2/1"] ||
+           [u containsString:@"bbprbdata"];
 }
 
 static void TweakLogStack(NSString *tag) {
@@ -450,6 +470,9 @@ static void TweakLogRequest(NSString *tag, NSURLRequest *request) {
     NSData *body = request.HTTPBody;
     if (body.length > 0) {
         LogMsg([NSString stringWithFormat:@"[API] %@ body=%@", tag, TweakPreviewData(body)]);
+        if (BBWasmLensIsBangcleUploadURL(request.URL)) {
+            BBWasmLensWriteData(@"bb_upload_req", request.URL.absoluteString, body);
+        }
         if (TweakLooksLikeEncryptedGateway(request.URL, body)) {
             TweakLogStack([NSString stringWithFormat:@"%@.encryptedGateway", tag]);
         }
@@ -478,6 +501,12 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
         TweakLogScriptHits(tag, response.URL, data);
         if (BBWasmLensIsBangcleWasmURL(response.URL)) {
             BBWasmLensWriteData(@"bangcle_http", response.URL.absoluteString, data);
+        }
+        if (BBWasmLensIsSDKScriptURL(response.URL)) {
+            BBWasmLensWriteDataExt(@"script_dump", response.URL.absoluteString, data, @"js");
+        }
+        if (BBWasmLensIsBangcleUploadURL(response.URL)) {
+            BBWasmLensWriteData(@"bb_upload_res", response.URL.absoluteString, data);
         }
     }
 }
@@ -889,6 +918,22 @@ static NSString *TraceLensEarlyWebpackScript(void) {
            "})();";
 }
 
+static NSString *BBWasmLensRuntimeHookScript(void) {
+    return @"(function(){"
+           "if(window.__BBWasmLensRuntimeInstalled)return;"
+           "window.__BBWasmLensRuntimeInstalled=1;"
+           "window.__BBWasmLensEvents=window.__BBWasmLensEvents||[];"
+           "function short(v,n){try{if(v==null)return null;var s=typeof v==='string'?v:JSON.stringify(v);return String(s).slice(0,n||1200);}catch(e){return String(v).slice(0,n||1200);}}"
+           "function push(o){try{window.__BBWasmLensEvents.push(o);if(window.__BBWasmLensEvents.length>300)window.__BBWasmLensEvents.shift();}catch(e){}}"
+           "function b64buf(x){try{var u=x instanceof ArrayBuffer?new Uint8Array(x):(ArrayBuffer.isView(x)?new Uint8Array(x.buffer,x.byteOffset,x.byteLength):null);if(!u)return null;var out='',step=0x8000;for(var i=0;i<u.length;i+=step){out+=String.fromCharCode.apply(null,u.subarray(i,i+step));}return btoa(out);}catch(e){return null;}}"
+           "try{var oldSet=Storage.prototype.setItem;if(oldSet&&!oldSet.__bbwl){Storage.prototype.setItem=function(k,v){try{if(/wasm|bangcle|bb_|_bb_|SIGN_WASM|__SIGN|h_five|serial|__mg__|__ud|__tps/i.test(String(k)+' '+String(v).slice(0,200))){push({tag:'LS_SET',key:String(k),value:short(v,24000),href:location.href,ts:Date.now()});}}catch(e){}return oldSet.apply(this,arguments);};Storage.prototype.setItem.__bbwl=1;}}catch(e){push({tag:'LS_HOOK_ERR',error:String(e),ts:Date.now()});}"
+           "try{var dp=Document.prototype,desc=Object.getOwnPropertyDescriptor(dp,'cookie')||Object.getOwnPropertyDescriptor(HTMLDocument.prototype,'cookie');if(desc&&desc.configurable&&desc.set&&!desc.set.__bbwl){Object.defineProperty(document,'cookie',{configurable:true,get:function(){return desc.get.call(document);},set:function(v){try{if(/sdk_v|wasm|bangcle|bb_|_bb_|_d_u|h_five|serial/i.test(String(v))){push({tag:'COOKIE_SET',value:short(v,6000),href:location.href,ts:Date.now()});}}catch(e){}return desc.set.call(document,v);}});}}catch(e){push({tag:'COOKIE_HOOK_ERR',error:String(e),ts:Date.now()});}"
+           "try{if(window.WebAssembly&&WebAssembly.instantiate&&!WebAssembly.instantiate.__bbwl){var oldInst=WebAssembly.instantiate;WebAssembly.instantiate=function(src,imports){try{var b=b64buf(src);push({tag:'WASM_INSTANTIATE',bytes:(src&&src.byteLength)||0,base64:b,href:location.href,ts:Date.now()});}catch(e){push({tag:'WASM_INSTANTIATE_ERR',error:String(e),ts:Date.now()});}return oldInst.apply(this,arguments);};WebAssembly.instantiate.__bbwl=1;}}catch(e){push({tag:'WASM_HOOK_ERR',error:String(e),ts:Date.now()});}"
+           "try{if(window.WebAssembly&&WebAssembly.instantiateStreaming&&!WebAssembly.instantiateStreaming.__bbwl){var oldStream=WebAssembly.instantiateStreaming;WebAssembly.instantiateStreaming=function(resp,imports){try{push({tag:'WASM_INSTANTIATE_STREAMING',href:location.href,ts:Date.now()});}catch(e){}return oldStream.apply(this,arguments);};WebAssembly.instantiateStreaming.__bbwl=1;}}catch(e){}"
+           "push({tag:'BBWL_RUNTIME_INSTALLED',href:location.href,ts:Date.now(),cookie:document.cookie});"
+           "})();";
+}
+
 static NSString *BBWasmLensDumpScript(void) {
     return @"(function(){"
            "function s(v){try{return v==null?null:String(v);}catch(e){return '<err>';}}"
@@ -912,6 +957,18 @@ static NSString *BBWasmLensDumpScript(void) {
            "})();";
 }
 
+static void BBWasmLensDrainRuntimeEvents(WKWebView *webView, NSString *reason) {
+    if (!webView) return;
+    [webView evaluateJavaScript:@"(function(){var b=window.__BBWasmLensEvents||[];var out=b.splice(0,b.length);return JSON.stringify(out);})();"
+              completionHandler:^(id result, NSError *error) {
+        if (error) return;
+        NSString *text = [result isKindOfClass:[NSString class]] ? (NSString *)result : TweakPreviewObject(result);
+        if (text.length == 0 || [text isEqualToString:@"[]"] || [text isEqualToString:@"<nil>"]) return;
+        LogMsg([NSString stringWithFormat:@"[BBWASM] runtime events reason=%@ preview=%@", reason, TweakPreviewString(text)]);
+        BBWasmLensWriteString(@"runtime_events", reason, text);
+    }];
+}
+
 static void BBWasmLensDumpWebView(WKWebView *webView, NSString *reason) {
     if (!webView) return;
     [webView evaluateJavaScript:BBWasmLensDumpScript()
@@ -932,6 +989,7 @@ static void BBWasmLensScheduleDump(WKWebView *webView, NSString *reason) {
         int64_t ns = (int64_t)(delay.doubleValue * NSEC_PER_SEC);
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, ns), dispatch_get_main_queue(), ^{
             BBWasmLensDumpWebView(webView, [NSString stringWithFormat:@"%@_%@s", reason ?: @"unknown", delay]);
+            BBWasmLensDrainRuntimeEvents(webView, [NSString stringWithFormat:@"%@_%@s", reason ?: @"unknown", delay]);
         });
     }
 }
@@ -943,6 +1001,15 @@ static void BBWasmLensScheduleDump(WKWebView *webView, NSString *reason) {
     LogMsg([NSString stringWithFormat:@"[BBWASM] WK loadRequest %@", url]);
     WKWebView *webView = self;
     BBWasmLensScheduleDump(webView, @"loadRequest");
+    @try {
+        WKUserScript *runtimeScript = [[WKUserScript alloc] initWithSource:BBWasmLensRuntimeHookScript()
+                                                             injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                                          forMainFrameOnly:NO];
+        [webView.configuration.userContentController addUserScript:runtimeScript];
+        LogMsg(@"[BBWASM] runtime hook userScript installed");
+    } @catch (NSException *e) {
+        LogMsg([NSString stringWithFormat:@"[BBWASM] runtime hook userScript error=%@", e]);
+    }
 
     if (TweakIsInterestingH5Text(url)) {
         LogMsg([NSString stringWithFormat:@"[WK] loadRequest %@", url]);

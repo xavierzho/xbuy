@@ -4201,8 +4201,8 @@ class Session:
                 last_ms = 0
             state_matches_session = (
                 (not expected_did or state_did == expected_did)
-                and state_wasm_ver == "v1.0.8"
-                and state_alg == "py-v1.0.8"
+                and state_wasm_ver == "v1.1.3.2"
+                and state_alg == "py-v1.1.3.2"
             )
             if last_ms and now_ms - last_ms < _BANGCLE_WARMUP_MIN_INTERVAL_MS and state_matches_session:
                 return {"success": True, "skipped": True, "state": state}

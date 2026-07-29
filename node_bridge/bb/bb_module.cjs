@@ -13,7 +13,7 @@ const bb = require('./bb_sdk_1_9_6');
 
 const WASM_PATH = path.join(__dirname, 'bs_stub_1_9_6.wasm');
 const STATE_TEMPLATE_PATH = path.join(__dirname, 'live_bangcle_state_1_9_6.json');
-const DEFAULT_SIGN_WASM_VERSION = 'v1.0.8';
+const DEFAULT_SIGN_WASM_VERSION = 'v1.1.3.2';
 const LOCAL_SIGN_WASM_CANDIDATES = [
     path.join(__dirname, 'sign_wasm.bin'),
     path.join(__dirname, 'ext.bin'),
@@ -21,7 +21,7 @@ const LOCAL_SIGN_WASM_CANDIDATES = [
     path.join(__dirname, '..', '..', 'ext.bin'),
 ];
 
-const SDK_VERSION = 'V3.5.0_20260605.1_imaotai';
+const SDK_VERSION = 'V3.5.0_20260721.2_imaotai';
 
 // 棰勭儹鍗曚緥锛氳繘绋嬪唴 WASM 杩愯鏃讹紙V8 native锛岀嚎绋嬪畨鍏ㄧ敱 V8 淇濊瘉锛?
 let _runtimePromise = null;

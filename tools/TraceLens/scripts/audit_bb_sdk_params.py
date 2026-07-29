@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import re
 from collections import defaultdict
@@ -16,6 +17,7 @@ from urllib.parse import unquote
 ROOT = Path(__file__).resolve().parents[3]
 BB_DIR = ROOT / "node_bridge" / "bb"
 LOG_DIR = ROOT / "tools" / "TraceLens" / "logs" / "tracelens"
+DUMP_DIR = ROOT / "tools" / "BBWasmLens" / "dumps"
 
 
 def shorten(value: Any, size: int = 18) -> str:
@@ -46,6 +48,26 @@ def parse_wrapper(value: Any) -> Any:
             return parsed.get("value")
         return parsed
     return value
+
+
+def parse_storage_wrapper(value: Any) -> tuple[Any, int]:
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return value, 0
+    else:
+        parsed = value
+    if not isinstance(parsed, dict):
+        return parsed, 0
+    wrapped = parsed.get("value")
+    byte_len = 0
+    if isinstance(wrapped, str):
+        try:
+            byte_len = len(base64.b64decode(wrapped))
+        except Exception:
+            byte_len = 0
+    return wrapped, byte_len
 
 
 def parse_live_state(path: Path) -> dict[str, Any]:
@@ -154,21 +176,72 @@ def scan_logs(log_dir: Path) -> dict[str, list[Hit]]:
     return hits
 
 
+def scan_bbwasmlens_dumps(dump_dir: Path) -> dict[str, list[Hit]]:
+    hits: dict[str, list[Hit]] = defaultdict(list)
+    for path in sorted(dump_dir.glob("**/wk_storage_*.json")):
+        try:
+            payload = json.loads(read_text(path))
+        except (OSError, json.JSONDecodeError):
+            continue
+        cookie = str(payload.get("cookie") or "")
+        sdk = extract_first(r"(?:^|;\s*)_sdk_v_=([^;]+)", cookie)
+        add_hit(hits, "sdk_versions", path, 1, sdk, "BBWasmLens cookie")
+        globals_obj = payload.get("globals") if isinstance(payload.get("globals"), dict) else {}
+        local = payload.get("localStorage") if isinstance(payload.get("localStorage"), dict) else {}
+        add_hit(hits, "wasm_versions", path, 1, globals_obj.get("__SIGN_WASM_VERSION__", ""), "BBWasmLens globals")
+        add_hit(hits, "server_wasm_versions", path, 1, globals_obj.get("__SIGN_WASM_VERSION__", ""), "BBWasmLens globals")
+        _, byte_len = parse_storage_wrapper(local.get("__wasm_sign_wasm__"))
+        add_hit(hits, "sign_wasm_bytes", path, 1, str(byte_len), "BBWasmLens localStorage")
+        for host in re.findall(r"https://[^\"'\s]+?/bangcle", json.dumps(payload, ensure_ascii=False)):
+            add_hit(hits, "bangcle_hosts", path, 1, host, "BBWasmLens dump")
+    for path in sorted(dump_dir.glob("**/runtime_events_*.json")):
+        try:
+            payload = json.loads(read_text(path))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(payload, list):
+            continue
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            text = json.dumps(item, ensure_ascii=False)
+            for version in re.findall(r"V\d+\.\d+\.\d+_\d{8}\.\d+_imaotai", text):
+                add_hit(hits, "sdk_versions", path, 1, version, "BBWasmLens runtime")
+            for version in re.findall(r"\bv\d+\.\d+(?:\.\d+){0,3}\b", text):
+                add_hit(hits, "wasm_versions", path, 1, version, "BBWasmLens runtime")
+    return hits
+
+
+def merge_hits(*groups: dict[str, list[Hit]]) -> dict[str, list[Hit]]:
+    merged: dict[str, list[Hit]] = defaultdict(list)
+    for group in groups:
+        for key, values in group.items():
+            merged[key].extend(values)
+    return merged
+
+
 def unique_values(hits: list[Hit]) -> list[str]:
     values: list[str] = []
     seen: set[str] = set()
-    for hit in sorted(hits, key=lambda h: (h.file.stat().st_mtime, h.line), reverse=True):
+    for hit in sorted(hits, key=hit_sort_key, reverse=True):
         if hit.value not in seen:
             seen.add(hit.value)
             values.append(hit.value)
     return values
 
 
+def hit_sort_key(hit: Hit) -> tuple[float, int]:
+    match = re.search(r"_(\d{13})_", hit.file.name)
+    if match:
+        return (float(match.group(1)), hit.line)
+    return (hit.file.stat().st_mtime, hit.line)
+
+
 def latest_hit(hits: list[Hit], value: str | None = None) -> Hit | None:
     selected = [hit for hit in hits if value is None or hit.value == value]
     if not selected:
         return None
-    return max(selected, key=lambda h: (h.file.stat().st_mtime, h.line))
+    return max(selected, key=hit_sort_key)
 
 
 def rel(path: Path) -> str:
@@ -182,7 +255,7 @@ def build_report() -> str:
     module_text = read_text(BB_DIR / "bb_module.cjs")
     sdk_text = read_text(BB_DIR / "bb_sdk_1_9_6.js")
     live = parse_live_state(BB_DIR / "live_bangcle_state_1_9_6.json")
-    hits = scan_logs(LOG_DIR)
+    hits = merge_hits(scan_logs(LOG_DIR), scan_bbwasmlens_dumps(DUMP_DIR))
     local_sign_wasm = BB_DIR / "sign_wasm.bin"
 
     current = {
@@ -207,7 +280,8 @@ def build_report() -> str:
         (
             "Local sign_wasm.bin bytes",
             current["local_sign_wasm_bytes"],
-            str(live.get("decoded_sign_wasm_bytes") or live.get("wrapped_wasm_len", "")),
+            ", ".join(unique_values(hits.get("sign_wasm_bytes", []))[:5])
+            or str(live.get("decoded_sign_wasm_bytes") or live.get("wrapped_wasm_len", "")),
         ),
     ]
 
@@ -228,7 +302,7 @@ def build_report() -> str:
         "",
         "## Comparison",
         "",
-        "| Item | node_bridge baseline | latest TraceLens / live state observation |",
+        "| Item | node_bridge baseline | latest TraceLens / BBWasmLens observation |",
         "| --- | --- | --- |",
     ]
     for name, baseline, observed in rows:
@@ -241,6 +315,7 @@ def build_report() -> str:
         ("wasm_versions", "All wasm version markers"),
         ("bangcle_hosts", "Bangcle hosts"),
         ("headers", "BB headers"),
+        ("sign_wasm_bytes", "BBWasmLens sign_wasm byte lengths"),
     ):
         values = unique_values(hits.get(key, []))
         lines.append(f"### {title}")

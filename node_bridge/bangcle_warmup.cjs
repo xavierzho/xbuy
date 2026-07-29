@@ -37,7 +37,7 @@ const BB_STUB_WASM_PATH = fs.existsSync(PY_RUNTIME_WASM_PATH)
     : path.join(__dirname, 'reverse/v1.9.6/bs_stub_1_9_6.wasm');
 const BB_SIGN_WASM_PATH = fs.existsSync(PY_SIGN_WASM_PATH)
     ? PY_SIGN_WASM_PATH
-    : path.join(__dirname, 'reverse/v1.9.6/sign_wasm_v1_0_8_1_9_6.bin');
+    : path.join(__dirname, 'bb/sign_wasm.bin');
 const LIVE_BB_STRATEGY_VERSION = 6;
 const LIVE_BB_REMOTE_TASK = [
     1,
@@ -255,7 +255,7 @@ function buildState(session, input, pageDomain, now, flags) {
         bbLocalStorage: wrapped.local,
         bbSessionStorage: wrapped.session,
         bbCookieState: wrapped.cookieState,
-        __bbWarmupAlg: 'py-v1.0.8',
+        __bbWarmupAlg: 'py-v1.1.3.2',
         __bbWarmupAt: now,
         __bbStrategyAt: flags.strategyApplied ? now : Number(input.bbState?.__bbStrategyAt || 0),
         __bbWasmFetched: !!(flags.wasmFetched || flags.localWasm || input.bbState?.__bbWasmFetched),

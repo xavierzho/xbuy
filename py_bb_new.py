@@ -10,7 +10,7 @@ import time
 from typing import Any
 
 
-SDK_VERSION = "V3.5.0_20260605.1_imaotai"
+SDK_VERSION = "V3.5.0_20260721.2_imaotai"
 DEFAULT_APPID = "10001"
 DEFAULT_SIGN_WASM_VERSION = "v1.0.8"
 

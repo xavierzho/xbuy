@@ -22,8 +22,8 @@ from net_time import adjusted_unix, adjusted_unix_ms, format_mt_dtime_gmt08
 # ====================== 闂傚倸鍊搁崐鐑芥嚄閸撲礁鍨濇い鏍亼閳ь剙鍟村畷銊р偓娑櫭禍杈ㄧ節閻㈤潧孝闁稿锕幊鎾诲锤濡や胶鍘藉┑掳鍊愰崑鎾绘煟濡も偓缁绘﹢宕洪姀銈呯睄闁割偅绻勯鎰攽閻戝洨绉甸柛鎾寸懄娣囧﹥绺介崨濠備缓濡炪倖鐗楀銊╂晬瀹ュ洨纾?======================
 
 RELEASE_VER = "1.9.10"
-SHIELD_VER = "V3.5.0_20260605.1_imaotai"
-WASM_TAG = "v1.0.8"
+SHIELD_VER = "V3.5.0_20260721.2_imaotai"
+WASM_TAG = "v1.1.3.2"
 BUNDLE_ID = "com.moutai.mall"
 TRACE_TOKEN = "a3f9c2b8471de05f9b6c4e1287d5a9c1"
 RUSH_MT_INFO = "028e7f96f6369cafe1d105579c5b9377"
@@ -732,7 +732,7 @@ def build_shield_headers(
         "130": str(uid), "140": wasm_ver, "141": wasm_sig,
     }
     arr = _dict_to_arr(obj)
-    # Match captured rushPurchase BotShield shape by default: SM4-CBC outer with v1.0.8.
+    # Match captured rushPurchase BotShield shape by default: SM4-CBC outer with current sign wasm.
     method = "sm4"
     enc = None
     if wasm_outer:

@@ -2,15 +2,15 @@
 
 - Project root: `/Users/zho/Builder/StudioLLC/rushbuy`
 - Log directory: `/Users/zho/Builder/StudioLLC/rushbuy/tools/TraceLens/logs/tracelens`
-- Result: risk: BB sign wasm mismatch
+- Result: no high-risk mismatch observed
 
 ## Baseline vs Observation
 
-| Item | Local baseline | Latest TraceLens observation | Risk |
+| Item | Local baseline | Latest TraceLens / BBWasmLens observation | Risk |
 | --- | --- | --- | --- |
 | App version | `1.9.10` | `1.9.10` | `OK` |
-| BB SDK | `V3.5.0_20260605.1_imaotai` | `` | `OK` |
-| BB sign wasm | `v1.0.8 / v1.0.8` | `v1.1.3.2` | `High` |
+| BB SDK | `V3.5.0_20260721.2_imaotai` | `V3.5.0_20260721.2_imaotai` | `OK` |
+| BB sign wasm | `v1.1.3.2 / v1.1.3.2` | `v1.1.3.2` | `OK` |
 | Chrome/WebView | `138.0.7204.168` | `` | `OK` |
 | captchaId | `known mappings in app/local_yidun` | `5f1aab1567f54fdd8c137afed42af465, 22912abb4c484691b71f6efaf778c252` | `OK` |
 
@@ -31,17 +31,17 @@
 ### UA moutaiapp versions
 - No hits.
 ### BB SDK versions
-- No hits.
+- `V3.5.0_20260721.2_imaotai` from `tools/BBWasmLens/dumps/BBWasmLens/wk_storage_1785318244786_loadRequest_20s.json:1` (BBWasmLens cookie)
 ### BB wasm versions
-- `v1.1.3.2` from `tools/TraceLens/logs/tracelens/tracelens_20260728_201156.log:38` (BB wasm)
+- `v1.1.3.2` from `tools/BBWasmLens/dumps/BBWasmLens/wk_storage_1785318244786_loadRequest_20s.json:1` (BBWasmLens globals)
 ### captchaIds
 - `5f1aab1567f54fdd8c137afed42af465` from `tools/TraceLens/logs/tracelens/tracelens_20260728_201646.log:29` (response captchaId)
 - `22912abb4c484691b71f6efaf778c252` from `tools/TraceLens/logs/tracelens/tracelens_20260728_201156.log:294` (response captchaId)
 ### H5 appConfig
+- `2_1_2` from `tools/BBWasmLens/dumps/BBWasmLens/runtime_events_1785318244795_loadRequest_20s.json:1` (BBWasmLens runtime)
+- `1_1_1` from `tools/BBWasmLens/dumps/BBWasmLens/wk_storage_1785313839773_loadRequest_20s.json:1` (BBWasmLens href)
+- `2_0_1` from `tools/BBWasmLens/dumps/BBWasmLens/wk_storage_1785313501998_loadRequest_20s.json:1` (BBWasmLens href)
 - `1_0_2` from `tools/TraceLens/logs/tracelens/tracelens_20260728_201646.log:57` (H5 appConfig)
-- `1_1_1` from `tools/TraceLens/logs/tracelens/tracelens_20260728_201646.log:47` (H5 appConfig)
-- `2_1_2` from `tools/TraceLens/logs/tracelens/tracelens_20260728_201156.log:224` (H5 appConfig)
-- `2_0_1` from `tools/TraceLens/logs/tracelens/tracelens_20260728_200832.log:29` (H5 appConfig)
 - `1_1_2` from `tools/TraceLens/logs/tracelens/tracelens_20260726_195526.log:9` (H5 appConfig)
 ### Chrome/WebView versions
 - No hits.

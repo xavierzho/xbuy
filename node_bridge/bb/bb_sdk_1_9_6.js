@@ -5,7 +5,7 @@ const path = require('path');
 const vm = require('vm');
 const { sm4 } = require('sm-crypto');
 
-const SDK_VERSION_1_9_6 = 'V3.5.0_20260605.1_imaotai';
+const SDK_VERSION_1_9_6 = 'V3.5.0_20260721.2_imaotai';
 const DEFAULT_BB_APP_KEY_1_9_6 = '10001';
 const DEFAULT_BB_HOST_1_9_6 = 'https://fk1.moutai519.com.cn/bangcle';
 const DEFAULT_WASM_RUNTIME_FALLBACK_HOST_1_9_6 = 'http://172.16.202.6:9101';
