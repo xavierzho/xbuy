@@ -740,7 +740,7 @@ func execRushLoopLaneParallelWithCallback(req RushLoopRequest, onTrace func(Trac
 
 				var biz *BizResponse
 				if err != nil {
-					biz = &BizResponse{Code: float64(-1), Message: "璇锋眰寮傚父: " + err.Error()}
+					biz = &BizResponse{Code: float64(-1), Message: "请求异常: " + err.Error()}
 					statusCode = 0
 				} else {
 					biz = parseBizResponse(statusCode, body)

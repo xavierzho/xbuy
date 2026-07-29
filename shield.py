@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-闂傚倸鍊峰ù鍥敋瑜嶉湁闁绘垼妫勭粻鐘绘煙閹冩闁搞儺鍓﹂弫宥夋煟閹邦垰鐨洪柣鎾村灴濡懘顢曢姀鈥愁槱缂備礁顑嗙敮锟犲箖閻愮數纾兼俊顖濐嚙瀵灝鈹戦绛嬫當婵☆偅顨嗙粋宥呂旈崘顏嗭紲闁荤姴娲ゅ鍫曀夐悩缁樼厓鐟滄粓宕滃棰濇晩闁哄稁鍘肩粣妤佷繆閵堝倸浜鹃柣鎾卞€栭幈銊ヮ渻鐠囪弓澹曟俊?- 缂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏂垮⒔閻瑩鏌熼悜姗嗘當缁炬儳娼￠弻鐔煎箚閻楀牜妫勭紓?闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔虹磼閵忕姵鐏嶉梺?闂傚倸鍊搁崐椋庣矆娴ｉ潻鑰块梺顒€绉埀顒婄畵瀹曠厧顭垮┑鍥ㄣ仢濠碘剝鎮傛俊?婵犵數濮烽。顔炬閺囥垹纾绘繛鎴欏焺閺佸嫰鏌涘☉鍗炵仚闁稿鎸搁埥澶愬箳閹惧褰囬梻浣芥〃缁讹繝宕抽敐鍛殾婵犲﹤瀚刊鎾煙缂佹ê绗傚瑙勬礃缁绘稒娼忛崜褍鍩岄梺鍝ュУ閼归箖鈥﹂崶顒€绠涙い鎴ｅГ閺傗偓?
+茅台请求签名与 BotShield 头生成工具；整合 App 侧 MT-V 签名、AES 参数加密、H5 设备指纹、瑞数 BB 请求头、WASM 签名和抢购请求构建逻辑。
 """
 
 import base64
@@ -19,7 +19,7 @@ from typing import Dict, Any, List, Tuple, Optional, Union
 from net_time import adjusted_unix, adjusted_unix_ms, format_mt_dtime_gmt08
 
 
-# ====================== 闂傚倸鍊搁崐鐑芥嚄閸撲礁鍨濇い鏍亼閳ь剙鍟村畷銊р偓娑櫭禍杈ㄧ節閻㈤潧孝闁稿锕幊鎾诲锤濡や胶鍘藉┑掳鍊愰崑鎾绘煟濡も偓缁绘﹢宕洪姀銈呯睄闁割偅绻勯鎰攽閻戝洨绉甸柛鎾寸懄娣囧﹥绺介崨濠備缓濡炪倖鐗楀銊╂晬瀹ュ洨纾?======================
+# ====================== 运行时常量与抓包基线 ======================
 
 RELEASE_VER = "1.9.10"
 SHIELD_VER = "V3.5.0_20260721.2_imaotai"
@@ -27,10 +27,10 @@ WASM_TAG = "v1.1.3.2"
 BUNDLE_ID = "com.moutai.mall"
 TRACE_TOKEN = "a3f9c2b8471de05f9b6c4e1287d5a9c1"
 RUSH_MT_INFO = "028e7f96f6369cafe1d105579c5b9377"
-# mt1.9.6 test-full-flow.js rushPurchase 婵犵數濮烽弫鎼佸磻閻樿绠垫い蹇撴缁€濠囨煃瑜滈崜姘辨崲濞戞瑥绶為悗锝庡亞椤︿即鎮楀▓鍨珮闁稿锕ユ穱濠囨嚋闂堟稓绐為柣搴秵娴滄粍绔熼崟顖涒拻濞达絽鎲￠崯鐐寸箾鐠囇呯暤鐎规洘鍨垮畷銊╊敍濠婂懐鍔稿┑鐘绘涧閸婃悂骞夐敓鐘茬９?MT-Info闂傚倸鍊搁崐鐑芥倿閿旈敮鍋撶粭娑樻噽閻瑩鏌熸潏楣冩闁稿顑夐弻娑樷槈閸楃偟浠紓浣哄У濮婂鍩€椤掆偓閸樻粓宕戦幘缁樼厱闁哄洢鍔屾禍鐐淬亜锜婚崶銊у幗闂佺粯顭堝畷鐢垫閻楀牏绠鹃柛婊冨暟缁夘喚鈧?H5 闂?TRACE_TOKEN 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭罕闂佸搫娲㈤崹鍦不鐟欏嫨浜滈柟鏉垮閻ｉ亶鏌涢妸銉モ偓鍧楃嵁閺嶎灔搴敆閳ь剚淇婃禒瀣厸?RUSH_MT_INFO = "028e7f96f6369cafe1d105579c5b9377"
+# mt1.9.6 test-full-flow.js 的 rushPurchase 抓包基线：RELEASE_VER 对应 App 版本，SHIELD_VER 对应 BB SDK 版本，WASM_TAG 对应 sign_wasm 版本。
 DEFAULT_APPID = "10001"
 
-# 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鍨鹃幇浣圭稁缂傚倷鐒﹁摫闁告瑥绻橀弻鐔虹磼閵忕姵鐏嶉梺绋块閿曨亪寮婚悢鍛婄秶闁告挆鍛闂備焦妞块崢浠嬨€冩繝鍥ц摕婵炴垶鐭▽顏堟煕閹炬せ鍋撳┑顔兼搐閳?
+# AES 参数加密密钥、XOR 初始种子、MT-V 随机字符集和可用签名 MD5 池。
 _ENC_SECRET = b"3a79d$e4c2169a#fbd24c583ae71c0b9"[:32]
 _ENC_NONCE = b"7392645081974362"
 _XOR_SEED = 72
@@ -41,20 +41,20 @@ _VALID_HASHES = [
 ]
 
 
-# ====================== 闂傚倸鍊搁崐鐑芥嚄閸撲焦鍏滈柛顐ｆ礀閻ら箖鏌ｉ幇顓犮偞闁哄绉归弻銊モ攽閸♀晜肖闂侀€炲苯鍘哥紒鑸佃壘閻ｇ兘濡搁埡濠冩櫍閻熸粌绉瑰鏌ユ偐缂佹ǚ鎷洪梻鍌氱墛娓氭危閸洘鐓曢幖绮光偓瀹犲煘濡?======================
+# ====================== 基础哈希与 XOR 工具 ======================
 
 def _md5(text: str) -> str:
     return hashlib.md5(text.encode('utf-8')).hexdigest()
 
 
 def _md5_raw(text: str) -> str:
-    """MD5 without zero padding for Java Integer.toHexString compatibility."""
+    """生成不补零的 MD5 十六进制字符串，对齐 Java Integer.toHexString。"""
     digest = hashlib.md5(text.encode('utf-8')).digest()
     return ''.join(format(b, 'x') for b in digest)
 
 
 def _stream_xor(data: str, seed: int = _XOR_SEED) -> str:
-    """Streaming XOR with cumulative seed."""
+    """带累积种子的流式 XOR。"""
     buf = []
     for ch in data:
         seed ^= ord(ch)
@@ -62,7 +62,7 @@ def _stream_xor(data: str, seed: int = _XOR_SEED) -> str:
     return ''.join(buf)
 
 
-# ====================== 64婵犵數濮烽弫鎼佸磻閻樿绠垫い蹇撴缁躲倝鏌ｉ敐鍛伇闁活厽鎹囬弻鐔虹磼閵忕姵鐏堢紓浣哄Т缂嶅﹤顕ｉ崼鏇為唶婵﹩鍘介悵鏇㈡⒑閸濆嫭顥炵紒顔奸叄閸┾偓妞ゆ巻鍋撻柛妯荤矒瀹曟垿骞樼紒妯煎幈闂佽婢橀崥鈧紒銊ㄥГ閵囧嫰骞橀悷棰佹睏缂?======================
+# ====================== MurmurHash3 x64 128 位原语 ======================
 
 def _add64(a, b):
     a = [a[0] >> 16, a[0] & 0xFFFF, a[1] >> 16, a[1] & 0xFFFF]
@@ -131,7 +131,7 @@ def _to_utf8(s):
 
 
 def fingerprint_hash(data, seed=0, cap=None, tail=None):
-    """MurmurHash3 x64 128-bit"""
+    """MurmurHash3 x64 128 位。"""
     t = _to_utf8(data) if isinstance(data, str) else list(data)
     if cap: t = t[:cap]
     if tail: t = t + _to_utf8(tail)
@@ -185,7 +185,7 @@ def fingerprint_hash(data, seed=0, cap=None, tail=None):
             format(_u32(h2[0]),'08x') + format(_u32(h2[1]),'08x'))
 
 
-# ====================== SM4 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁嶉崟顒佹闂佸湱鍎ら崵锕€鈽夊Ο閿嬵潔濠殿喗锕╅崜娆撴倶婵犲洦鍊垫鐐茬仢閸旀碍绻涢懠顒€鈻堢€规洘鍨块獮妯肩磼濮楀棙顥堟繝鐢靛仦閸ㄥ爼鎮烽姣兼盯濡舵径瀣ф嫼?======================
+# ====================== SM4-CBC 加密实现 ======================
 
 _S = [
     214,144,233,254,204,225,61,183,22,182,20,194,40,251,44,5,
@@ -275,7 +275,7 @@ def _str2b(s):
     return r
 
 def cipher_enc(plain, key_hex, iv_hex):
-    """Return SM4-CBC encrypted hex."""
+    """返回 SM4-CBC 加密后的十六进制字符串。"""
     kb = _hex2b(key_hex); ib = _hex2b(iv_hex)
     data = _str2b(plain)
     pad = 16 - (len(data) % 16); data.extend([pad]*pad)
@@ -288,7 +288,7 @@ def cipher_enc(plain, key_hex, iv_hex):
     return ''.join(format(b, '02x') for b in out)
 
 def cipher_dec(ct_hex, key_hex, iv_hex):
-    """Return SM4-CBC decrypted text."""
+    """返回 SM4-CBC 解密后的文本。"""
     kb = _hex2b(key_hex); ib = _hex2b(iv_hex); data = _hex2b(ct_hex)
     rk = _rkeys(kb, False)
     out = []; prev = ib[:]
@@ -300,17 +300,17 @@ def cipher_dec(ct_hex, key_hex, iv_hex):
     return bytes(out).decode('utf-8')
 
 
-# ====================== 闂傚倸鍊峰ù鍥敋瑜旈弻濠囨晲閸滀胶鍔烽悷婊冪Х閻忓鈹戦悩缁樻锭妞ゆ垵鎳愮划濠氭偋閸垻鐦堟繝鐢靛Т閸婃悂鐛Ο鑽ょ鐎瑰壊鍠曠花鑽ょ磼閳ь剟宕奸姀鈥虫瀾闁瑰吋鐣崝宀勬偪?======================
+# ====================== BotShield SM4 密钥派生 ======================
 
 def _derive_key(seed_str):
     r = fingerprint_hash(seed_str + "_bsdk_", seed=27)
     return r.lower() if r else "9eqaw+jthssyswpl9eqaw+jthssyswpl"
 
 
-# ====================== 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸缁犵娀骞栨潏鍓хɑ鐎规洘鐓￠弻鐔衡偓娑欘焽婵″洭鏌￠埀顒勬晝閸屾稓鍘撻悷婊勭矒瀹曟粓鎮㈤悡搴ゆ憰闂佺偨鍎查崜姘跺触鐎ｎ喗鐓曟繛鎴濆船閺嬨倝鏌嶇憴鍕创婵?======================
+# ====================== BotShield 随机 ID 与 GUID ======================
 
 def _rand_id():
-    # 闂傚倸鍊峰ù鍥敋瑜旈弻濠囨晲閸滀胶鍔烽悷婊冪箳濡叉劙鎮欑€靛摜鐦堥梺鍛婃处閸橀箖藝?py1.9.6\crypto.py:get_random_id闂傚倸鍊搁崐鐑芥倿閿旈敮鍋撶粭娑樻噽閻瑩鏌熸潏楣冩闁稿顑夐弻娑樷槈閸楃偞鐏撶紓浣哄█缁犳牠寮诲☉銏犖ㄦい鏃傚帶椤亪姊虹粙娆惧剭闁告梹鍨垮濠氬即閻旇櫣顔曢悷婊冪Ф閳ь剚鍑归崜鐔煎箖閻愬搫绠瑰ù锝呮贡閸樹粙鏌熼懖鈺勊夐柛鎾寸箘閹峰綊鏁撻悩宕囧幈闁诲函缍嗛崜娆撳几濞戙垺鐓涢悘鐐垫櫕婢с垽鏌嶈閸撶喎顭囪楠炴顭ㄩ崨顓ф婵犻潧鍊搁幉锟犳偂閻斿吋鐓涢柛灞剧☉椤曟粓鏌涢悢鍝勪沪闁靛洤瀚悢渚€鏌涢妷锝呭Ψ闁瑰嘲顭峰铏圭矙閹稿孩鎷辩紓浣筋嚙閸熸娊濡甸幇顖ｆЬ缂?
+    # 对齐 py1.9.6/crypto.py:get_random_id，用毫秒时间戳和随机 nibble 生成 32 位随机串。
     parts = [str(int(time.time() * 1000)) for _ in range(3)]
     tpl = ''.join(parts).replace(".", "x")[:32].ljust(32, "x")
     ts = int(time.time() * 1000)
@@ -322,7 +322,7 @@ def _rand_id():
 
 
 def _make_guid():
-    # 闂傚倸鍊峰ù鍥敋瑜旈弻濠囨晲閸滀胶鍔烽悷婊冪箳濡叉劙鎮欑€靛摜鐦堥梺鍛婃处閸橀箖藝?py1.9.6\crypto.py:_guid闂傚倸鍊搁崐鐑芥倿閿旈敮鍋撶粭娑樻噽閻瑩鏌熸潏楣冩闁稿顑夐弻娑樷槈閸楃偞鐏撶紓浣哄█缁犳牠寮诲☉銏犖ㄦい鏃傚帶椤亪姊虹粙娆惧剭闁告梹鍨垮濠氬即閻旇櫣顔曢悷婊冪Ф閳ь剚鍑归崜鐔煎箖閻愬搫绠瑰ù锝呮贡閸樹粙鏌熼懖鈺勊夐柛鎾寸箘閹峰綊鏁撻悩宕囧幈闁诲函缍嗛崜娆撳几濞戙垺鐓涢悘鐐垫櫕婢с垽鏌嶈閸撶喎顭囪楠炴顭ㄩ崨顓ф婵犻潧鍊搁幉锟犳偂閻斿吋鐓涢柛灞剧☉椤曟粓鏌涢悢鍝勪沪闁靛洤瀚悢渚€鏌涢妷锝呭Ψ闁瑰嘲顭峰铏圭矙閹稿孩鎷辩紓浣筋嚙閸熸娊濡甸幇顖ｆЬ缂?
+    # 对齐 py1.9.6/crypto.py:_guid，生成类 UUID 字符串供 H5 指纹和 cookie 使用。
     ts = int(time.time() * 1000)
     tpl = "xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx"
     buf = []
@@ -342,7 +342,7 @@ def _base36(n):
     return ''.join(reversed(r))
 
 
-# ====================== 闂傚倸鍊烽懗鍫曞箠閹捐瑙﹂悗锝庝憾閻掕姤绻涢崱妯虹仸鐎规洘鐓￠弻鐔兼偋閸喓鍑￠梺鎼炲妼閸婂綊濡甸崟顔剧杸闁规崘娉涢。铏圭磽娴ｆ彃浜?======================
+# ====================== BotShield 对象序列化 ======================
 
 def _serialize(obj, depth=0):
     depth = depth + 1 if isinstance(depth, int) else 1
@@ -380,10 +380,10 @@ def _dict_to_arr(obj):
     return r
 
 
-# ====================== 闂傚倸鍊搁崐宄懊归崶褜娴栭柕濞炬櫆閸ゅ嫰鏌ょ粙璺ㄤ粵婵炲懐濮垫穱濠囧Χ閸屾矮澹曢梻浣风串缁蹭粙鎮樺璺虹闁告侗鍠楁慨婊堟煙濞堝灝鏋涘褎鍎抽埞鎴︽倷閼搁潧娑х紓浣瑰絻濞硷繝骞冨ú顏勬閻?======================
+# ====================== BotShield 数据封装与加密 ======================
 
 def _wrap_data(data, sk=None, dk=None, iv=None):
-    # Match py1.9.6 crypto.py process_data: SM4-CBC, key=dk, iv=dk.
+    # 对齐 py1.9.6/crypto.py:process_data，SM4-CBC 的 key 和 iv 都取 dk。
     if not sk:
         sk = _rand_id()
     if not dk: dk = _derive_key(sk)
@@ -394,7 +394,7 @@ def _wrap_data(data, sk=None, dk=None, iv=None):
 
 
 def _wrap_data_wasm(data, timestamp_ms=None) -> Optional[str]:
-    """Use WASM en() for Content-Web-Bb; return None to fall back to SM4."""
+    """使用 WASM en() 生成 Content-Web-Bb；失败时返回 None 走 SM4 兜底。"""
     state = _acquire_shield_instance()
     if state is None:
         return None
@@ -431,7 +431,7 @@ def _wrap_data_wasm(data, timestamp_ms=None) -> Optional[str]:
         _release_shield_instance(state)
 
 
-# ====================== WASM 闂傚倷娴囬褏鈧稈鏅犻、娆撳冀椤撶偟鐛ュ┑掳鍊愰崑鎾绘偂閵堝棙鍙忔俊鐐额嚙娴滄儳螖閻橀潧浠﹂柣妤冨█閻涱噣寮介妸锕€顎撻柣鐔哥懃鐎氼參鎮?.0.8闂?=====================
+# ====================== WASM 运行时与实例池 ======================
 
 try:
     import wasmtime as _wt
@@ -560,7 +560,7 @@ def _create_shield_instance(engine, module):
 
 
 def _ensure_shield_pool():
-    """Lazy initialize shared WASM engine/module and pool semaphore."""
+    """懒加载共享 WASM engine/module 和实例池信号量。"""
     global _wasm_pool_sem
     if _wasm_pool_sem is not None:
         return True
@@ -602,7 +602,7 @@ def _release_shield_instance(state):
 
 
 def prewarm_pool(target: int = None, workers: int = 8) -> int:
-    """Prewarm WASM instances and return the current pool size."""
+    """预热 WASM 实例并返回当前池大小。"""
     if not _ensure_shield_pool():
         return 0
     if target is None:
@@ -640,7 +640,7 @@ def _init_wasm():
 
 
 def compute_wasm_sig(did, sig, extra=None, timestamp_ms=None):
-    """Compute the WASM run_wac signature."""
+    """计算 WASM run_wac 签名。"""
     wb = extra or _wasm_sign_bytes()
     if not wb:
         return None
@@ -691,7 +691,7 @@ def compute_wasm_sig(did, sig, extra=None, timestamp_ms=None):
         _release_shield_instance(state)
 
 
-# ====================== 闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸閻ゎ喗銇勯幇鈺佺労闁搞倖娲熼弻銈囩矙鐠恒劋绮甸梺鍛婄懃缁绘﹢寮婚弴锛勭杸濠电偞鍎虫禍鍓р偓瑙勬礀濞层劑鎮伴鈧铏规嫚閺屻儱寮板┑鐐板尃閸パ呯枀闂佽法鍠撴慨鎾偪妤ｅ啯鐓欓梻鍌氼嚟閸斿秹鏌?======================
+# ====================== Content-Web-Bb / Content-Hh-Bb 请求头生成 ======================
 
 _SLOT = {
     "appid":0, "devid":1, "sessid":2, "ua":3, "devfp":4,
@@ -707,15 +707,15 @@ def build_shield_headers(
     rush=False, wasm_bytes=None, timestamp_ms=None,
     wasm_outer=False,
 ):
-    # 闂傚倸鍊峰ù鍥敋瑜旈弻濠囨晲閸滀胶鍔烽悷婊冪箳濡叉劙鎮欑€靛摜鐦堥梺鍛婃处閸橀箖藝?py1.9.6\crypto.py:generate_content_web_bb
+    # 对齐 py1.9.6/crypto.py:generate_content_web_bb：先序列化请求数据计算 Content-Hh-Bb，再按字段顺序组装 BB 数组并加密。
     nonce = _rand_id()
     sig = fingerprint_hash(req_data, seed=27, cap=4096, tail=nonce)
     try:
         ts_ms = int(timestamp_ms) if timestamp_ms not in (None, "") else int(adjusted_unix_ms())
     except (TypeError, ValueError):
         ts_ms = int(adjusted_unix_ms())
-    # ProxyPin 2026-05-20 rushPurchase capture uses SM4 outer and empty 141.
-    # Optional wasm_outer keeps all shield.py field/sign inputs unchanged, then fills 141 and encrypts via wasm en().
+    # ProxyPin 2026-05-20 rushPurchase 抓包使用 SM4 外层加密，141 为空。
+    # 可选 wasm_outer 会保持字段和签名输入不变，再填充 141 并通过 WASM en() 加密。
     if wasm_outer and not wasm_sig:
         ws = compute_wasm_sig(devid, sig, wasm_bytes, timestamp_ms=ts_ms)
         if not ws:
@@ -732,7 +732,7 @@ def build_shield_headers(
         "130": str(uid), "140": wasm_ver, "141": wasm_sig,
     }
     arr = _dict_to_arr(obj)
-    # Match captured rushPurchase BotShield shape by default: SM4-CBC outer with current sign wasm.
+    # 默认对齐抓包到的 rushPurchase BotShield 形态：SM4-CBC 外层加密，sign_wasm 使用当前版本。
     method = "sm4"
     enc = None
     if wasm_outer:
@@ -761,7 +761,7 @@ def build_shield_headers(
 
 
 def decrypt_shield(val):
-    """Decrypt Content-Web-Bb."""
+    """解密 Content-Web-Bb。"""
     iv_part, ct = val[:32], val[32:]
     sk = ''.join(format(1^int(c,16),'x') for c in iv_part)
     dk = _derive_key(sk)
@@ -792,7 +792,7 @@ def shield_for_get(url, **kw):
     return build_shield_headers(s, **kw)
 
 
-# ====================== 闂傚倸鍊峰ù鍥х暦閸偅鍙忛柟鎯板Г閸婂潡鏌ㄩ弴鐐测偓鍝ュ閸ф鐓欓悹鍝勬惈椤ョ偤鏌涢妷顔煎⒒闁轰礁妫濋弻娑㈠即閵娿儰绨婚梺鍝ュ亼閸旀垵顫忓ú顏勭闁绘劖褰冩慨鑸电箾鐎涙鐭岄柛瀣☉瀹?======================
+# ====================== App 设备标识与环境标签 ======================
 
 def make_raw_id(imei="", mac="", aid="", serial=""):
     if imei and mac: s = imei + "@" + mac
@@ -809,7 +809,7 @@ def make_device_token(raw_id):
 
 
 def _invert_stream_xor(buf: str, seed_init: int = _XOR_SEED) -> str:
-    """Convert raw_id to the clips_ device id."""
+    """把 raw_id 转为 clips_ 设备 ID。"""
     raw_chars = []
     for i, ch in enumerate(buf):
         out_ord = ord(ch)
@@ -819,7 +819,7 @@ def _invert_stream_xor(buf: str, seed_init: int = _XOR_SEED) -> str:
 
 
 def raw_id_from_mt_device_token(device_token: str) -> Optional[str]:
-    """Convert the MT clips_ device id back to raw_id."""
+    """把 MT clips_ 设备 ID 还原为 raw_id。"""
     if not device_token or not device_token.startswith("clips_"):
         return None
     try:
@@ -830,7 +830,7 @@ def raw_id_from_mt_device_token(device_token: str) -> Optional[str]:
 
 
 def raw_id_from_mt_jwt(jwt_str: str) -> Optional[str]:
-    """Restore raw_id from the deviceId field in an MT JWT payload."""
+    """从 MT JWT payload 的 deviceId 字段还原 raw_id。"""
     if not (jwt_str or "").strip():
         return None
     parts = jwt_str.split(".")
@@ -857,7 +857,7 @@ def make_cert_tag(cert_md5="2f5ae2348f427a666876d7da3563a7d2"):
 
 
 def make_env_tag_for_raw_id(raw_id: str) -> str:
-    """Derive MT-R from raw_id."""
+    """根据 raw_id 派生 MT-R。"""
     rid = (raw_id or "").strip()
     if not rid:
         return make_env_tag()
@@ -866,7 +866,7 @@ def make_env_tag_for_raw_id(raw_id: str) -> str:
 
 
 def make_cert_tag_for_raw_id(raw_id: str) -> str:
-    """Derive the MT-SN / MT-ACB fingerprint segment from raw_id."""
+    """根据 raw_id 派生 MT-SN / MT-ACB 指纹片段。"""
     rid = (raw_id or "").strip()
     if not rid:
         return make_cert_tag()
@@ -875,7 +875,7 @@ def make_cert_tag_for_raw_id(raw_id: str) -> str:
 
 
 def _xor_encrypt_md5_hex_sn(sn_plain: str, key: int = 72) -> bytes:
-    """Match mt1.9.6 xorEncrypt(snPlain, 72)."""
+    """对齐 mt1.9.6 xorEncrypt(snPlain, 72)。"""
     out = bytearray()
     current_key = key
     for char in sn_plain:
@@ -886,7 +886,7 @@ def _xor_encrypt_md5_hex_sn(sn_plain: str, key: int = 72) -> bytes:
 
 
 def generate_mt_sn() -> str:
-    """Generate a fresh MT-SN value."""
+    """生成新的 MT-SN 值。"""
     session_data = f"{_uuid.uuid4()}{adjusted_unix()}{random.random()}"
     sn_plain = _md5(session_data)
     buf = _xor_encrypt_md5_hex_sn(sn_plain, 72)
@@ -894,11 +894,11 @@ def generate_mt_sn() -> str:
 
 
 def format_d_time_mt_order_header() -> str:
-    """Format MT-DTIME."""
+    """格式化 MT-DTIME。"""
     return format_mt_dtime_gmt08()
 
 
-# ====================== 闂傚倸鍊峰ù鍥х暦閸偅鍙忛柡澶嬪殮濞差亶鏁囬柕蹇曞Х閸濇姊绘笟鍥у缂佸鏁诲畷鏇㈠箣閿旂晫鍘靛┑鐐茬墕閻忔繈寮搁妶鍜佹富閻熸瑥瀚埢鏇㈡煛瀹€鈧崰鏍€佸☉銏犲耿婵°倐鍋撴い蹇婃櫊閺?======================
+# ====================== MT-K / MT-V 请求签名 ======================
 
 def sign_request(ts, dev_id, extra="", ver=RELEASE_VER, plat="android"):
     combined = ("iOS" if plat.lower()=="ios" else "android") + ts + dev_id + extra + ver
@@ -920,7 +920,7 @@ def make_kv_pair(dev_id, ver=RELEASE_VER, plat="android", timestamp_ms=None):
 
 
 def sign_mtv_h5_rush(ts: str, device_info: str, ver: Optional[str] = None) -> str:
-    """Sign H5 rushPurchase MT-V from MT-K and device info."""
+    """根据 MT-K 和 device_info 生成 H5 rushPurchase 的 MT-V。"""
     ver = ver or RELEASE_VER
     base_str = f"{ts}{device_info or ''}{ver}android"
     chars = list(base_str)
@@ -936,12 +936,12 @@ def sign_mtv_h5_rush(ts: str, device_info: str, ver: Optional[str] = None) -> st
 
 
 def make_h5_rush_kv_pair(device_info: str, ver: Optional[str] = None) -> Tuple[str, str]:
-    """Sign H5 rushPurchase MT-V from MT-K and device info."""
+    """根据 MT-K 和 device_info 生成 H5 rushPurchase 的 MT-V。"""
     k = str(adjusted_unix_ms())
     return k, sign_mtv_h5_rush(k, device_info or "", ver)
 
 
-# ====================== AES 闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂侀潧顦弲娑氬閸︻厽鍠愰柣妤€鐗嗙粭鎺撴叏鐟欏嫮鍙€闁哄矉缍佸顕€宕掑顑跨帛缂傚倷璁查崑鎾愁熆閼搁潧濮堥柣鎾跺枑娣囧﹪顢涘鍙樿檸闂佹眹鍔庨崕銈嗙┍?======================
+# ====================== actParam AES 参数加密 ======================
 
 def param_encrypt(plaintext):
     try:
@@ -978,7 +978,7 @@ def unseal_param(enc):
     return json.loads(param_decrypt(enc))
 
 
-# ====================== H5 闂傚倸鍊搁崐椋庣矆娴ｉ潻鑰块梺顒€绉埀顒婄畵瀹曠厧顭垮┑鍥ㄣ仢濠碘剝鎮傛俊鐑藉箛鐏炶棄鎮╅柡鍐ㄧ墕瀹告繃銇勯弮鍫燂紵缂傚倹鎹囧缁樻媴閾忕懓绗″┑顔硷工椤兘鍨鹃敃鍌氶唶闁靛绠戦埀?======================
+# ====================== 瑞数 H5 设备指纹与 cookie ======================
 
 _MODELS = [
     {"ua":"mozilla/5.0 (linux; android 14; sm-g991b build/up1a.231005.007; wv) applewebkit/537.36 (khtml, like gecko) version/4.0 chrome/124.0.6367.179 mobile safari/537.36",
@@ -1004,7 +1004,7 @@ def _clean_ua(ua):
 
 
 def make_h5_devid(**kw):
-    # Generate an H5 device fingerprint id.
+    # 生成 H5 设备指纹 ID。
     m = random.choice(_MODELS)
     ua = kw.get("ua") or m["ua"]
     feats = [
@@ -1058,7 +1058,7 @@ def make_du_cookie(did, sessid, ua=None, domain="h5.moutai519.com.cn", hp="", ap
     return enc
 
 
-# ====================== 闂傚倸鍊峰ù鍥敋瑜嶉湁闁绘垼妫勭粻鐘绘煙閹规劦鍤欓悗姘槹閵囧嫰骞掗幋婵愪患濠殿喛顫夐悡锟犲蓟閵娿儮鏀介柛鈩兠ˇ鈺呮煟鎼淬垻顣茬€光偓缁嬫娼栨繛宸簻閸ㄥ倹銇勯弴鐐村櫣闁告挸鍟块埞鎴︽偐椤愵澀澹曢梺璇插缁嬫帞婀佺紓浣筋嚙濡瑩濡甸崟顖氬唨妞ゎ厽鍨堕悾鑸电節閳封偓閸愩劎楠囩紓?======================
+# ====================== 完整抢购请求构建 ======================
 
 def build_rush(item, act_id, dev_id, cookie, amount="1", ver=RELEASE_VER,
                ua="", h5did=None, h5sid=None, h5uid="", wv=WASM_TAG):
@@ -1093,21 +1093,21 @@ def build_rush(item, act_id, dev_id, cookie, amount="1", ver=RELEASE_VER,
 
 
 if __name__ == "__main__":
-    print("=== 缂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏂垮⒔閻瑩鏌熼悜姗嗘當缁炬儳娼￠弻鐔煎箚閻楀牜妫勭紓浣哄У閻楃娀寮婚敓鐘茬倞闁宠桨绀佹竟澶愭⒑閹肩偛鈧牕煤閻旂厧钃熼柨鐔哄Т閻愬﹪鏌嶆潪鎵妽闁诲酣绠栧铏规嫚閳ュ磭浠梺鐑╂櫓閸ㄨ泛顕ｆ繝姘ч柛鈩冪懇濡绢喗绻濋姀锝嗙【妞わ箓浜跺畷娆撴偡闁附瀵?===")
+    print("=== shield.py 自检 ===")
     rid = make_raw_id(aid="test_android_id")
     dt = make_device_token(rid)
     k, v = make_kv_pair(rid)
     did = make_h5_devid()
     sid = make_h5_session()
-    print(f"  闂傚倸鍊峰ù鍥х暦閸偅鍙忛柟鎯板Г閸婂潡鏌ㄩ弴鐐测偓鍝ュ閸ф鐓欓悹鍝勬惈椤ョ偤鏌涢妷顔煎闁稿濮撮埥?   {dt}")
-    print(f"  缂傚倸鍊搁崐鎼佸磹閻戣姤鍊块柨鏂垮⒔閻瑩鏌熼悜姗嗘當缁炬儳娼￠弻鐔煎箚閻楀牜妫勭紓浣哄У閻楃娀寮?V:  {k} / {v}")
-    print(f"  H5闂傚倸鍊搁崐椋庣矆娴ｉ潻鑰块梺顒€绉埀顒婄畵瀹曠厧顭垮┑鍥ㄣ仢濠碘剝鎮傛俊?   {did} (len={len(did)})")
-    print(f"  婵犵數濮烽弫鎼佸磻閻愬樊鐒芥繛鍡樻尭鐟欙箓鎮楅敐搴′簽闁崇懓绉电换娑橆啅椤旇崵鍑归梺绋块閿曪妇妲愰幒鎳ㄥ湱鈧綆浜欐竟鏃?   {sid}")
+    print(f"  MT-Device-ID: {dt}")
+    print(f"  MT-K / MT-V:  {k} / {v}")
+    print(f"  H5 设备 ID:   {did} (len={len(did)})")
+    print(f"  H5 会话:      {sid}")
     ap = seal_param({"test": True})
     assert unseal_param(ap) == {"test": True}
-    print("  闂傚倸鍊搁崐椋庣矆娓氣偓楠炲鏁撻悩鍐蹭画闂侀潧顦弲娑氬閸︻厽鍠愰柣妤€鐗嗙粭鎺撴叏鐟欏嫮鍙€闁哄矉缍佸顕€宕掑顑跨帛缂傚倷璁查崑鎾愁熆閼搁潧濮堥柣鎾跺枑娣囧﹪顢涘顒佸€紒鍓ц檸娴滎亪寮婚悢鍏煎€绘俊顖濆吹閸樻悂姊? OK")
+    print("  AES 加解密: 通过")
     bb = shield_for_post({"actParam": ap}, devid=did, sessid=sid, uid="123")
     dec = decrypt_shield(bb["Content-Web-Bb"])
     assert dec["fields"]["appid"] == DEFAULT_APPID
-    print(f"  闂傚倸鍊搁崐鎼佸磹閹间礁纾归柟闂寸閻ゎ喗銇勯幇鈺佺労闁搞倖娲熼弻銈囩矙鐠恒劋绮甸梺鍛婄懃缁绘﹢寮婚弴锛勭杸濠电偞鍎虫禍鍓р偓瑙勬礀濞层劑鎮伴鈧铏规嫚閺屻儱寮板┑鐐板尃閸パ呯枀闂佽法鍠撴慨鎾偪妤ｅ啯鐓欓梻鍌氼嚟閸斿秹鏌?闂傚倸鍊峰ù鍥х暦閻㈢绐楅柟鎵閸嬶繝寮堕崼姘珔缂佽翰鍊曢湁闁绘ê妯婇崕鎰版煕? OK")
-    print("=== 闂傚倸鍊搁崐鐑芥嚄閸洍鈧箓宕奸姀鈥冲簥闂佸壊鍋侀崕杈╃矆婢舵劖鐓欓弶鍫濆⒔閻ｈ京鐥幆褎鍋ラ柡宀€鍠撶槐鎺楀閻樺磭浜堕梻浣虹帛鐢偟鍒掗鐐茬疄闁靛鍎欓悢鍏兼優闁谎冩憸缁€濠勭磽?===")
+    print("  Content-Web-Bb 解密校验: 通过")
+    print("=== 自检通过 ===")
