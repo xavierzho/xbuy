@@ -35,7 +35,7 @@ const CHROME_VERSIONS = [
 ];
 
 const APP_VERSIONS = [
-    '1.8.5', '1.8.8', '1.9.0', '1.9.3', '1.9.6', '1.9.9', '2.0.0', '2.0.3', '2.1.0',
+    '1.9.10',
 ];
 
 function randInt(min, max) {
@@ -112,4 +112,3 @@ module.exports = {
     genDeviceId,
     genBsDvid,
 };
-

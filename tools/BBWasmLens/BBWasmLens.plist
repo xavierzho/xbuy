@@ -1,0 +1,10 @@
+{
+    Filter = {
+        Bundles = (
+            "com.moutai.mall"
+        );
+        Executables = (
+            "moutai-mall"
+        );
+    };
+}

@@ -10,7 +10,7 @@
  *   jpmt-detail              -> 22912abb4c484691b71f6efaf778c252  // 精品茅台 JPMT，code=1741
  *   mm-485-detail-group      -> c2657d2cc1f248a78c5a06980923dba5  // 丙午马年 mm-485，code=11942/11945/11947
  *   hxx-detail               -> c2657d2cc1f248a78c5a06980923dba5  // 黄小西 HXX，code=11652/11654
- *   gyft-8392-detail         -> c2657d2cc1f248a78c5a06980923dba5  // 贵州飞天 8392 1L 系列
+ *   gyft-8392-detail         -> 5f1aab1567f54fdd8c137afed42af465  // 贵州飞天 8392 1L 系列
  * 另外 c2657d2cc1f248a78c5a06980923dba5 在 smsp/jpmt bundle 中亦作为测试环境分支出现，不要用于线上两个页面。
  *
  * 用法：
@@ -305,7 +305,7 @@ const GDX_DEFAULT_INNER_PROFILE = Object.freeze({
     canvasSupported: true,
     canvasFingerprint: 'canvas api exception',
     systemColors: '',
-    userAgent: 'Mozilla/5.0 (Linux; Android 12; SM-S9180 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.6 device-id/ BS-DVID/',
+    userAgent: 'Mozilla/5.0 (Linux; Android 12; SM-S9180 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.10 device-id/ BS-DVID/',
     language: 'zh-CN',
     colorDepth: 24,
     screenHeight: 2215,
@@ -1425,7 +1425,7 @@ function postText(url, body, timeoutMs, extraHeaders) {
         const headers = Object.assign({
             'Content-Type': 'text/plain',
             'Content-Length': Buffer.byteLength(body),
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.6',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.10',
             'Accept': '*/*',
         }, extraHeaders || {});
         const req = https.request({
@@ -2007,7 +2007,7 @@ async function solveYidunCaptchaWithBingtop(opts) {
     const refererHost = (() => { try { return new URL(refererQuery).host || 'h5.moutai519.com.cn'; } catch (_) { return 'h5.moutai519.com.cn'; } })();
     const refererHeader = (challenge.refererHeader || `${refererOrigin}/`).trim();
     // 默认带具体机型 + 一对稳定的 device-id / BS-DVID 占位（同一进程内复用，避免风控发现 UA 频繁变化）
-    const defaultUA = 'Mozilla/5.0 (Linux; Android 14; PJE110 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.6'
+    const defaultUA = 'Mozilla/5.0 (Linux; Android 14; PJE110 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.10'
         + ` device-id/${getStableDeviceId()} BS-DVID/${getStableBsDvid()}`;
     const userAgent = opts.userAgent || challenge.userAgent || defaultUA;
     const gdxInnerProfile = opts.gdxInnerProfile === false

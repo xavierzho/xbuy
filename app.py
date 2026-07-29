@@ -71,7 +71,7 @@ _YIDUN_CAPTCHA_ID_BY_DETAIL_KIND = {
     "mm-485-detail-group": "c2657d2cc1f248a78c5a06980923dba5",
     "mm-zx-271-detail": "c2657d2cc1f248a78c5a06980923dba5",
     "hxx-detail": "c2657d2cc1f248a78c5a06980923dba5",
-    "gyft-8392-detail": "c2657d2cc1f248a78c5a06980923dba5",
+    "gyft-8392-detail": "5f1aab1567f54fdd8c137afed42af465",
 }
 _YIDUN_CAPTCHA_ID_BY_ITEM_CODE = {
     "741": "1e1ea52963a94c21b0babc42b2b5b910",
@@ -83,7 +83,7 @@ _YIDUN_CAPTCHA_ID_BY_ITEM_CODE = {
     "11947": "c2657d2cc1f248a78c5a06980923dba5",
     "11652": "c2657d2cc1f248a78c5a06980923dba5",
     "11654": "c2657d2cc1f248a78c5a06980923dba5",
-    "11894": "c2657d2cc1f248a78c5a06980923dba5",
+    "11894": "5f1aab1567f54fdd8c137afed42af465",
 }
 _YIDUN_REFERER_BY_ITEM_CODE = {
     "741": "https://h5.moutai519.com.cn/mt/item/smsp-detail?appConfig=2_1_2",

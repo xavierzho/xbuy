@@ -29,7 +29,7 @@ const {
 } = require('./reverse/v1.9.6/bb_sdk_1_9_6');
 
 const H5_ORIGIN = 'https://h5.moutai519.com.cn';
-const LIVE_BB_WASM_VERSION = 'v1.0.8';
+const LIVE_BB_WASM_VERSION = 'v1.1.3.2';
 const PY_RUNTIME_WASM_PATH = path.resolve(__dirname, '../runtime.wasm');
 const PY_SIGN_WASM_PATH = path.resolve(__dirname, '../ext.bin');
 const BB_STUB_WASM_PATH = fs.existsSync(PY_RUNTIME_WASM_PATH)

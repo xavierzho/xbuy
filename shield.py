@@ -21,7 +21,7 @@ from net_time import adjusted_unix, adjusted_unix_ms, format_mt_dtime_gmt08
 
 # ====================== 闂傚倸鍊搁崐鐑芥嚄閸撲礁鍨濇い鏍亼閳ь剙鍟村畷銊р偓娑櫭禍杈ㄧ節閻㈤潧孝闁稿锕幊鎾诲锤濡や胶鍘藉┑掳鍊愰崑鎾绘煟濡も偓缁绘﹢宕洪姀銈呯睄闁割偅绻勯鎰攽閻戝洨绉甸柛鎾寸懄娣囧﹥绺介崨濠備缓濡炪倖鐗楀銊╂晬瀹ュ洨纾?======================
 
-RELEASE_VER = "1.9.7"
+RELEASE_VER = "1.9.10"
 SHIELD_VER = "V3.5.0_20260605.1_imaotai"
 WASM_TAG = "v1.0.8"
 BUNDLE_ID = "com.moutai.mall"

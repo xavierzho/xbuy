@@ -38,17 +38,9 @@ logs/
 *.spec
 
 # Reverse-engineering generated artifacts and large dumps
-imoutai-decompiled/
-imoutai-*-decompiled/
-extracted/
-reports/tombstones/
-phantom-frida/build/
-phantom-frida/output/
-phantom-frida/.theos/
-frida_hook_libart/Dump Dex/
-frida_hook_libart/gadget/cache/
-frida_hook_libart/gadget/work/
-tools/TraceLens/.theos/
-tools/TraceLens/logs/
-tools/TraceLens/packages/
+tools/**/.theos/
+tools/**/logs/
+tools/**/packages/
+tools/**/dumps
+tools/**/extracted
 local_yidun/ddddocr-fastapi/.venv-ocr
