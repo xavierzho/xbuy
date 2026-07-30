@@ -18,6 +18,8 @@ import time
 import uuid
 from pathlib import Path
 
+from project_versions import BB_SIGN_WASM_VERSION
+
 os.environ.setdefault("MT_DIST_MEMORY_ONLY", "1")
 os.environ.setdefault("MT_DIST_RUSH_ONLY", "1")
 print(f"[dist-worker] boot file={__file__}", flush=True)
@@ -411,11 +413,11 @@ async def _run_job(msg: dict, out_q: asyncio.Queue) -> None:
             if isinstance(a, dict) and bool(a.get("use_wasm_bb") or a.get("useWasmBb"))
         )
         if wasm_bb_count <= 0:
-            bb_path = "shield_sm4_v1.0.8"
+            bb_path = f"shield_sm4_{BB_SIGN_WASM_VERSION}"
         elif wasm_bb_count >= len(accounts):
-            bb_path = "shield_wasm_en_v1.0.8"
+            bb_path = f"shield_wasm_en_{BB_SIGN_WASM_VERSION}"
         else:
-            bb_path = "mixed_shield_sm4_wasm_en_v1.0.8"
+            bb_path = f"mixed_shield_sm4_wasm_en_{BB_SIGN_WASM_VERSION}"
         print(
             f"[dist-worker] job {job_id} tasks={len(tasks)} highfreq={highfreq_count}/{len(tasks)} "
             f"concurrency={concurrency}",

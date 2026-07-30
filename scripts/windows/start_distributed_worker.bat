@@ -24,9 +24,11 @@ if "%MT_CURL_WORKER_POOL%"=="" set "MT_CURL_WORKER_POOL=1"
 if "%MT_GO_BRIDGE_PORT%"=="" set "MT_GO_BRIDGE_PORT=19091"
 
 if "%MT_DIST_SKIP_DEP_CHECK%"=="" set "MT_DIST_SKIP_DEP_CHECK=0"
+for /f "usebackq delims=" %%V in (`py -3 -c "from project_versions import BB_SIGN_WASM_VERSION; print(BB_SIGN_WASM_VERSION)"`) do set "BB_SIGN_WASM_VERSION=%%V"
+if "%BB_SIGN_WASM_VERSION%"=="" set "BB_SIGN_WASM_VERSION=unknown"
 echo [dist-worker] dep_check=%MT_DIST_SKIP_DEP_CHECK%
 echo [dist-worker] memory_only=%MT_DIST_MEMORY_ONLY% rush_only=%MT_DIST_RUSH_ONLY% legacy_bb=%MT_USE_LEGACY_BB%
-echo [dist-worker] go_bridge=%MT_GO_BRIDGE_PORT% tls_engine=%MT_TLS_ENGINE% tls_client=%MT_GO_TLS_CLIENT% tls_profile=%MT_GO_TLS_CLIENT_PROFILE% bb=stable_py_v1.0.8
+echo [dist-worker] go_bridge=%MT_GO_BRIDGE_PORT% tls_engine=%MT_TLS_ENGINE% tls_client=%MT_GO_TLS_CLIENT% tls_profile=%MT_GO_TLS_CLIENT_PROFILE% bb=stable_py_%BB_SIGN_WASM_VERSION%
 
 if exist ".venv\Scripts\python.exe" (
   ".venv\Scripts\python.exe" distributed_worker.py "%MASTER_WS%"

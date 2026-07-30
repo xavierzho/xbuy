@@ -34,9 +34,8 @@ const CHROME_VERSIONS = [
     '114.0.5735.131','118.0.5993.65', '122.0.6261.119',
 ];
 
-const APP_VERSIONS = [
-    '1.9.10',
-];
+const { appVersion: CURRENT_APP_VERSION } = require('../../node_bridge/bb/version.json');
+const APP_VERSIONS = [CURRENT_APP_VERSION];
 
 function randInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;

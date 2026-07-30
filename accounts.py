@@ -959,7 +959,9 @@ class AccountEntry:
         psm = str(getattr(self, "proxy_shard_mode", "auto") or "auto").strip().lower()
         psc = int(getattr(self, "proxy_shard_count", 0) or 0)
         desired_wv = str(self.wv or "").strip()
-        if not desired_wv or desired_wv == "v1.0.6":
+        from project_versions import LEGACY_BB_SIGN_WASM_VERSIONS
+
+        if not desired_wv or desired_wv in LEGACY_BB_SIGN_WASM_VERSIONS:
             from shield import WASM_TAG as _WASM_TAG
 
             desired_wv = _WASM_TAG

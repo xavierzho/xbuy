@@ -180,16 +180,18 @@ def latest_hit(hits: list[Hit], value: str) -> Hit | None:
 
 
 def local_baseline() -> dict[str, str]:
-    shield = read_text(ROOT / "shield.py")
     app = read_text(ROOT / "app.py")
-    node_bb = read_text(ROOT / "node_bridge" / "bb" / "bb_module.cjs")
     local_yidun = read_text(ROOT / "local_yidun" / "service" / "app_api.js")
+    try:
+        version = json.loads(read_text(ROOT / "node_bridge" / "bb" / "version.json"))
+    except (OSError, ValueError):
+        version = {}
     return {
-        "release_ver": first(r'RELEASE_VER\s*=\s*"([^"]+)"', shield),
-        "shield_ver": first(r'SHIELD_VER\s*=\s*"([^"]+)"', shield),
-        "wasm_tag": first(r'WASM_TAG\s*=\s*"([^"]+)"', shield),
-        "bb_module_sdk": first(r"const SDK_VERSION = '([^']+)'", node_bb),
-        "bb_module_wasm": first(r"const DEFAULT_SIGN_WASM_VERSION = '([^']+)'", node_bb),
+        "release_ver": str(version.get("appVersion", "")),
+        "shield_ver": str(version.get("sdkVersion", "")),
+        "wasm_tag": str(version.get("signWasmVersion", "")),
+        "bb_module_sdk": str(version.get("sdkVersion", "")),
+        "bb_module_wasm": str(version.get("signWasmVersion", "")),
         "fixed_chrome": first(r'H5_FIXED_CHROME_VERSION\s*=\s*"([^"]+)"', app),
         "captcha_ids": ", ".join(sorted(set(re.findall(r'"([0-9a-fA-F]{32})"', app + "\n" + local_yidun)))),
     }

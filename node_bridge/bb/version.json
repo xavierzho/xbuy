@@ -4,6 +4,10 @@
   "versionCode": 10910,
   "sdkVersion": "V3.5.0_20260721.2_imaotai",
   "signWasmVersion": "v1.1.3.2",
+  "legacySignWasmVersions": [
+    "v1.0.6",
+    "v1.0.8"
+  ],
   "runtime": {
     "file": "runtime.wasm",
     "upstreamName": "stub.114.wasm",

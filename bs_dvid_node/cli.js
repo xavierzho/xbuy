@@ -4,6 +4,7 @@
  * 用法: node cli.js [deviceId]
  */
 const path = require('path');
+const { appVersion: DEFAULT_APP_VERSION } = require('../node_bridge/bb/version.json');
 // 必须在 require('bs-dvid.js') 之前挂钩，否则步骤日志会污染 stdout
 for (const name of ['log', 'info', 'debug']) {
   console[name] = (...args) => {
@@ -23,7 +24,7 @@ const bs = require(path.join(__dirname, 'bs-dvid.js'));
   const deviceId = process.argv[2] || null;
   try {
     const r = await bs.getBsDvidWithReport({
-      appVersion: '1.9.6',
+      appVersion: DEFAULT_APP_VERSION,
       deviceId: deviceId || undefined,
       fetchConfig: true,
       reportEnv: true,

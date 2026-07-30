@@ -112,7 +112,7 @@ func TestTLSClientPreservesRushBusinessUserAgent(t *testing.T) {
 		JA3NHash:  "3118d34415923e98f69776f47a249f38",
 		UserAgent: tlsClientProfileUserAgent("chrome_131"),
 	}
-	rushUA := "Mozilla/5.0 (Linux; Android 12; SM-S9180 Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.168 Mobile Safari/537.36 moutaiapp/1.9.6 device-id/dev-1 BS-DVID/bs-1"
+	rushUA := "Mozilla/5.0 (Linux; Android 12; SM-S9180 Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/138.0.7204.168 Mobile Safari/537.36 moutaiapp/1.9.10 device-id/dev-1 BS-DVID/bs-1"
 	att := Attempt{
 		Method: "POST",
 		URL:    "https://h5.moutai519.com.cn/xhr/front/trade/priority/rushPurchase",

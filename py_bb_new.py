@@ -9,10 +9,11 @@ import threading
 import time
 from typing import Any
 
+from project_versions import BB_SDK_VERSION, BB_SIGN_WASM_VERSION
 
-SDK_VERSION = "V3.5.0_20260721.2_imaotai"
+SDK_VERSION = BB_SDK_VERSION
 DEFAULT_APPID = "10001"
-DEFAULT_SIGN_WASM_VERSION = "v1.0.8"
+DEFAULT_SIGN_WASM_VERSION = BB_SIGN_WASM_VERSION
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _BB_DIR = os.path.join(_BASE_DIR, "node_bridge", "bb")

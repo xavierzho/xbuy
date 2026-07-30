@@ -30,7 +30,8 @@ export MT_GO_BRIDGE_PORT="${MT_GO_BRIDGE_PORT:-19091}"
 
 echo "[dist-worker] dep_check=${MT_DIST_SKIP_DEP_CHECK}"
 echo "[dist-worker] memory_only=${MT_DIST_MEMORY_ONLY} rush_only=${MT_DIST_RUSH_ONLY} legacy_bb=${MT_USE_LEGACY_BB}"
-echo "[dist-worker] go_bridge=${MT_GO_BRIDGE_PORT} tls_engine=${MT_TLS_ENGINE} tls_client=${MT_GO_TLS_CLIENT} tls_profile=${MT_GO_TLS_CLIENT_PROFILE} bb=stable_py_v1.0.8"
+BB_SIGN_WASM_VERSION="$(python3 -c 'from project_versions import BB_SIGN_WASM_VERSION; print(BB_SIGN_WASM_VERSION)' 2>/dev/null || printf unknown)"
+echo "[dist-worker] go_bridge=${MT_GO_BRIDGE_PORT} tls_engine=${MT_TLS_ENGINE} tls_client=${MT_GO_TLS_CLIENT} tls_profile=${MT_GO_TLS_CLIENT_PROFILE} bb=stable_py_${BB_SIGN_WASM_VERSION}"
 
 PY_BIN="${MT_PYTHON:-}"
 if [[ -z "${PY_BIN}" && -n "${VIRTUAL_ENV:-}" && -x "${VIRTUAL_ENV}/bin/python" ]]; then

@@ -4,8 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { sm4 } = require('sm-crypto');
+const VERSION = require('./version.json');
 
-const SDK_VERSION = 'V3.5.0_20260721.2_imaotai';
+const SDK_VERSION = VERSION.sdkVersion;
 const DEFAULT_BB_APP_KEY = '10001';
 const DEFAULT_BB_HOST = 'https://fk1.moutai519.com.cn/bangcle';
 const DEFAULT_WASM_RUNTIME_FALLBACK_HOST = 'http://172.16.202.6:9101';

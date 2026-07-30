@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const { SocksProxyAgent } = require('socks-proxy-agent');
+const { appVersion: DEFAULT_APP_VERSION } = require('../node_bridge/bb/version.json');
 
 // ==================== 常量配置 ====================
 
@@ -1099,7 +1100,7 @@ function buildRequestBody(localId) {
             "5": "i茅台",
             "6": "com.moutai.mall",
             "7": getAppSignatureMd5(),
-            "8": "1.9.6"
+            "8": DEFAULT_APP_VERSION
         }
     };
 }
@@ -1107,7 +1108,7 @@ function buildRequestBody(localId) {
 /**
  * 构建SDK事件上报数据
  */
-function buildReportEvents(localId, appVersion = "1.9.6") {
+function buildReportEvents(localId, appVersion = DEFAULT_APP_VERSION) {
     const timestampMs = Date.now();
     const eventId = md5Hash(`${localId}${timestampMs}`);
     const eventTag = `1|${eventId}`;
@@ -1146,7 +1147,7 @@ function buildDeviceEnvReport(localId, timestampMs, gatewayIp = null) {
     return {
         "1": "",
         "2": "com.moutai.mall",
-        "3": "1.9.6",
+        "3": DEFAULT_APP_VERSION,
         "4": localId,
         "5": "0",
         "7": "0",
@@ -1250,7 +1251,7 @@ function buildFullDeviceFingerprint(localId, timestampMs, gatewayIp = null) {
     return {
         "1": "",
         "2": "com.moutai.mall",
-        "3": "1.9.6",
+        "3": DEFAULT_APP_VERSION,
         "4": localId,
         "5": "0",
         "7": "0",
@@ -1344,7 +1345,7 @@ function buildTokenRequestBody(localId, timestampMs, magic = null) {
     return {
         "1": "",
         "2": "com.moutai.mall",
-        "3": "1.9.6",
+        "3": DEFAULT_APP_VERSION,
         "4": localId,
         "5": "fCB7IHOw",
         "6": timestampMs,
@@ -1580,7 +1581,7 @@ function sendEncryptedRequest(urlPath, body, localIdMd5, headers, timeout = 3000
  * @param {string} deviceId - 设备ID
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function fetchBsDvid(appVersion = "1.9.6", deviceId = null, proxyConfig = null) {
+async function fetchBsDvid(appVersion = DEFAULT_APP_VERSION, deviceId = null, proxyConfig = null) {
     deviceId = deviceId || generateImei();
     const localId = generateLocalId(deviceId);
     const localIdMd5 = md5Hash(localId);
@@ -1619,7 +1620,7 @@ async function fetchBsDvid(appVersion = "1.9.6", deviceId = null, proxyConfig = 
  * @param {string} appVersion - 应用版本
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function reportSdkEvents(localId, appVersion = "1.9.6", proxyConfig = null) {
+async function reportSdkEvents(localId, appVersion = DEFAULT_APP_VERSION, proxyConfig = null) {
     const localIdMd5 = md5Hash(localId);
 
     console.log('[BS-DVID] 步骤2: 上报SDK初始化事件...');
@@ -1647,7 +1648,7 @@ async function reportSdkEvents(localId, appVersion = "1.9.6", proxyConfig = null
  * @param {string} appVersion - 应用版本
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function fetchSdkConfig(localId, appVersion = "1.9.6", proxyConfig = null) {
+async function fetchSdkConfig(localId, appVersion = DEFAULT_APP_VERSION, proxyConfig = null) {
     const localIdMd5 = md5Hash(localId);
 
     console.log('[BS-DVID] 步骤3: 获取SDK配置...');
@@ -1680,7 +1681,7 @@ async function fetchSdkConfig(localId, appVersion = "1.9.6", proxyConfig = null)
  * @param {string} appVersion - 应用版本
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function reportDeviceEnv(localId, appVersion = "1.9.6", proxyConfig = null) {
+async function reportDeviceEnv(localId, appVersion = DEFAULT_APP_VERSION, proxyConfig = null) {
     const localIdMd5 = md5Hash(localId);
     const timestampMs = Date.now();
 
@@ -1728,7 +1729,7 @@ async function reportDeviceEnv(localId, appVersion = "1.9.6", proxyConfig = null
  * @param {string} appVersion - 应用版本
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function fetchSigRules(localId, appVersion = "1.9.6", proxyConfig = null) {
+async function fetchSigRules(localId, appVersion = DEFAULT_APP_VERSION, proxyConfig = null) {
     const localIdMd5 = md5Hash(localId);
 
     console.log('[BS-DVID] 步骤5: 获取签名/风控规则...');
@@ -1777,7 +1778,7 @@ async function fetchSigRules(localId, appVersion = "1.9.6", proxyConfig = null) 
  * @param {string} appVersion - 应用版本
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function reportFullDeviceFingerprint(localId, appVersion = "1.9.6", proxyConfig = null) {
+async function reportFullDeviceFingerprint(localId, appVersion = DEFAULT_APP_VERSION, proxyConfig = null) {
     const localIdMd5 = md5Hash(localId);
     const timestampMs = Date.now();
 
@@ -1825,7 +1826,7 @@ async function reportFullDeviceFingerprint(localId, appVersion = "1.9.6", proxyC
  * @param {string} magic - 魔法值 (可选)
  * @param {Object} proxyConfig - 代理配置 (可选)
  */
-async function fetchToken(localId, appVersion = "1.9.6", magic = null, proxyConfig = null) {
+async function fetchToken(localId, appVersion = DEFAULT_APP_VERSION, magic = null, proxyConfig = null) {
     const localIdMd5 = md5Hash(localId);
     const timestampMs = Date.now();
 
@@ -1879,7 +1880,7 @@ function generateMoutaiUserAgent(appVersion, deviceId, bsDvid, deviceConfig = nu
  * 获取 BS-DVID 完整流程 (包含所有7个步骤)
  * 
  * @param {Object} options 配置选项
- * @param {string} options.appVersion 应用版本 (默认 "1.9.6")
+ * @param {string} options.appVersion 应用版本 (默认 DEFAULT_APP_VERSION)
  * @param {string} options.deviceId 设备ID (IMEI格式，可选)
  * @param {boolean} options.fetchConfig 是否获取风控配置 (默认 true)
  * @param {boolean} options.reportEnv 是否上报设备环境检测 (默认 true)
@@ -1890,7 +1891,7 @@ function generateMoutaiUserAgent(appVersion, deviceId, bsDvid, deviceConfig = nu
  */
 async function getBsDvidWithReport(options = {}) {
     const {
-        appVersion = "1.9.6",
+        appVersion = DEFAULT_APP_VERSION,
         deviceId = null,
         fetchConfig = true,
         reportEnv = true,

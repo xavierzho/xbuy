@@ -42,7 +42,7 @@
 
 | H5 bundle 线索 | 项目还原版 |
 | --- | --- |
-| `e.v="V3.5.0_20260721.2_imaotai"` | `SDK_VERSION_1_9_6` |
+| `e.v="V3.5.0_20260721.2_imaotai"` | `SDK_VERSION` |
 | `e.u="/bbprbdata/upload"` | `DEFAULT_UPLOAD_PATH_1_9_6` |
 | `e.wasmVersionListUrl="/api/v1/1/2"` | `DEFAULT_WASM_VERSION_LIST_PATH_1_9_6` |
 | `e.wasmDownloadUrl="/api/v1/1/1"` | `DEFAULT_WASM_DOWNLOAD_PATH_1_9_6` |

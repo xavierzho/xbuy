@@ -17,13 +17,14 @@ import uuid as _uuid
 from typing import Dict, Any, List, Tuple, Optional, Union
 
 from net_time import adjusted_unix, adjusted_unix_ms, format_mt_dtime_gmt08
+from project_versions import APP_VERSION, BB_SDK_VERSION, BB_SIGN_WASM_VERSION
 
 
 # ====================== 运行时常量与抓包基线 ======================
 
-RELEASE_VER = "1.9.10"
-SHIELD_VER = "V3.5.0_20260721.2_imaotai"
-WASM_TAG = "v1.1.3.2"
+RELEASE_VER = APP_VERSION
+SHIELD_VER = BB_SDK_VERSION
+WASM_TAG = BB_SIGN_WASM_VERSION
 BUNDLE_ID = "com.moutai.mall"
 TRACE_TOKEN = "a3f9c2b8471de05f9b6c4e1287d5a9c1"
 RUSH_MT_INFO = "028e7f96f6369cafe1d105579c5b9377"

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 本地 UI 联动服务:
 - 默认监听端口 8989（环境变量 MT_WEBUI_PORT 可覆盖）
@@ -39,6 +39,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from html import escape as html_escape
 from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urlparse
+
+from project_versions import BB_SIGN_WASM_VERSION
 
 from app import (
     H5_HOST,
@@ -9300,7 +9302,7 @@ class Handler(BaseHTTPRequestHandler):
                             "updated": updated,
                             "missing": missing,
                             "use_legacy_bb": False,
-                            "bb_path": "stable_py_v1.0.8",
+                            "bb_path": f"stable_py_{BB_SIGN_WASM_VERSION}",
                             "count": len(updated),
                         },
                         f"BB 已固定为 py 稳定版链路，影响 {len(updated)} 个账号",
@@ -9316,7 +9318,7 @@ class Handler(BaseHTTPRequestHandler):
                 POOL.save()
                 return self._send_json(
                     json_ok(
-                        {"use_legacy_bb": False, "bb_path": "stable_py_v1.0.8", "count": count},
+                        {"use_legacy_bb": False, "bb_path": f"stable_py_{BB_SIGN_WASM_VERSION}", "count": count},
                         f"全部 {count} 个账号已固定为 py 稳定版 BB 链路",
                     )
                 )
@@ -9344,7 +9346,11 @@ class Handler(BaseHTTPRequestHandler):
                     e._session_proxy_src = None
                     updated.append(pn)
                 POOL.save()
-                bb_path = "shield_wasm_en_v1.0.8" if enabled else "shield_sm4_v1.0.8"
+                bb_path = (
+                    f"shield_wasm_en_{BB_SIGN_WASM_VERSION}"
+                    if enabled
+                    else f"shield_sm4_{BB_SIGN_WASM_VERSION}"
+                )
                 return self._send_json(
                     json_ok(
                         {
@@ -9369,7 +9375,11 @@ class Handler(BaseHTTPRequestHandler):
                     e._session_proxy_src = None
                     count += 1
                 POOL.save()
-                bb_path = "shield_wasm_en_v1.0.8" if enabled else "shield_sm4_v1.0.8"
+                bb_path = (
+                    f"shield_wasm_en_{BB_SIGN_WASM_VERSION}"
+                    if enabled
+                    else f"shield_sm4_{BB_SIGN_WASM_VERSION}"
+                )
                 return self._send_json(
                     json_ok(
                         {
@@ -11717,4 +11727,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

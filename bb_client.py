@@ -214,7 +214,7 @@ def bb_sign_post_for_rush(
     返回 dict:
       Content-Web-Bb : str
       Content-Hh-Bb  : str
-      Sdk-Ver-Bb     : str (如 "V3.5.0_20260605.1_imaotai")
+      Sdk-Ver-Bb     : str (如 "V3.5.0_20260721.2_imaotai")
       randomId       : str
       sign           : str
       signWac        : str  (JSON {"uuid","body","has_env"})

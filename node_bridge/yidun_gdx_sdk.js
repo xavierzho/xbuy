@@ -37,6 +37,7 @@ const http = require('http');
 const https = require('https');
 const zlib = require('zlib');
 const crypto = require('crypto');
+const { appVersion: CURRENT_APP_VERSION } = require('./bb/version.json');
 const { URL } = require('url');
 const { Buffer } = require('buffer');
 
@@ -305,7 +306,7 @@ const GDX_DEFAULT_INNER_PROFILE = Object.freeze({
     canvasSupported: true,
     canvasFingerprint: 'canvas api exception',
     systemColors: '',
-    userAgent: 'Mozilla/5.0 (Linux; Android 12; SM-S9180 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.10 device-id/ BS-DVID/',
+    userAgent: `Mozilla/5.0 (Linux; Android 12; SM-S9180 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/${CURRENT_APP_VERSION} device-id/ BS-DVID/`,
     language: 'zh-CN',
     colorDepth: 24,
     screenHeight: 2215,
@@ -1425,7 +1426,7 @@ function postText(url, body, timeoutMs, extraHeaders) {
         const headers = Object.assign({
             'Content-Type': 'text/plain',
             'Content-Length': Buffer.byteLength(body),
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.10',
+            'User-Agent': `Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/${CURRENT_APP_VERSION}`,
             'Accept': '*/*',
         }, extraHeaders || {});
         const req = https.request({
@@ -2007,7 +2008,7 @@ async function solveYidunCaptchaWithBingtop(opts) {
     const refererHost = (() => { try { return new URL(refererQuery).host || 'h5.moutai519.com.cn'; } catch (_) { return 'h5.moutai519.com.cn'; } })();
     const refererHeader = (challenge.refererHeader || `${refererOrigin}/`).trim();
     // 默认带具体机型 + 一对稳定的 device-id / BS-DVID 占位（同一进程内复用，避免风控发现 UA 频繁变化）
-    const defaultUA = 'Mozilla/5.0 (Linux; Android 14; PJE110 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/1.9.10'
+    const defaultUA = `Mozilla/5.0 (Linux; Android 14; PJE110 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 moutaiapp/${CURRENT_APP_VERSION}`
         + ` device-id/${getStableDeviceId()} BS-DVID/${getStableBsDvid()}`;
     const userAgent = opts.userAgent || challenge.userAgent || defaultUA;
     const gdxInnerProfile = opts.gdxInnerProfile === false
