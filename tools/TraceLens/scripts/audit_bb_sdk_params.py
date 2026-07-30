@@ -253,16 +253,20 @@ def rel(path: Path) -> str:
 
 def build_report() -> str:
     module_text = read_text(BB_DIR / "bb_module.cjs")
-    sdk_text = read_text(BB_DIR / "bb_sdk_1_9_6.js")
-    live = parse_live_state(BB_DIR / "live_bangcle_state_1_9_6.json")
+    sdk_text = read_text(BB_DIR / "bb_sdk.js")
+    try:
+        version = json.loads(read_text(BB_DIR / "version.json"))
+    except (OSError, ValueError):
+        version = {}
+    live = parse_live_state(BB_DIR / "live_bangcle_state.json")
     hits = merge_hits(scan_logs(LOG_DIR), scan_bbwasmlens_dumps(DUMP_DIR))
     local_sign_wasm = BB_DIR / "sign_wasm.bin"
 
     current = {
-        "module_sdk_version": extract_first(r"const SDK_VERSION = '([^']+)'", module_text),
-        "sdk_file_version": extract_first(r"const SDK_VERSION_1_9_6 = '([^']+)'", sdk_text),
-        "default_bb_host": extract_first(r"const DEFAULT_BB_HOST_1_9_6 = '([^']+)'", sdk_text),
-        "default_sign_wasm_version": extract_first(r"const DEFAULT_SIGN_WASM_VERSION = '([^']+)'", module_text),
+        "module_sdk_version": str(version.get("sdkVersion", "")),
+        "sdk_file_version": extract_first(r"const SDK_VERSION = '([^']+)'", sdk_text),
+        "default_bb_host": extract_first(r"const DEFAULT_BB_HOST = '([^']+)'", sdk_text),
+        "default_sign_wasm_version": str(version.get("signWasmVersion", "")),
         "local_sign_wasm_bytes": str(local_sign_wasm.stat().st_size) if local_sign_wasm.exists() else "",
     }
 

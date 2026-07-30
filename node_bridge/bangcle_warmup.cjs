@@ -7,34 +7,34 @@ const { HttpsProxyAgent } = require('https-proxy-agent');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 
 const {
-    SDK_VERSION_1_9_6,
-    DEFAULT_BB_APP_KEY_1_9_6,
-    DEFAULT_BB_HOST_1_9_6,
-    buildBangcleUploadInfoPayload_1_9_6,
-    buildBangcleUploadUrl_1_9_6,
-    buildBangcleBootstrapHeaders_1_9_6,
-    buildBangcleCookieState_1_9_6,
-    buildBangcleVersionListRequest_1_9_6,
-    buildBangcleWasmDownloadUrl_1_9_6,
-    buildBangcleWrappedState_1_9_6,
-    createBbContext_1_9_6,
-    decodeBangcleSignWasmBase64_1_9_6,
-    extractBangcleWasmDownloadPayload_1_9_6,
-    extractBangcleWasmVersions_1_9_6,
-    generateBsDeviceId_1_9_6,
-    getRandomId_1_9_6,
-    getStartId_1_9_6,
-    processData_1_9_6,
-    unProcessData_1_9_6,
-} = require('./reverse/v1.9.6/bb_sdk_1_9_6');
+    SDK_VERSION,
+    DEFAULT_BB_APP_KEY,
+    DEFAULT_BB_HOST,
+    buildBangcleUploadInfoPayload,
+    buildBangcleUploadUrl,
+    buildBangcleBootstrapHeaders,
+    buildBangcleCookieState,
+    buildBangcleVersionListRequest,
+    buildBangcleWasmDownloadUrl,
+    buildBangcleWrappedState,
+    createBbContext,
+    decodeBangcleSignWasmBase64,
+    extractBangcleWasmDownloadPayload,
+    extractBangcleWasmVersions,
+    generateBsDeviceId,
+    getRandomId,
+    getStartId,
+    processData,
+    unProcessData,
+} = require('./bb/bb_sdk');
 
 const H5_ORIGIN = 'https://h5.moutai519.com.cn';
 const LIVE_BB_WASM_VERSION = 'v1.1.3.2';
-const PY_RUNTIME_WASM_PATH = path.resolve(__dirname, '../runtime.wasm');
+const PY_RUNTIME_WASM_PATH = path.resolve(__dirname, 'bb/runtime.wasm');
 const PY_SIGN_WASM_PATH = path.resolve(__dirname, '../ext.bin');
 const BB_STUB_WASM_PATH = fs.existsSync(PY_RUNTIME_WASM_PATH)
     ? PY_RUNTIME_WASM_PATH
-    : path.join(__dirname, 'reverse/v1.9.6/bs_stub_1_9_6.wasm');
+    : path.join(__dirname, 'bb/runtime.wasm');
 const BB_SIGN_WASM_PATH = fs.existsSync(PY_SIGN_WASM_PATH)
     ? PY_SIGN_WASM_PATH
     : path.join(__dirname, 'bb/sign_wasm.bin');
@@ -140,7 +140,7 @@ function postHeadersWithLength(baseHeaders, url, body) {
 function applyRemoteStrategy(session, strategyResponse, requestStartedAt, responseReceivedAt) {
     const decoded = Array.isArray(strategyResponse)
         ? strategyResponse
-        : unProcessData_1_9_6(String(strategyResponse || ''), session);
+        : unProcessData(String(strategyResponse || ''), session);
     const fallback = [cloneJson(LIVE_BB_REMOTE_TASK), Date.now(), LIVE_BB_STRATEGY_VERSION];
     const data = Array.isArray(decoded) && Array.isArray(decoded[0]) ? decoded : fallback;
     const task = Array.isArray(data[0]) ? data[0] : cloneJson(LIVE_BB_REMOTE_TASK);
@@ -190,28 +190,28 @@ function createSession(input, pageDomain) {
         : '';
     const signWasmBase64 = diskSignWasmBase64 || stateSignWasmBase64;
     const signWasmBytes = signWasmBase64
-        ? decodeBangcleSignWasmBase64_1_9_6(signWasmBase64)
+        ? decodeBangcleSignWasmBase64(signWasmBase64)
         : (hasSignWasm ? BB_SIGN_WASM_PATH : null);
     const requestedDid = String(input.bbDid || '').trim();
     const stateDid = String(state.bbDid || '').trim();
-    const did = requestedDid || stateDid || `h${getRandomId_1_9_6(now).slice(1)}`;
+    const did = requestedDid || stateDid || `h${getRandomId(now).slice(1)}`;
     const stateMatchesDid = !!stateDid && stateDid === did;
     const stateHp = stateMatchesDid
         ? (state.bbDeviceCookie || state.bbCookieState?._bs_device_id || '')
         : '';
-    return createBbContext_1_9_6({
-        appKey: DEFAULT_BB_APP_KEY_1_9_6,
-        hostAd: DEFAULT_BB_HOST_1_9_6,
-        sdkVersion: state.bbSdkVersion || SDK_VERSION_1_9_6,
+    return createBbContext({
+        appKey: DEFAULT_BB_APP_KEY,
+        hostAd: DEFAULT_BB_HOST,
+        sdkVersion: state.bbSdkVersion || SDK_VERSION,
         did,
-        startId: state.bbStartId || getStartId_1_9_6(now),
+        startId: state.bbStartId || getStartId(now),
         userId: String(input.uid || state.userid || ''),
         userAgent: String(input.userAgent || ''),
-        hp: stateHp || generateBsDeviceId_1_9_6(did, now),
+        hp: stateHp || generateBsDeviceId(did, now),
         uaid: state.bbUaid || '',
         jsid: state.bbJsid || '',
         token: state.bbToken || '',
-        tokenPrepetuity: state.bbRk || getRandomId_1_9_6(now + 1),
+        tokenPrepetuity: state.bbRk || getRandomId(now + 1),
         signWasmVersion: LIVE_BB_WASM_VERSION,
         signWasmOk: !!signWasmBytes,
         signWasmBytes,
@@ -227,7 +227,7 @@ function createSession(input, pageDomain) {
 }
 
 function buildState(session, input, pageDomain, now, flags) {
-    const wrapped = buildBangcleWrappedState_1_9_6(session, {
+    const wrapped = buildBangcleWrappedState(session, {
         now,
         pageDomain,
         userAgent: String(input.userAgent || ''),
@@ -244,7 +244,7 @@ function buildState(session, input, pageDomain, now, flags) {
         bbSignWasmBase64: session.signWasmBase64 || '',
         bbSignWasmVersion: session.signWasmVersion || LIVE_BB_WASM_VERSION,
         bbSignWasmOk: !!session.signWasmOk,
-        bbSdkVersion: session.sdkVersion || SDK_VERSION_1_9_6,
+        bbSdkVersion: session.sdkVersion || SDK_VERSION,
         bbPageDomain: pageDomain,
         bbSerial: Number(session.serial || 1),
         bbTps: Number(session.tps || session.serial || 1),
@@ -283,8 +283,8 @@ async function main() {
     let strategyStatus = 0;
     try {
         const started = Date.now();
-        const strategyUrl = buildBangcleUploadUrl_1_9_6(session);
-        const strategyBody = processData_1_9_6(session.sdkConfig.app_key, session);
+        const strategyUrl = buildBangcleUploadUrl(session);
+        const strategyBody = processData(session.sdkConfig.app_key, session);
         const strategyResp = await axios.post(
             strategyUrl,
             strategyBody,
@@ -307,28 +307,28 @@ async function main() {
         flags.strategyError = err && err.message || String(err);
     }
 
-    const versionReq = buildBangcleVersionListRequest_1_9_6(session, { now: Date.now() });
+    const versionReq = buildBangcleVersionListRequest(session, { now: Date.now() });
     const versionResp = await axios.get(versionReq.url, {
         headers: { ...headers, ...versionReq.headers },
         timeout,
         validateStatus: () => true,
         ...proxy,
     });
-    const versionInfo = extractBangcleWasmVersions_1_9_6(versionResp.data);
+    const versionInfo = extractBangcleWasmVersions(versionResp.data);
     session.signWasmVersion = LIVE_BB_WASM_VERSION;
     if (versionInfo.raw && (!versionInfo.versions || versionInfo.versions.includes(LIVE_BB_WASM_VERSION))) {
         session.signWasmOk = !!session.signWasmBytes && versionInfo.signWasmOk !== false;
     }
 
     if ((!input.bbState?.__bbWasmFetched || input.forceWasm) && !flags.localWasm) {
-        const wasmResp = await axios.get(buildBangcleWasmDownloadUrl_1_9_6(session, { version: LIVE_BB_WASM_VERSION }), {
-            headers: { ...headers, ...buildBangcleBootstrapHeaders_1_9_6(session, { now: Date.now() }) },
+        const wasmResp = await axios.get(buildBangcleWasmDownloadUrl(session, { version: LIVE_BB_WASM_VERSION }), {
+            headers: { ...headers, ...buildBangcleBootstrapHeaders(session, { now: Date.now() }) },
             timeout,
             validateStatus: () => true,
             ...proxy,
         });
         if (wasmResp.status >= 200 && wasmResp.status < 300) {
-            const wasmInfo = extractBangcleWasmDownloadPayload_1_9_6(wasmResp.data);
+            const wasmInfo = extractBangcleWasmDownloadPayload(wasmResp.data);
             if (wasmInfo.ok && wasmInfo.version === LIVE_BB_WASM_VERSION) {
                 session.signWasmVersion = LIVE_BB_WASM_VERSION;
                 session.signWasmBytes = wasmInfo.codeBytes;
@@ -344,7 +344,7 @@ async function main() {
     }
 
     const serial = Number(session.serial || 1);
-    const uploadBody = buildBangcleUploadInfoPayload_1_9_6(session, {
+    const uploadBody = buildBangcleUploadInfoPayload(session, {
         now: Date.now(),
         userId: String(input.uid || ''),
         tokenPrepetuity: session.tokenPrepetuity,
@@ -353,7 +353,7 @@ async function main() {
         timeDelta: session.timeDelta,
         deviceInfo: session.deviceInfo,
     });
-    const uploadUrl = buildBangcleUploadUrl_1_9_6(session);
+    const uploadUrl = buildBangcleUploadUrl(session);
     const uploadResp = await axios.post(uploadUrl, uploadBody, {
         headers: postHeadersWithLength(headers, uploadUrl, uploadBody),
         timeout,

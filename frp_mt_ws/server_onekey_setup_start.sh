@@ -380,7 +380,7 @@ start_all() {
   fi
 
   cd "${PROJECT_DIR}"
-  chmod +x start_distributed_worker.sh || true
+  chmod +x scripts/start_distributed_worker.sh || true
   export PATH="/usr/local/go/bin:/usr/local/node-lts/bin:${PATH}"
   export MT_PYTHON="${PROJECT_DIR}/.venv/bin/python"
   export MT_DIST_MEMORY_ONLY="${MT_DIST_MEMORY_ONLY:-1}"
@@ -397,7 +397,7 @@ start_all() {
 
   log "start worker: ${MASTER_WS}"
   log "home master must run frpc to this server first/also; worker can reconnect until ready."
-  exec ./start_distributed_worker.sh "${MASTER_WS}"
+  exec ./scripts/start_distributed_worker.sh "${MASTER_WS}"
 }
 
 main() {

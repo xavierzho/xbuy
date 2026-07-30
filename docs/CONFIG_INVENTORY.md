@@ -63,9 +63,9 @@
 | `MT_PROXY_LOG` | 空 | 打印代理轮换调试日志 |
 | `MT_PROXY_SHARD_ROUNDS` | `2` | 分片代理轮询圈数 |
 | `MT_PROXY_ROTATE_PER_REQUEST` | 空 | 每次请求后轮换代理 |
-| `MT_TLS_ENGINE` | `reqrio` | go bridge TLS 引擎 |
+| `MT_TLS_ENGINE` | `ja3_client` | go bridge TLS 引擎；macOS/Linux 用 `ja3_client`，Windows 可用 `reqrio` |
 | `MT_GO_TLS_CLIENT_PROFILE` | `chrome_138` | TLS 指纹 profile |
-| `go_bridge_tls_mode.json` | `reqrio` | UI 保存的 TLS 模式 |
+| `go_bridge_tls_mode.json` | `ja3_client` | UI 保存的 TLS 模式 |
 | `mt_global_force_local.json` | `enabled` | UI 保存的全局强制本机直连开关 |
 
 ## 分布式部署

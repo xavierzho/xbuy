@@ -4,8 +4,8 @@
 从备份 JSON 合并收货地址缓存到本目录 ui_state.json（与 WebUI「合并地址备份」同源）。
 
 用法:
-  py restore_address_book.py <备份.json>           # 按手机号合并
-  py restore_address_book.py <备份.json> --replace-all   # 整表替换为备份中的 addressBook
+  python tools/maintenance/restore_address_book.py <备份.json>                 # 按手机号合并
+  python tools/maintenance/restore_address_book.py <备份.json> --replace-all   # 整表替换为备份中的 addressBook
 
 备份可为整份 ui_state.json，或仅含顶层字段 "addressBook" 的对象。
 """
@@ -14,7 +14,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 

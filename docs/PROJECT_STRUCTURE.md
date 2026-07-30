@@ -6,13 +6,16 @@
 
 ## 启动入口
 
-- `main.py`: 启动 PyQt6 桌面壳，加载 `ui.html` 并内置 WebUI 后端。
+- `scripts/run_webui.sh`: 服务化主入口，适合 Linux/macOS/服务器/自动化部署。
+- `scripts/run_worker.sh`: 分布式 worker 启动入口。
+- `scripts/bootstrap.sh`: 依赖初始化入口，要求 Python 3.12。
+- `start.py`: 启动 PyQt6 桌面壳，加载 `ui.html` 并内置 WebUI 后端。
+- `main.py`: 直接拉起 `webui_server.py`，用于简单本地调试。
 - `webui_server.py`: 本地 WebUI HTTP 服务和 `/api/*` 接口。
 - `app.py`: 核心业务流程。
-- `start.py`: 中文启动脚本。
-- `start_distributed_worker.sh` / `start_distributed_worker.bat`: 分布式 worker 启动脚本。
-- `scripts/run_webui.sh`: 服务化启动入口，适合 Linux/macOS/CI/systemd 自动化部署。
-- `scripts/bootstrap.sh`: 跨平台依赖初始化和 Go bridge 编译脚本。
+- `scripts/start_distributed_worker.sh` / `scripts/windows/start_distributed_worker.bat`: worker 底层启动脚本。
+
+更完整的入口与一次性脚本划分见 `docs/ENTRYPOINTS.md`。
 
 `../xbuy` 原始项目里也有 `start.py`，作用是直接拉起 `webui_server.py`。
 
@@ -26,7 +29,7 @@
 
 ## UI 和桥接组件
 
-- `ui.html`, `mobile_order.html`, `remote_login.html`: 浏览器页面。
+- `web/ui.html`, `web/mobile_order.html`, `web/remote_login.html`: 浏览器页面。
 - `desktop_ui.py`: 桌面 UI 辅助代码。
 - `node_bridge/`: Node HTTP/TLS 桥。
 - `bs_dvid_node/`: BS-DVID Node 实现。

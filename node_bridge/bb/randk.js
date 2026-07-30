@@ -3,20 +3,20 @@
 const crypto = require('crypto');
 const fs = require('fs');
 
-const RANDC_1_9_6 = '01234567890abcdefghijklmnopqrstuvwxyz';
-const ERROR_TOKEN_1_9_6 = 'error';
-const PACKAGE_NAME_1_9_6 = 'com.moutai.mall';
-const SIGNATURE_WHITELIST_1_9_6 = [
+const RANDC = '01234567890abcdefghijklmnopqrstuvwxyz';
+const ERROR_TOKEN = 'error';
+const PACKAGE_NAME = 'com.moutai.mall';
+const SIGNATURE_WHITELIST = [
     'dd6c1787c17943e9db0c59c0da3d20e5',
     '2f5ae2348f427a666876d7da3563a7d2',
 ];
-const IV_PREFIX_1_9_6 = '2018534749';
-const IV_SUFFIX_1_9_6 = '963515';
-const IV_1_9_6 = IV_PREFIX_1_9_6 + IV_SUFFIX_1_9_6;
-const MIXM_KEY_PREFIX_1_9_6 = '7115c$ffbb5745#bb6';
-const MIXM_KEY_SUFFIX_1_9_6 = '58415f3d89dae8';
-const FALLBACK_CODE_1_9_6 = 'qbhajinldepmucsonaaaccgypwuvcjaa';
-const FALLBACK_MD5_1_9_6 = '028e7f96f6369cafe1d105579c5b9377';
+const IV_PREFIX = '2018534749';
+const IV_SUFFIX = '963515';
+const IV = IV_PREFIX + IV_SUFFIX;
+const MIXM_KEY_PREFIX = '7115c$ffbb5745#bb6';
+const MIXM_KEY_SUFFIX = '58415f3d89dae8';
+const FALLBACK_CODE = 'qbhajinldepmucsonaaaccgypwuvcjaa';
+const FALLBACK_MD5 = '028e7f96f6369cafe1d105579c5b9377';
 
 function normalizeText(value) {
     if (value === null || value === undefined) {
@@ -25,7 +25,7 @@ function normalizeText(value) {
     return String(value);
 }
 
-function isAsciiAlnumByte_1_9_6(value) {
+function isAsciiAlnumByte(value) {
     return (
         (value >= 48 && value <= 57) ||
         (value >= 65 && value <= 90) ||
@@ -33,7 +33,7 @@ function isAsciiAlnumByte_1_9_6(value) {
     );
 }
 
-function maybeParseJson_1_9_6(value) {
+function maybeParseJson(value) {
     if (typeof value !== 'string') {
         return value;
     }
@@ -44,14 +44,14 @@ function maybeParseJson_1_9_6(value) {
     }
 }
 
-function compactJson_1_9_6(value) {
+function compactJson(value) {
     if (typeof value === 'string') {
         return value;
     }
     return JSON.stringify(value);
 }
 
-function extractCodeFromBmpBuffer_1_9_6(buffer) {
+function extractCodeFromBmpBuffer(buffer) {
     if (!Buffer.isBuffer(buffer)) {
         throw new TypeError('expected Buffer');
     }
@@ -93,7 +93,7 @@ function extractCodeFromBmpBuffer_1_9_6(buffer) {
         const green = buffer[rowStart + pixelOffsetInRow + 1];
         const red = buffer[rowStart + pixelOffsetInRow + 2];
         for (const component of [red, green, blue]) {
-            if (!isAsciiAlnumByte_1_9_6(component)) {
+            if (!isAsciiAlnumByte(component)) {
                 throw new Error(`non-alnum component at x=${x}: ${component}`);
             }
             chars.push(String.fromCharCode(component));
@@ -102,15 +102,15 @@ function extractCodeFromBmpBuffer_1_9_6(buffer) {
     return chars.join('') + 'aa';
 }
 
-function extractCodeFromBmpPath_1_9_6(path) {
-    return extractCodeFromBmpBuffer_1_9_6(fs.readFileSync(path));
+function extractCodeFromBmpPath(path) {
+    return extractCodeFromBmpBuffer(fs.readFileSync(path));
 }
 
-function androidBase64Default_1_9_6(buffer) {
+function androidBase64Default(buffer) {
     return Buffer.from(buffer).toString('base64');
 }
 
-function encryptAUEc_1_9_6(plainText, key, iv = IV_1_9_6) {
+function encryptAUEc(plainText, key, iv = IV) {
     const keyBuffer = Buffer.from(normalizeText(key), 'utf8');
     const algorithmByLength = {
         16: 'aes-128-cbc',
@@ -130,145 +130,145 @@ function encryptAUEc_1_9_6(plainText, key, iv = IV_1_9_6) {
         cipher.update(Buffer.from(normalizeText(plainText), 'utf8')),
         cipher.final(),
     ]);
-    return androidBase64Default_1_9_6(encrypted);
+    return androidBase64Default(encrypted);
 }
 
-function md5Hex_1_9_6(text) {
+function md5Hex(text) {
     return crypto
         .createHash('md5')
         .update(Buffer.from(normalizeText(text), 'utf8'))
         .digest('hex');
 }
 
-function sortChars_1_9_6(text) {
+function sortChars(text) {
     return normalizeText(text).split('').sort().join('');
 }
 
-function pickRandCharFromValue_1_9_6(randValue) {
+function pickRandCharFromValue(randValue) {
     const value = Number(randValue);
     if (!Number.isFinite(value)) {
         throw new Error(`invalid rand value: ${randValue}`);
     }
     const index =
-        ((Math.trunc(value) % RANDC_1_9_6.length) + RANDC_1_9_6.length) %
-        RANDC_1_9_6.length;
-    return RANDC_1_9_6[index];
+        ((Math.trunc(value) % RANDC.length) + RANDC.length) %
+        RANDC.length;
+    return RANDC[index];
 }
 
-function randomRandChar_1_9_6() {
-    return RANDC_1_9_6[Math.floor(Math.random() * RANDC_1_9_6.length)];
+function randomRandChar() {
+    return RANDC[Math.floor(Math.random() * RANDC.length)];
 }
 
-function buildMixKBase_1_9_6(arg1, arg2, arg3, versionName = '') {
+function buildMixKBase(arg1, arg2, arg3, versionName = '') {
     return `android${normalizeText(arg1)}${normalizeText(arg2)}${normalizeText(arg3)}${normalizeText(versionName)}`;
 }
 
-function finalizeMixK_1_9_6(base, randChar) {
-    const digest = md5Hex_1_9_6(sortChars_1_9_6(base) + randChar);
+function finalizeMixK(base, randChar) {
+    const digest = md5Hex(sortChars(base) + randChar);
     if (digest.length >= 27) {
         return digest.slice(0, 26) + randChar;
     }
     return digest;
 }
 
-function mixK_1_9_6(arg1, arg2, arg3, options = {}) {
-    const randChar = options.randChar || randomRandChar_1_9_6();
-    return finalizeMixK_1_9_6(
-        buildMixKBase_1_9_6(arg1, arg2, arg3, options.versionName || ''),
+function mixK(arg1, arg2, arg3, options = {}) {
+    const randChar = options.randChar || randomRandChar();
+    return finalizeMixK(
+        buildMixKBase(arg1, arg2, arg3, options.versionName || ''),
         randChar
     );
 }
 
-function mixKWithGuards_1_9_6(arg1, arg2, arg3, options = {}) {
-    const randChar = options.randChar || randomRandChar_1_9_6();
-    let base = buildMixKBase_1_9_6(arg1, arg2, arg3, options.versionName || '');
+function mixKWithGuards(arg1, arg2, arg3, options = {}) {
+    const randChar = options.randChar || randomRandChar();
+    let base = buildMixKBase(arg1, arg2, arg3, options.versionName || '');
     const firstArg = normalizeText(arg1);
 
     if (!options.packageMatches) {
-        base += ERROR_TOKEN_1_9_6 + randChar + firstArg;
+        base += ERROR_TOKEN + randChar + firstArg;
     }
     if (!options.signatureAllowed) {
-        base += ERROR_TOKEN_1_9_6 + randChar + firstArg;
+        base += ERROR_TOKEN + randChar + firstArg;
     }
 
-    return finalizeMixK_1_9_6(base, randChar);
+    return finalizeMixK(base, randChar);
 }
 
-function mixM_1_9_6(input, options = {}) {
+function mixM(input, options = {}) {
     if (options.packageMatches === false || options.signatureAllowed === false) {
-        return mixMFallback_1_9_6(options);
+        return mixMFallback(options);
     }
-    return encryptAUEc_1_9_6(
+    return encryptAUEc(
         normalizeText(input),
-        MIXM_KEY_PREFIX_1_9_6 + MIXM_KEY_SUFFIX_1_9_6,
-        options.iv || IV_1_9_6
+        MIXM_KEY_PREFIX + MIXM_KEY_SUFFIX,
+        options.iv || IV
     );
 }
 
-function mixMFallback_1_9_6(options = {}) {
-    const randChar = options.randChar || randomRandChar_1_9_6();
-    return md5Hex_1_9_6(normalizeText(options.versionName) + ERROR_TOKEN_1_9_6 + randChar);
+function mixMFallback(options = {}) {
+    const randChar = options.randChar || randomRandChar();
+    return md5Hex(normalizeText(options.versionName) + ERROR_TOKEN + randChar);
 }
 
-function mixMP_1_9_6(code, requestJson, options = {}) {
+function mixMP(code, requestJson, options = {}) {
     if (options.packageMatches === false || options.signatureAllowed === false) {
-        return mixMPFallback_1_9_6(options);
+        return mixMPFallback(options);
     }
-    return encryptAUEc_1_9_6(
-        compactJson_1_9_6(requestJson),
+    return encryptAUEc(
+        compactJson(requestJson),
         normalizeText(code),
-        options.iv || IV_1_9_6
+        options.iv || IV
     );
 }
 
-function mixMPFallback_1_9_6(options = {}) {
-    const randChar = options.randChar || randomRandChar_1_9_6();
-    return md5Hex_1_9_6(normalizeText(options.versionName) + ERROR_TOKEN_1_9_6 + randChar);
+function mixMPFallback(options = {}) {
+    const randChar = options.randChar || randomRandChar();
+    return md5Hex(normalizeText(options.versionName) + ERROR_TOKEN + randChar);
 }
 
 module.exports = {
-    ERROR_TOKEN_1_9_6,
-    FALLBACK_CODE_1_9_6,
-    FALLBACK_MD5_1_9_6,
-    IV_1_9_6,
-    IV_PREFIX_1_9_6,
-    IV_SUFFIX_1_9_6,
-    MIXM_KEY_PREFIX_1_9_6,
-    MIXM_KEY_SUFFIX_1_9_6,
-    PACKAGE_NAME_1_9_6,
-    RANDC_1_9_6,
-    SIGNATURE_WHITELIST_1_9_6,
-    androidBase64Default_1_9_6,
-    buildMixKBase_1_9_6,
-    compactJson_1_9_6,
-    encryptAUEc_1_9_6,
-    extractCodeFromBmpBuffer_1_9_6,
-    extractCodeFromBmpPath_1_9_6,
-    isAsciiAlnumByte_1_9_6,
-    md5Hex_1_9_6,
-    maybeParseJson_1_9_6,
-    mixK_1_9_6,
-    mixKWithGuards_1_9_6,
-    mixM_1_9_6,
-    mixMFallback_1_9_6,
-    mixMP_1_9_6,
-    mixMPFallback_1_9_6,
-    pickRandCharFromValue_1_9_6,
-    randomRandChar_1_9_6,
-    sortChars_1_9_6,
+    ERROR_TOKEN,
+    FALLBACK_CODE,
+    FALLBACK_MD5,
+    IV,
+    IV_PREFIX,
+    IV_SUFFIX,
+    MIXM_KEY_PREFIX,
+    MIXM_KEY_SUFFIX,
+    PACKAGE_NAME,
+    RANDC,
+    SIGNATURE_WHITELIST,
+    androidBase64Default,
+    buildMixKBase,
+    compactJson,
+    encryptAUEc,
+    extractCodeFromBmpBuffer,
+    extractCodeFromBmpPath,
+    isAsciiAlnumByte,
+    md5Hex,
+    maybeParseJson,
+    mixK,
+    mixKWithGuards,
+    mixM,
+    mixMFallback,
+    mixMP,
+    mixMPFallback,
+    pickRandCharFromValue,
+    randomRandChar,
+    sortChars,
 };
 
 if (require.main === module) {
     const [mode, ...args] = process.argv.slice(2);
     if (!mode) {
-        console.error('usage: node randk_1_9_6.js <mixk|mixm|mixmp> ...');
+        console.error('usage: node randk.js <mixk|mixm|mixmp> ...');
         process.exit(1);
     }
 
     if (mode === 'mixk') {
         const [arg1, arg2, arg3, versionName = '', randChar = '0'] = args;
         process.stdout.write(
-            mixK_1_9_6(arg1, arg2, arg3, { versionName, randChar })
+            mixK(arg1, arg2, arg3, { versionName, randChar })
         );
         process.stdout.write('\n');
         process.exit(0);
@@ -276,31 +276,31 @@ if (require.main === module) {
 
     if (mode === 'mixm') {
         const [input] = args;
-        process.stdout.write(mixM_1_9_6(input));
+        process.stdout.write(mixM(input));
         process.exit(0);
     }
 
     if (mode === 'mixmp') {
         const [code, json] = args;
         if (!code || !json) {
-            console.error('usage: node randk_1_9_6.js mixmp <code> <json-or-string>');
+            console.error('usage: node randk.js mixmp <code> <json-or-string>');
             process.exit(1);
         }
         let value = json;
         try {
             value = JSON.parse(json);
         } catch (error) { }
-        process.stdout.write(mixMP_1_9_6(code, value));
+        process.stdout.write(mixMP(code, value));
         process.exit(0);
     }
 
     if (mode === 'bmp') {
         const [path] = args;
         if (!path) {
-            console.error('usage: node randk_1_9_6.js bmp <path-to-bmp>');
+            console.error('usage: node randk.js bmp <path-to-bmp>');
             process.exit(1);
         }
-        process.stdout.write(extractCodeFromBmpPath_1_9_6(path));
+        process.stdout.write(extractCodeFromBmpPath(path));
         process.stdout.write('\n');
         process.exit(0);
     }

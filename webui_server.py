@@ -120,9 +120,10 @@ _rush_global_abort_event = threading.Event()
 PAY_RECORD_EXPORT_DIR = ROOT / "抢购记录"
 # 账号勾选导出落盘目录（账号列表工具栏「导出勾选手机号」）
 ACCOUNT_RECORD_EXPORT_DIR = ROOT / "账号记录"
-UI_FILE = ROOT / "ui.html"
-REMOTE_LOGIN_FILE = ROOT / "remote_login.html"
-MOBILE_ORDER_FILE = ROOT / "mobile_order.html"
+WEB_DIR = ROOT / "web"
+UI_FILE = WEB_DIR / "ui.html"
+REMOTE_LOGIN_FILE = WEB_DIR / "remote_login.html"
+MOBILE_ORDER_FILE = WEB_DIR / "mobile_order.html"
 GO_BRIDGE_TLS_MODE_FILE = ROOT / "go_bridge_tls_mode.json"
 # 监听地址：默认 0.0.0.0＝任意网卡、任意来源 IP 均可连（对方须能路由到你这台机；防火墙放行端口）。
 # 若只想本机访问：MT_WEBUI_BIND=127.0.0.1

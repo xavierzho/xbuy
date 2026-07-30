@@ -8,11 +8,16 @@ import subprocess
 import sys
 import tempfile
 from http.cookies import SimpleCookie
+from pathlib import Path
 from typing import Any
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import py_bb_new
 
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = str(ROOT)
 NODE = os.environ.get("NODE_EXE") or r"C:\Users\Administrator\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 FIXED_WAC_NOW = 1888888888888
 

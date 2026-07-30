@@ -16,7 +16,7 @@ DEFAULT_SIGN_WASM_VERSION = "v1.0.8"
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _BB_DIR = os.path.join(_BASE_DIR, "node_bridge", "bb")
-_RUNTIME_WASM_PATH = os.path.join(_BB_DIR, "bs_stub_1_9_6.wasm")
+_RUNTIME_WASM_PATH = os.path.join(_BB_DIR, "runtime.wasm")
 _SIGN_WASM_PATH = os.path.join(_BB_DIR, "sign_wasm.bin")
 
 

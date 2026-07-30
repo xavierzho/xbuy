@@ -1,34 +1,34 @@
-﻿'use strict';
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const { sm4 } = require('sm-crypto');
 
-const SDK_VERSION_1_9_6 = 'V3.5.0_20260721.2_imaotai';
-const DEFAULT_BB_APP_KEY_1_9_6 = '10001';
-const DEFAULT_BB_HOST_1_9_6 = 'https://fk1.moutai519.com.cn/bangcle';
-const DEFAULT_WASM_RUNTIME_FALLBACK_HOST_1_9_6 = 'http://172.16.202.6:9101';
-const DEFAULT_UPLOAD_PATH_1_9_6 = '/bbprbdata/upload';
-const DEFAULT_WASM_VERSION_LIST_PATH_1_9_6 = '/api/v1/1/2';
-const DEFAULT_WASM_DOWNLOAD_PATH_1_9_6 = '/api/v1/1/1';
-const CONTENT_WEB_BB_HEADER_1_9_6 = 'Content-Web-Bb';
-const CONTENT_HH_BB_HEADER_1_9_6 = 'Content-Hh-Bb';
-const CONTENT_INFO_BB_HEADER_1_9_6 = 'Content-Info-Bb';
-const SDK_VER_BB_HEADER_1_9_6 = 'Sdk-Ver-Bb';
-const WASM_SIGN_STORAGE_KEY_1_9_6 = '__wasm_sign_wasm__';
-const WASM_SIGN_VERSION_KEY_1_9_6 = '__wasm_sign_version__';
-const WASM_SIGN_OK_STORAGE_KEY_1_9_6 = '__wasm_sign_ok__';
-const GLOBAL_SIGN_VERSION_1_9_6 = '__SIGN_WASM_VERSION__';
-const GLOBAL_SIGN_WASM_OK_1_9_6 = '__SIGN_WASM_OK__';
-const DEFAULT_STORAGE_TTL_MS_1_9_6 = 86400000;
-const PERSISTENT_STORAGE_TTL_MS_1_9_6 = 259200000000;
-const SIGN_WASM_STORAGE_TTL_MS_1_9_6 = 2592000000;
-const TOKEN_STORAGE_TTL_MS_1_9_6 = 30000;
-const GEN_F_TOKEN_TTL_MS_1_9_6 = 5316758292;
-const DEVICE_INFO_STORAGE_TTL_MS_1_9_6 = 433296000;
-const REMOTE_CONFIG_STORAGE_TTL_MS_1_9_6 = 28809082;
-const DEFAULT_BB_TASK_1_9_6 = [
+const SDK_VERSION = 'V3.5.0_20260721.2_imaotai';
+const DEFAULT_BB_APP_KEY = '10001';
+const DEFAULT_BB_HOST = 'https://fk1.moutai519.com.cn/bangcle';
+const DEFAULT_WASM_RUNTIME_FALLBACK_HOST = 'http://172.16.202.6:9101';
+const DEFAULT_UPLOAD_PATH = '/bbprbdata/upload';
+const DEFAULT_WASM_VERSION_LIST_PATH = '/api/v1/1/2';
+const DEFAULT_WASM_DOWNLOAD_PATH = '/api/v1/1/1';
+const CONTENT_WEB_BB_HEADER = 'Content-Web-Bb';
+const CONTENT_HH_BB_HEADER = 'Content-Hh-Bb';
+const CONTENT_INFO_BB_HEADER = 'Content-Info-Bb';
+const SDK_VER_BB_HEADER = 'Sdk-Ver-Bb';
+const WASM_SIGN_STORAGE_KEY = '__wasm_sign_wasm__';
+const WASM_SIGN_VERSION_KEY = '__wasm_sign_version__';
+const WASM_SIGN_OK_STORAGE_KEY = '__wasm_sign_ok__';
+const GLOBAL_SIGN_VERSION = '__SIGN_WASM_VERSION__';
+const GLOBAL_SIGN_WASM_OK = '__SIGN_WASM_OK__';
+const DEFAULT_STORAGE_TTL_MS = 86400000;
+const PERSISTENT_STORAGE_TTL_MS = 259200000000;
+const SIGN_WASM_STORAGE_TTL_MS = 2592000000;
+const TOKEN_STORAGE_TTL_MS = 30000;
+const GEN_F_TOKEN_TTL_MS = 5316758292;
+const DEVICE_INFO_STORAGE_TTL_MS = 433296000;
+const REMOTE_CONFIG_STORAGE_TTL_MS = 28809082;
+const DEFAULT_BB_TASK = [
     '',
     '',
     0,
@@ -85,55 +85,55 @@ const DEFAULT_BB_TASK_1_9_6 = [
     [0, '', '', '', '', '', '', '', ''],
 ];
 
-let defaultStubRuntimePromise_1_9_6 = null;
+let defaultStubRuntimePromise = null;
 
-function cloneDefaultBbTask_1_9_6() {
-    return JSON.parse(JSON.stringify(DEFAULT_BB_TASK_1_9_6));
+function cloneDefaultBbTask() {
+    return JSON.parse(JSON.stringify(DEFAULT_BB_TASK));
 }
 
-function cloneJsonValue_1_9_6(value) {
+function cloneJsonValue(value) {
     if (value === undefined || value === null) {
         return value;
     }
     return JSON.parse(JSON.stringify(value));
 }
 
-function normalizeString_1_9_6(value) {
+function normalizeString(value) {
     if (value === null || value === undefined) {
         return '';
     }
     return String(value);
 }
 
-function trimTrailingSlashes_1_9_6(value) {
-    return normalizeString_1_9_6(value).replace(/\/+$/, '');
+function trimTrailingSlashes(value) {
+    return normalizeString(value).replace(/\/+$/, '');
 }
 
-function getOriginForBangcleHost_1_9_6(pageDomain = 'https://h5.moutai519.com.cn/') {
+function getOriginForBangcleHost(pageDomain = 'https://h5.moutai519.com.cn/') {
     const fallbackOrigin = 'https://h5.moutai519.com.cn';
     try {
-        return new URL(normalizeString_1_9_6(pageDomain) || `${fallbackOrigin}/`).origin;
+        return new URL(normalizeString(pageDomain) || `${fallbackOrigin}/`).origin;
     } catch (error) {
         return fallbackOrigin;
     }
 }
 
-function normalizeBangcleHost_1_9_6(host, pageDomain = 'https://h5.moutai519.com.cn/') {
-    const normalized = normalizeString_1_9_6(host).trim();
+function normalizeBangcleHost(host, pageDomain = 'https://h5.moutai519.com.cn/') {
+    const normalized = normalizeString(host).trim();
     if (!normalized) {
         return '';
     }
     if (/^https?:\/\//i.test(normalized)) {
-        return trimTrailingSlashes_1_9_6(normalized);
+        return trimTrailingSlashes(normalized);
     }
     if (normalized.startsWith('/')) {
-        return `${getOriginForBangcleHost_1_9_6(pageDomain)}${trimTrailingSlashes_1_9_6(normalized)}`;
+        return `${getOriginForBangcleHost(pageDomain)}${trimTrailingSlashes(normalized)}`;
     }
-    const protocol = getOriginForBangcleHost_1_9_6(pageDomain).split(':')[0] || 'https';
-    return `${protocol}://${trimTrailingSlashes_1_9_6(normalized)}`;
+    const protocol = getOriginForBangcleHost(pageDomain).split(':')[0] || 'https';
+    return `${protocol}://${trimTrailingSlashes(normalized)}`;
 }
 
-function guid_1_9_6(now = Date.now()) {
+function guid(now = Date.now()) {
     let cursor = now;
     return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
         const random = ((cursor + 16 * Math.random()) % 16) | 0;
@@ -142,7 +142,7 @@ function guid_1_9_6(now = Date.now()) {
     });
 }
 
-function getRandomId_1_9_6(now = Date.now()) {
+function getRandomId(now = Date.now()) {
     const seeds = [];
     for (let index = 0; index < 3; index += 1) {
         seeds.push(String(now));
@@ -159,12 +159,12 @@ function getRandomId_1_9_6(now = Date.now()) {
         });
 }
 
-function getStartId_1_9_6(now = Date.now(), randomSource = Math.random()) {
+function getStartId(now = Date.now(), randomSource = Math.random()) {
     return `${now.toString(36)}_${randomSource.toString(36).slice(2)}_4`;
 }
 
-function str2utf8_1_9_6(text) {
-    const input = normalizeString_1_9_6(text);
+function str2utf8(text) {
+    const input = normalizeString(text);
     const result = [];
     for (let index = 0; index < input.length; index += 1) {
         const code = input.charCodeAt(index);
@@ -180,7 +180,7 @@ function str2utf8_1_9_6(text) {
     return result;
 }
 
-function x64Add_1_9_6(left, right) {
+function x64Add(left, right) {
     const a = [left[0] >>> 16, left[0] & 0xffff, left[1] >>> 16, left[1] & 0xffff];
     const b = [right[0] >>> 16, right[0] & 0xffff, right[1] >>> 16, right[1] & 0xffff];
     const result = [0, 0, 0, 0];
@@ -198,7 +198,7 @@ function x64Add_1_9_6(left, right) {
     return [(result[0] << 16) | result[1], (result[2] << 16) | result[3]];
 }
 
-function x64Multiply_1_9_6(left, right) {
+function x64Multiply(left, right) {
     const a = [left[0] >>> 16, left[0] & 0xffff, left[1] >>> 16, left[1] & 0xffff];
     const b = [right[0] >>> 16, right[0] & 0xffff, right[1] >>> 16, right[1] & 0xffff];
     const result = [0, 0, 0, 0];
@@ -225,7 +225,7 @@ function x64Multiply_1_9_6(left, right) {
     return [(result[0] << 16) | result[1], (result[2] << 16) | result[3]];
 }
 
-function x64Rotl_1_9_6(value, shift) {
+function x64Rotl(value, shift) {
     let amount = shift % 64;
     if (amount === 32) {
         return [value[1], value[0]];
@@ -243,7 +243,7 @@ function x64Rotl_1_9_6(value, shift) {
     ];
 }
 
-function x64LeftShift_1_9_6(value, shift) {
+function x64LeftShift(value, shift) {
     const amount = shift % 64;
     if (amount === 0) {
         return value;
@@ -257,27 +257,27 @@ function x64LeftShift_1_9_6(value, shift) {
     return [value[1] << (amount - 32), 0];
 }
 
-function x64Xor_1_9_6(left, right) {
+function x64Xor(left, right) {
     return [left[0] ^ right[0], left[1] ^ right[1]];
 }
 
-function x64Fmix_1_9_6(value) {
-    let mixed = x64Xor_1_9_6(value, [0, value[0] >>> 1]);
-    mixed = x64Multiply_1_9_6(mixed, [0xff51afd7, 0xed558ccd]);
-    mixed = x64Xor_1_9_6(mixed, [0, mixed[0] >>> 1]);
-    mixed = x64Multiply_1_9_6(mixed, [0xc4ceb9fe, 0x1a85ec53]);
-    mixed = x64Xor_1_9_6(mixed, [0, mixed[0] >>> 1]);
+function x64Fmix(value) {
+    let mixed = x64Xor(value, [0, value[0] >>> 1]);
+    mixed = x64Multiply(mixed, [0xff51afd7, 0xed558ccd]);
+    mixed = x64Xor(mixed, [0, mixed[0] >>> 1]);
+    mixed = x64Multiply(mixed, [0xc4ceb9fe, 0x1a85ec53]);
+    mixed = x64Xor(mixed, [0, mixed[0] >>> 1]);
     return mixed;
 }
 
-function bsHash_1_9_6(input, seed = 0, limit, suffix) {
-    let bytes = str2utf8_1_9_6(input || []);
+function bsHash(input, seed = 0, limit, suffix) {
+    let bytes = str2utf8(input || []);
     let actualSeed = seed || 0;
     if (limit) {
         bytes = bytes.slice(0, limit);
     }
     if (suffix) {
-        bytes = bytes.concat(str2utf8_1_9_6(suffix));
+        bytes = bytes.concat(str2utf8(suffix));
     }
     const remainder = bytes.length % 16;
     const bodyLength = bytes.length - remainder;
@@ -308,75 +308,75 @@ function bsHash_1_9_6(input, seed = 0, limit, suffix) {
                 ((bytes[offset + 10] & 0xff) << 16) |
                 ((bytes[offset + 11] & 0xff) << 24),
         ];
-        k1 = x64Multiply_1_9_6(k1, c1);
-        k1 = x64Rotl_1_9_6(k1, 31);
-        k1 = x64Multiply_1_9_6(k1, c2);
-        hash1 = x64Xor_1_9_6(hash1, k1);
-        hash1 = x64Rotl_1_9_6(hash1, 27);
-        hash1 = x64Add_1_9_6(hash1, hash2);
-        hash1 = x64Add_1_9_6(x64Multiply_1_9_6(hash1, [0, 5]), [0, 0x52dce729]);
-        k2 = x64Multiply_1_9_6(k2, c2);
-        k2 = x64Rotl_1_9_6(k2, 33);
-        k2 = x64Multiply_1_9_6(k2, c1);
-        hash2 = x64Xor_1_9_6(hash2, k2);
-        hash2 = x64Rotl_1_9_6(hash2, 31);
-        hash2 = x64Add_1_9_6(hash2, hash1);
-        hash2 = x64Add_1_9_6(x64Multiply_1_9_6(hash2, [0, 5]), [0, 0x38495ab5]);
+        k1 = x64Multiply(k1, c1);
+        k1 = x64Rotl(k1, 31);
+        k1 = x64Multiply(k1, c2);
+        hash1 = x64Xor(hash1, k1);
+        hash1 = x64Rotl(hash1, 27);
+        hash1 = x64Add(hash1, hash2);
+        hash1 = x64Add(x64Multiply(hash1, [0, 5]), [0, 0x52dce729]);
+        k2 = x64Multiply(k2, c2);
+        k2 = x64Rotl(k2, 33);
+        k2 = x64Multiply(k2, c1);
+        hash2 = x64Xor(hash2, k2);
+        hash2 = x64Rotl(hash2, 31);
+        hash2 = x64Add(hash2, hash1);
+        hash2 = x64Add(x64Multiply(hash2, [0, 5]), [0, 0x38495ab5]);
     }
     k1 = [0, 0];
     k2 = [0, 0];
     const tail = bodyLength;
     switch (remainder) {
         case 15:
-            k2 = x64Xor_1_9_6(k2, x64LeftShift_1_9_6([0, bytes[tail + 14]], 48));
+            k2 = x64Xor(k2, x64LeftShift([0, bytes[tail + 14]], 48));
         case 14:
-            k2 = x64Xor_1_9_6(k2, x64LeftShift_1_9_6([0, bytes[tail + 13]], 40));
+            k2 = x64Xor(k2, x64LeftShift([0, bytes[tail + 13]], 40));
         case 13:
-            k2 = x64Xor_1_9_6(k2, x64LeftShift_1_9_6([0, bytes[tail + 12]], 32));
+            k2 = x64Xor(k2, x64LeftShift([0, bytes[tail + 12]], 32));
         case 12:
-            k2 = x64Xor_1_9_6(k2, x64LeftShift_1_9_6([0, bytes[tail + 11]], 24));
+            k2 = x64Xor(k2, x64LeftShift([0, bytes[tail + 11]], 24));
         case 11:
-            k2 = x64Xor_1_9_6(k2, x64LeftShift_1_9_6([0, bytes[tail + 10]], 16));
+            k2 = x64Xor(k2, x64LeftShift([0, bytes[tail + 10]], 16));
         case 10:
-            k2 = x64Xor_1_9_6(k2, x64LeftShift_1_9_6([0, bytes[tail + 9]], 8));
+            k2 = x64Xor(k2, x64LeftShift([0, bytes[tail + 9]], 8));
         case 9:
-            k2 = x64Xor_1_9_6(k2, [0, bytes[tail + 8]]);
-            k2 = x64Multiply_1_9_6(k2, c2);
-            k2 = x64Rotl_1_9_6(k2, 33);
-            k2 = x64Multiply_1_9_6(k2, c1);
-            hash2 = x64Xor_1_9_6(hash2, k2);
+            k2 = x64Xor(k2, [0, bytes[tail + 8]]);
+            k2 = x64Multiply(k2, c2);
+            k2 = x64Rotl(k2, 33);
+            k2 = x64Multiply(k2, c1);
+            hash2 = x64Xor(hash2, k2);
         case 8:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 7]], 56));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 7]], 56));
         case 7:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 6]], 48));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 6]], 48));
         case 6:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 5]], 40));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 5]], 40));
         case 5:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 4]], 32));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 4]], 32));
         case 4:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 3]], 24));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 3]], 24));
         case 3:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 2]], 16));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 2]], 16));
         case 2:
-            k1 = x64Xor_1_9_6(k1, x64LeftShift_1_9_6([0, bytes[tail + 1]], 8));
+            k1 = x64Xor(k1, x64LeftShift([0, bytes[tail + 1]], 8));
         case 1:
-            k1 = x64Xor_1_9_6(k1, [0, bytes[tail]]);
-            k1 = x64Multiply_1_9_6(k1, c1);
-            k1 = x64Rotl_1_9_6(k1, 31);
-            k1 = x64Multiply_1_9_6(k1, c2);
-            hash1 = x64Xor_1_9_6(hash1, k1);
+            k1 = x64Xor(k1, [0, bytes[tail]]);
+            k1 = x64Multiply(k1, c1);
+            k1 = x64Rotl(k1, 31);
+            k1 = x64Multiply(k1, c2);
+            hash1 = x64Xor(hash1, k1);
             break;
         default:
             break;
     }
-    hash1 = x64Xor_1_9_6(hash1, [0, bytes.length]);
-    hash2 = x64Xor_1_9_6(hash2, [0, bytes.length]);
-    hash1 = x64Add_1_9_6(hash1, hash2);
-    hash2 = x64Add_1_9_6(hash2, hash1);
-    hash1 = x64Fmix_1_9_6(hash1);
-    hash2 = x64Fmix_1_9_6(hash2);
-    hash1 = x64Add_1_9_6(hash1, hash2);
-    hash2 = x64Add_1_9_6(hash2, hash1);
+    hash1 = x64Xor(hash1, [0, bytes.length]);
+    hash2 = x64Xor(hash2, [0, bytes.length]);
+    hash1 = x64Add(hash1, hash2);
+    hash2 = x64Add(hash2, hash1);
+    hash1 = x64Fmix(hash1);
+    hash2 = x64Fmix(hash2);
+    hash1 = x64Add(hash1, hash2);
+    hash2 = x64Add(hash2, hash1);
     return (
         `00000000${(hash1[0] >>> 0).toString(16)}`.slice(-8) +
         `00000000${(hash1[1] >>> 0).toString(16)}`.slice(-8) +
@@ -385,12 +385,12 @@ function bsHash_1_9_6(input, seed = 0, limit, suffix) {
     );
 }
 
-function sm4Key_1_9_6(seed) {
-    const digest = bsHash_1_9_6(`${normalizeString_1_9_6(seed)}_bsdk_`, 27);
+function sm4Key(seed) {
+    const digest = bsHash(`${normalizeString(seed)}_bsdk_`, 27);
     return digest ? digest.toLowerCase() : '9EqAw+JtHSsyswpL9EqAw+JtHSsyswpL';
 }
 
-function sm4Encrypt_1_9_6(plainText, keyHex) {
+function sm4Encrypt(plainText, keyHex) {
     return sm4.encrypt(plainText, keyHex, {
         mode: 'cbc',
         iv: keyHex,
@@ -398,7 +398,7 @@ function sm4Encrypt_1_9_6(plainText, keyHex) {
     });
 }
 
-function sm4Decrypt_1_9_6(cipherHex, keyHex) {
+function sm4Decrypt(cipherHex, keyHex) {
     return sm4.decrypt(cipherHex, keyHex, {
         mode: 'cbc',
         iv: keyHex,
@@ -406,36 +406,36 @@ function sm4Decrypt_1_9_6(cipherHex, keyHex) {
     });
 }
 
-function isRawStoredValue_1_9_6(storageKey) {
-    return storageKey === 'h_five_event' || storageKey === WASM_SIGN_STORAGE_KEY_1_9_6;
+function isRawStoredValue(storageKey) {
+    return storageKey === 'h_five_event' || storageKey === WASM_SIGN_STORAGE_KEY;
 }
 
-function normalizeStorageTtlMs_1_9_6(ttlMs) {
+function normalizeStorageTtlMs(ttlMs) {
     if (ttlMs === undefined || ttlMs === null) {
-        return DEFAULT_STORAGE_TTL_MS_1_9_6;
+        return DEFAULT_STORAGE_TTL_MS;
     }
     const parsed = Number(ttlMs);
     if (!Number.isFinite(parsed)) {
-        return DEFAULT_STORAGE_TTL_MS_1_9_6;
+        return DEFAULT_STORAGE_TTL_MS;
     }
-    return parsed || PERSISTENT_STORAGE_TTL_MS_1_9_6;
+    return parsed || PERSISTENT_STORAGE_TTL_MS;
 }
 
-function wrapStoredValue_1_9_6(
+function wrapStoredValue(
     storageKey,
     value,
     ttlMs = undefined,
-    appKey = DEFAULT_BB_APP_KEY_1_9_6
+    appKey = DEFAULT_BB_APP_KEY
 ) {
     return JSON.stringify({
-        expiredAt: Date.now() + normalizeStorageTtlMs_1_9_6(ttlMs),
-        value: isRawStoredValue_1_9_6(storageKey)
+        expiredAt: Date.now() + normalizeStorageTtlMs(ttlMs),
+        value: isRawStoredValue(storageKey)
             ? value
-            : sm4Encrypt_1_9_6(JSON.stringify(value), sm4Key_1_9_6(appKey)),
+            : sm4Encrypt(JSON.stringify(value), sm4Key(appKey)),
     });
 }
 
-function unwrapStoredValue_1_9_6(storageKey, wrappedValue, appKey = DEFAULT_BB_APP_KEY_1_9_6) {
+function unwrapStoredValue(storageKey, wrappedValue, appKey = DEFAULT_BB_APP_KEY) {
     if (!wrappedValue) {
         return null;
     }
@@ -443,13 +443,13 @@ function unwrapStoredValue_1_9_6(storageKey, wrappedValue, appKey = DEFAULT_BB_A
     if (!parsed.expiredAt || Number(parsed.expiredAt) < Number(Date.now())) {
         return null;
     }
-    if (isRawStoredValue_1_9_6(storageKey)) {
+    if (isRawStoredValue(storageKey)) {
         return parsed.value;
     }
-    return JSON.parse(sm4Decrypt_1_9_6(parsed.value, sm4Key_1_9_6(appKey)));
+    return JSON.parse(sm4Decrypt(parsed.value, sm4Key(appKey)));
 }
 
-function normalizeWrappedStorageInput_1_9_6(state) {
+function normalizeWrappedStorageInput(state) {
     if (!state || typeof state !== 'object') {
         return { local: {}, session: {}, cookieState: null };
     }
@@ -474,12 +474,12 @@ function normalizeWrappedStorageInput_1_9_6(state) {
     return { local, session, cookieState };
 }
 
-function deriveBangcleSessionTokenShard_1_9_6(tokenPrepetuity) {
-    const normalized = normalizeString_1_9_6(tokenPrepetuity);
+function deriveBangcleSessionTokenShard(tokenPrepetuity) {
+    const normalized = normalizeString(tokenPrepetuity);
     return normalized ? normalized.slice(12, 18) : '';
 }
 
-function applyCachedRemoteConfig_1_9_6(context, cachedConfig) {
+function applyCachedRemoteConfig(context, cachedConfig) {
     if (!Array.isArray(cachedConfig) || !Array.isArray(cachedConfig[0])) {
         return false;
     }
@@ -490,7 +490,7 @@ function applyCachedRemoteConfig_1_9_6(context, cachedConfig) {
 
     sdkTask[16] = task[0] || 0;
     sdkTask[22] = task[1] || 0;
-    sdkTask[17] = Array.isArray(task[2]) ? cloneJsonValue_1_9_6(task[2]) : [];
+    sdkTask[17] = Array.isArray(task[2]) ? cloneJsonValue(task[2]) : [];
     sdkTask[20] = typeof task[3] === 'number' && task[3] > 10 ? task[3] : 3600;
     sdkTask[21] = task[4] || 0;
     sdkTask[7] = task[5] !== undefined ? task[5] : 10;
@@ -509,15 +509,15 @@ function applyCachedRemoteConfig_1_9_6(context, cachedConfig) {
     context.sdkConfig.td = timeDelta;
     context.timeDelta = timeDelta;
     context.tacticsVersion = tacticsVersion;
-    context.remoteTask = cloneJsonValue_1_9_6(task);
+    context.remoteTask = cloneJsonValue(task);
     return true;
 }
 
-function applyWrappedBangcleState_1_9_6(context, state, options = {}) {
-    const { local, session, cookieState } = normalizeWrappedStorageInput_1_9_6(state);
+function applyWrappedBangcleState(context, state, options = {}) {
+    const { local, session, cookieState } = normalizeWrappedStorageInput(state);
     const preferState = options.preferState !== false;
-    const appKey = options.appKey || context.sdkConfig?.app_key || DEFAULT_BB_APP_KEY_1_9_6;
-    const unwrap = (storageKey) => unwrapStoredValue_1_9_6(storageKey, local[storageKey], appKey);
+    const appKey = options.appKey || context.sdkConfig?.app_key || DEFAULT_BB_APP_KEY;
+    const unwrap = (storageKey) => unwrapStoredValue(storageKey, local[storageKey], appKey);
     const assign = (field, value) => {
         if (value === undefined || value === null || value === '') {
             return;
@@ -540,18 +540,18 @@ function applyWrappedBangcleState_1_9_6(context, state, options = {}) {
     assign('token', unwrap('__tok_'));
     assign('tokenPrepetuity', unwrap('__rk'));
     assign('sdkVersion', unwrap('_bb_v_'));
-    assign('signWasmVersion', unwrap(WASM_SIGN_VERSION_KEY_1_9_6));
+    assign('signWasmVersion', unwrap(WASM_SIGN_VERSION_KEY));
 
-    const wrappedSignWasmOk = unwrap(WASM_SIGN_OK_STORAGE_KEY_1_9_6);
+    const wrappedSignWasmOk = unwrap(WASM_SIGN_OK_STORAGE_KEY);
     if (wrappedSignWasmOk !== null && wrappedSignWasmOk !== undefined) {
         assign('signWasmOk', !!wrappedSignWasmOk);
     }
 
-    const wrappedSignWasmBase64 = unwrap(WASM_SIGN_STORAGE_KEY_1_9_6);
+    const wrappedSignWasmBase64 = unwrap(WASM_SIGN_STORAGE_KEY);
     if (wrappedSignWasmBase64) {
         assign('signWasmBase64', wrappedSignWasmBase64);
         if (!context.signWasmBytes) {
-            context.signWasmBytes = decodeBangcleSignWasmBase64_1_9_6(wrappedSignWasmBase64);
+            context.signWasmBytes = decodeBangcleSignWasmBase64(wrappedSignWasmBase64);
         }
     }
 
@@ -565,34 +565,34 @@ function applyWrappedBangcleState_1_9_6(context, state, options = {}) {
     }
     const deviceInfo = unwrap('h_five_cp');
     if (deviceInfo && typeof deviceInfo === 'object') {
-        assign('deviceInfo', cloneJsonValue_1_9_6(deviceInfo));
+        assign('deviceInfo', cloneJsonValue(deviceInfo));
     }
     const cachedConfig = unwrap('h_five_co');
     if (Array.isArray(cachedConfig)) {
-        applyCachedRemoteConfig_1_9_6(context, cachedConfig);
+        applyCachedRemoteConfig(context, cachedConfig);
     }
 
-    assign('startId', normalizeString_1_9_6(session.__36_i__ || ''));
+    assign('startId', normalizeString(session.__36_i__ || ''));
     if (!context.sessionTokenShard && typeof session.__st__ === 'string') {
         context.sessionTokenShard = session.__st__;
     }
 
     if (cookieState && typeof cookieState === 'object') {
-        assign('sdkVersion', normalizeString_1_9_6(cookieState._sdk_v_ || ''));
-        assign('hp', normalizeString_1_9_6(cookieState._bs_device_id || ''));
+        assign('sdkVersion', normalizeString(cookieState._sdk_v_ || ''));
+        assign('hp', normalizeString(cookieState._bs_device_id || ''));
     }
 
     return context;
 }
 
-function xorHexStringWithOne_1_9_6(hexText) {
-    return normalizeString_1_9_6(hexText)
+function xorHexStringWithOne(hexText) {
+    return normalizeString(hexText)
         .split('')
         .map((char) => (1 ^ parseInt(char, 16)).toString(16))
         .join('');
 }
 
-function objectToArray_1_9_6(object) {
+function objectToArray(object) {
     const result = [];
     const keys = Object.keys(object).sort();
     for (let index = 0; index < keys.length; index += 1) {
@@ -606,10 +606,10 @@ function objectToArray_1_9_6(object) {
             } else if (value === null) {
                 result[index] = null;
             } else if (value && value.constructor === Object) {
-                result[index] = objectToArray_1_9_6(value);
+                result[index] = objectToArray(value);
             } else if (value && value.constructor === Array) {
                 result[index] = value.map((item) =>
-                    item && item.constructor === Object ? objectToArray_1_9_6(item) : item
+                    item && item.constructor === Object ? objectToArray(item) : item
                 );
             } else {
                 result[index] = value;
@@ -621,7 +621,7 @@ function objectToArray_1_9_6(object) {
     return result;
 }
 
-function jsonSerialize_1_9_6(value, depth = 0) {
+function jsonSerialize(value, depth = 0) {
     let nextDepth = depth;
     if (typeof nextDepth === 'number') {
         nextDepth += 1;
@@ -661,7 +661,7 @@ function jsonSerialize_1_9_6(value, depth = 0) {
         }
         return JSON.stringify(
             value
-                .map((item) => jsonSerialize_1_9_6(item, nextDepth))
+                .map((item) => jsonSerialize(item, nextDepth))
                 .filter((item) => item !== '|-|-|')
         );
     }
@@ -689,7 +689,7 @@ function jsonSerialize_1_9_6(value, depth = 0) {
     }
     let output = '';
     for (const key of Object.keys(value).sort()) {
-        const entry = jsonSerialize_1_9_6(value[key], nextDepth);
+        const entry = jsonSerialize(value[key], nextDepth);
         if (entry !== '|-|-|') {
             output += `${key}=${entry};`;
         }
@@ -697,7 +697,7 @@ function jsonSerialize_1_9_6(value, depth = 0) {
     return output;
 }
 
-function urlParamsConcat_1_9_6(queryString, extraValue) {
+function urlParamsConcat(queryString, extraValue) {
     const entries = [];
     if (queryString) {
         queryString.split('&').forEach((entry) => {
@@ -716,22 +716,22 @@ function urlParamsConcat_1_9_6(queryString, extraValue) {
     return output;
 }
 
-function ensureProcessDataSession_1_9_6(context) {
+function ensureProcessDataSession(context) {
     if (context.smk && context.smk1 && context.smi) {
         return context;
     }
-    context.smk = context.smk || getRandomId_1_9_6(context.now || Date.now());
-    context.smk1 = sm4Key_1_9_6(context.smk);
-    context.smi = xorHexStringWithOne_1_9_6(context.smk);
+    context.smk = context.smk || getRandomId(context.now || Date.now());
+    context.smk1 = sm4Key(context.smk);
+    context.smi = xorHexStringWithOne(context.smk);
     return context;
 }
 
-function processData_1_9_6(data, context) {
+function processData(data, context) {
     try {
         if (context.sdkConfig.task[3]) {
-            ensureProcessDataSession_1_9_6(context);
+            ensureProcessDataSession(context);
             const plainText = typeof data === 'string' ? data : JSON.stringify(data);
-            return [sm4Encrypt_1_9_6(plainText, context.smk1), context.smi].reverse().join('');
+            return [sm4Encrypt(plainText, context.smk1), context.smi].reverse().join('');
         }
         return JSON.stringify(data);
     } catch (error) {
@@ -740,15 +740,15 @@ function processData_1_9_6(data, context) {
     }
 }
 
-async function processDataForSign_1_9_6(data, context, options = {}) {
+async function processDataForSign(data, context, options = {}) {
     try {
         if (!context.sdkConfig.task[3]) {
             return JSON.stringify(data);
         }
-        ensureProcessDataSession_1_9_6(context);
+        ensureProcessDataSession(context);
         const plainText = typeof data === 'string' ? data : JSON.stringify(data);
         if (context.signWasmOk) {
-            const runtime = await getStubRuntime_1_9_6(options.runtimeOptions);
+            const runtime = await getStubRuntime(options.runtimeOptions);
             const encrypted = await runtime.encrypt(plainText);
             if (
                 encrypted &&
@@ -759,20 +759,20 @@ async function processDataForSign_1_9_6(data, context, options = {}) {
                 return encrypted;
             }
         }
-        return [sm4Encrypt_1_9_6(plainText, context.smk1), context.smi].reverse().join('');
+        return [sm4Encrypt(plainText, context.smk1), context.smi].reverse().join('');
     } catch (error) {
         console.error(error);
         return '';
     }
 }
 
-function unProcessData_1_9_6(cipherText, context) {
+function unProcessData(cipherText, context) {
     try {
         if (context.sdkConfig.task[3]) {
-            ensureProcessDataSession_1_9_6(context);
-            const mask = xorHexStringWithOne_1_9_6(cipherText.slice(0, context.smk1.length));
+            ensureProcessDataSession(context);
+            const mask = xorHexStringWithOne(cipherText.slice(0, context.smk1.length));
             return JSON.parse(
-                sm4Decrypt_1_9_6(cipherText.slice(context.smk1.length), sm4Key_1_9_6(mask))
+                sm4Decrypt(cipherText.slice(context.smk1.length), sm4Key(mask))
             );
         }
         return JSON.parse(cipherText);
@@ -782,21 +782,21 @@ function unProcessData_1_9_6(cipherText, context) {
     }
 }
 
-function generateBsDeviceId_1_9_6(did, now = Date.now()) {
-    const tail = normalizeString_1_9_6(did).slice(-4);
-    return `bid-${String(now).split('').reverse().join('')}-${tail}-${guid_1_9_6(now).slice(9, 13)}`;
+function generateBsDeviceId(did, now = Date.now()) {
+    const tail = normalizeString(did).slice(-4);
+    return `bid-${String(now).split('').reverse().join('')}-${tail}-${guid(now).slice(9, 13)}`;
 }
 
-function ensureHp_1_9_6(context, now = Date.now()) {
+function ensureHp(context, now = Date.now()) {
     if (!context.hp) {
-        context.hp = generateBsDeviceId_1_9_6(context.did, now);
+        context.hp = generateBsDeviceId(context.did, now);
     }
     return context.hp;
 }
 
-function serializeSignWasmBase64_1_9_6(context) {
+function serializeSignWasmBase64(context) {
     if (context.signWasmBase64) {
-        return normalizeString_1_9_6(context.signWasmBase64);
+        return normalizeString(context.signWasmBase64);
     }
     if (typeof context.signWasmBytes === 'string' && fs.existsSync(context.signWasmBytes)) {
         return fs.readFileSync(context.signWasmBytes).toString('base64');
@@ -810,8 +810,8 @@ function serializeSignWasmBase64_1_9_6(context) {
     return '';
 }
 
-function shortUserAgentForCookie_1_9_6(userAgent) {
-    const normalized = normalizeString_1_9_6(userAgent);
+function shortUserAgentForCookie(userAgent) {
+    const normalized = normalizeString(userAgent);
     if (!normalized) {
         return '';
     }
@@ -822,55 +822,55 @@ function shortUserAgentForCookie_1_9_6(userAgent) {
     return normalized.slice(0, 50);
 }
 
-function buildContentInfoPayload_1_9_6(context, now = Date.now()) {
-    return processData_1_9_6([context.did || '', now], context);
+function buildContentInfoPayload(context, now = Date.now()) {
+    return processData([context.did || '', now], context);
 }
 
-function resolveBangcleUploadHost_1_9_6(context, options = {}) {
+function resolveBangcleUploadHost(context, options = {}) {
     const pageDomain = options.pageDomain || context.pageDomain || 'https://h5.moutai519.com.cn/';
     const resolved =
-        normalizeBangcleHost_1_9_6(options.hostAd || context.hostAd || DEFAULT_BB_HOST_1_9_6, pageDomain) ||
-        DEFAULT_BB_HOST_1_9_6;
-    return trimTrailingSlashes_1_9_6(resolved);
+        normalizeBangcleHost(options.hostAd || context.hostAd || DEFAULT_BB_HOST, pageDomain) ||
+        DEFAULT_BB_HOST;
+    return trimTrailingSlashes(resolved);
 }
 
-function resolveBangcleWasmHost_1_9_6(context, options = {}) {
+function resolveBangcleWasmHost(context, options = {}) {
     const pageDomain = options.pageDomain || context.pageDomain || 'https://h5.moutai519.com.cn/';
     const candidate =
         options.hostWasm ||
         context.hostWasm ||
         context.hostAd ||
-        DEFAULT_WASM_RUNTIME_FALLBACK_HOST_1_9_6;
-    const resolved = normalizeBangcleHost_1_9_6(candidate, pageDomain);
-    return trimTrailingSlashes_1_9_6(resolved || DEFAULT_WASM_RUNTIME_FALLBACK_HOST_1_9_6);
+        DEFAULT_WASM_RUNTIME_FALLBACK_HOST;
+    const resolved = normalizeBangcleHost(candidate, pageDomain);
+    return trimTrailingSlashes(resolved || DEFAULT_WASM_RUNTIME_FALLBACK_HOST);
 }
 
-function buildBangcleUploadUrl_1_9_6(context, options = {}) {
-    return `${resolveBangcleUploadHost_1_9_6(context, options)}${DEFAULT_UPLOAD_PATH_1_9_6}`;
+function buildBangcleUploadUrl(context, options = {}) {
+    return `${resolveBangcleUploadHost(context, options)}${DEFAULT_UPLOAD_PATH}`;
 }
 
-function buildBangcleWasmVersionListUrl_1_9_6(context, options = {}) {
-    return `${resolveBangcleWasmHost_1_9_6(context, options)}${DEFAULT_WASM_VERSION_LIST_PATH_1_9_6}`;
+function buildBangcleWasmVersionListUrl(context, options = {}) {
+    return `${resolveBangcleWasmHost(context, options)}${DEFAULT_WASM_VERSION_LIST_PATH}`;
 }
 
-function buildBangcleWasmDownloadUrl_1_9_6(context, options = {}) {
-    const baseUrl = `${resolveBangcleWasmHost_1_9_6(context, options)}${DEFAULT_WASM_DOWNLOAD_PATH_1_9_6}`;
-    const version = normalizeString_1_9_6(options.version || context.signWasmVersion || '');
+function buildBangcleWasmDownloadUrl(context, options = {}) {
+    const baseUrl = `${resolveBangcleWasmHost(context, options)}${DEFAULT_WASM_DOWNLOAD_PATH}`;
+    const version = normalizeString(options.version || context.signWasmVersion || '');
     return version ? `${baseUrl}?id=${encodeURIComponent(version)}` : baseUrl;
 }
 
-function buildBangcleVersionListRequest_1_9_6(context, options = {}) {
+function buildBangcleVersionListRequest(context, options = {}) {
     const now = options.now || Date.now();
     return {
         method: 'GET',
-        url: buildBangcleWasmVersionListUrl_1_9_6(context, options),
+        url: buildBangcleWasmVersionListUrl(context, options),
         headers: {
-            [CONTENT_INFO_BB_HEADER_1_9_6]: buildContentInfoPayload_1_9_6(context, now),
+            [CONTENT_INFO_BB_HEADER]: buildContentInfoPayload(context, now),
         },
     };
 }
 
-function parseBangcleJsonPayload_1_9_6(payload) {
+function parseBangcleJsonPayload(payload) {
     if (!payload) {
         return null;
     }
@@ -894,8 +894,8 @@ function parseBangcleJsonPayload_1_9_6(payload) {
     return null;
 }
 
-function extractBangcleWasmVersions_1_9_6(payload) {
-    const parsed = parseBangcleJsonPayload_1_9_6(payload);
+function extractBangcleWasmVersions(payload) {
+    const parsed = parseBangcleJsonPayload(payload);
     if (!parsed) {
         return { versions: [], signWasmOk: false, raw: null };
     }
@@ -919,16 +919,16 @@ function extractBangcleWasmVersions_1_9_6(payload) {
     };
 }
 
-function decodeBangcleSignWasmBase64_1_9_6(value) {
-    const base64 = normalizeString_1_9_6(value).trim();
+function decodeBangcleSignWasmBase64(value) {
+    const base64 = normalizeString(value).trim();
     if (!base64) {
         return Buffer.alloc(0);
     }
     return Buffer.from(base64, 'base64');
 }
 
-function extractBangcleWasmDownloadPayload_1_9_6(payload) {
-    const parsed = parseBangcleJsonPayload_1_9_6(payload);
+function extractBangcleWasmDownloadPayload(payload) {
+    const parsed = parseBangcleJsonPayload(payload);
     if (!parsed) {
         return {
             ok: false,
@@ -943,21 +943,21 @@ function extractBangcleWasmDownloadPayload_1_9_6(payload) {
     if (typeof parsed.code === 'number' && parsed.code === 0 && parsed.msg) {
         return {
             ok: false,
-            name: normalizeString_1_9_6(parsed.name || ''),
-            version: normalizeString_1_9_6(parsed.v || parsed.version || ''),
+            name: normalizeString(parsed.name || ''),
+            version: normalizeString(parsed.v || parsed.version || ''),
             codeBase64: '',
             codeBytes: null,
-            unavailableReason: normalizeString_1_9_6(parsed.msg),
+            unavailableReason: normalizeString(parsed.msg),
             raw: parsed,
         };
     }
-    const version = normalizeString_1_9_6(parsed.v || parsed.version || '');
+    const version = normalizeString(parsed.v || parsed.version || '');
     const codeBase64 =
-        typeof parsed.code === 'string' ? normalizeString_1_9_6(parsed.code).trim() : '';
+        typeof parsed.code === 'string' ? normalizeString(parsed.code).trim() : '';
     if (!version || !codeBase64) {
         return {
             ok: false,
-            name: normalizeString_1_9_6(parsed.name || ''),
+            name: normalizeString(parsed.name || ''),
             version,
             codeBase64,
             codeBytes: null,
@@ -965,11 +965,11 @@ function extractBangcleWasmDownloadPayload_1_9_6(payload) {
             raw: parsed,
         };
     }
-    const codeBytes = decodeBangcleSignWasmBase64_1_9_6(codeBase64);
+    const codeBytes = decodeBangcleSignWasmBase64(codeBase64);
     if (!codeBytes.length) {
         return {
             ok: false,
-            name: normalizeString_1_9_6(parsed.name || ''),
+            name: normalizeString(parsed.name || ''),
             version,
             codeBase64,
             codeBytes: null,
@@ -979,7 +979,7 @@ function extractBangcleWasmDownloadPayload_1_9_6(payload) {
     }
     return {
         ok: true,
-        name: normalizeString_1_9_6(parsed.name || ''),
+        name: normalizeString(parsed.name || ''),
         version,
         codeBase64,
         codeBytes,
@@ -988,40 +988,40 @@ function extractBangcleWasmDownloadPayload_1_9_6(payload) {
     };
 }
 
-function shouldSkipBangcleHook_1_9_6(requestUrl, context, options = {}) {
-    const target = normalizeString_1_9_6(requestUrl);
+function shouldSkipBangcleHook(requestUrl, context, options = {}) {
+    const target = normalizeString(requestUrl);
     if (!target) {
         return false;
     }
-    if (target === buildBangcleUploadUrl_1_9_6(context, options)) {
+    if (target === buildBangcleUploadUrl(context, options)) {
         return true;
     }
     return (
-        target.endsWith(DEFAULT_WASM_VERSION_LIST_PATH_1_9_6) ||
-        target.endsWith(DEFAULT_WASM_DOWNLOAD_PATH_1_9_6)
+        target.endsWith(DEFAULT_WASM_VERSION_LIST_PATH) ||
+        target.endsWith(DEFAULT_WASM_DOWNLOAD_PATH)
     );
 }
 
-function buildCReportPayloadObject_1_9_6(context, options = {}) {
+function buildCReportPayloadObject(context, options = {}) {
     const now = options.now || Date.now();
-    ensureHp_1_9_6(context, now);
+    ensureHp(context, now);
     return {
         101: context.sdkConfig.app_key,
         103: context.did,
         105: context.startId || '',
-        107: shortUserAgentForCookie_1_9_6(options.userAgent || context.userAgent || ''),
+        107: shortUserAgentForCookie(options.userAgent || context.userAgent || ''),
         109: options.domain || context.pageDomain || '',
         111: context.hp || '',
         113: now,
     };
 }
 
-function buildDUCookieValue_1_9_6(context, options = {}) {
-    const payload = objectToArray_1_9_6(buildCReportPayloadObject_1_9_6(context, options));
-    return processData_1_9_6(payload, context);
+function buildDUCookieValue(context, options = {}) {
+    const payload = objectToArray(buildCReportPayloadObject(context, options));
+    return processData(payload, context);
 }
 
-function buildBangcleUploadInfoPayloadObject_1_9_6(context, options = {}) {
+function buildBangcleUploadInfoPayloadObject(context, options = {}) {
     const now = options.now || Date.now();
     return {
         '001': String(options.userId !== undefined ? options.userId : context.userId || ''),
@@ -1046,7 +1046,7 @@ function buildBangcleUploadInfoPayloadObject_1_9_6(context, options = {}) {
     };
 }
 
-function buildBangcleUploadEventPayloadObject_1_9_6(context, options = {}) {
+function buildBangcleUploadEventPayloadObject(context, options = {}) {
     const now = options.now || Date.now();
     return {
         '001': String(options.userId !== undefined ? options.userId : context.userId || ''),
@@ -1071,25 +1071,25 @@ function buildBangcleUploadEventPayloadObject_1_9_6(context, options = {}) {
     };
 }
 
-function buildBangcleUploadPayload_1_9_6(payloadObject, context) {
-    return processData_1_9_6(objectToArray_1_9_6(payloadObject), context);
+function buildBangcleUploadPayload(payloadObject, context) {
+    return processData(objectToArray(payloadObject), context);
 }
 
-function buildBangcleUploadInfoPayload_1_9_6(context, options = {}) {
-    return buildBangcleUploadPayload_1_9_6(
-        buildBangcleUploadInfoPayloadObject_1_9_6(context, options),
+function buildBangcleUploadInfoPayload(context, options = {}) {
+    return buildBangcleUploadPayload(
+        buildBangcleUploadInfoPayloadObject(context, options),
         context
     );
 }
 
-function buildBangcleUploadEventPayload_1_9_6(context, options = {}) {
-    return buildBangcleUploadPayload_1_9_6(
-        buildBangcleUploadEventPayloadObject_1_9_6(context, options),
+function buildBangcleUploadEventPayload(context, options = {}) {
+    return buildBangcleUploadPayload(
+        buildBangcleUploadEventPayloadObject(context, options),
         context
     );
 }
 
-function normalizeSignWasmBytes_1_9_6(input) {
+function normalizeSignWasmBytes(input) {
     if (!input) {
         return null;
     }
@@ -1108,50 +1108,50 @@ function normalizeSignWasmBytes_1_9_6(input) {
     throw new TypeError('unsupported sign wasm input');
 }
 
-function createBbContext_1_9_6(options = {}) {
-    const task = cloneDefaultBbTask_1_9_6();
-    const pageDomain = normalizeString_1_9_6(options.pageDomain || 'https://h5.moutai519.com.cn/');
+function createBbContext(options = {}) {
+    const task = cloneDefaultBbTask();
+    const pageDomain = normalizeString(options.pageDomain || 'https://h5.moutai519.com.cn/');
     if (Array.isArray(options.taskOverride)) {
         options.taskOverride.forEach((value, index) => {
             task[index] = value;
         });
     }
     const context = {
-        sdkVersion: options.sdkVersion || SDK_VERSION_1_9_6,
+        sdkVersion: options.sdkVersion || SDK_VERSION,
         sdkConfig: {
-            app_key: normalizeString_1_9_6(options.appKey || DEFAULT_BB_APP_KEY_1_9_6),
+            app_key: normalizeString(options.appKey || DEFAULT_BB_APP_KEY),
             task,
         },
         hostAd:
-            normalizeBangcleHost_1_9_6(options.hostAd || DEFAULT_BB_HOST_1_9_6, pageDomain) ||
-            DEFAULT_BB_HOST_1_9_6,
+            normalizeBangcleHost(options.hostAd || DEFAULT_BB_HOST, pageDomain) ||
+            DEFAULT_BB_HOST,
         hostWasm:
-            normalizeBangcleHost_1_9_6(
-                options.hostWasm || options.hostAd || DEFAULT_BB_HOST_1_9_6,
+            normalizeBangcleHost(
+                options.hostWasm || options.hostAd || DEFAULT_BB_HOST,
                 pageDomain
-            ) || DEFAULT_WASM_RUNTIME_FALLBACK_HOST_1_9_6,
+            ) || DEFAULT_WASM_RUNTIME_FALLBACK_HOST,
         domain: Array.isArray(options.domain)
             ? options.domain
-            : [normalizeString_1_9_6(options.domain || 'moutai519.com.cn')],
+            : [normalizeString(options.domain || 'moutai519.com.cn')],
         pageDomain,
-        did: normalizeString_1_9_6(options.did),
-        startId: normalizeString_1_9_6(options.startId),
-        userId: normalizeString_1_9_6(options.userId),
-        userAgent: normalizeString_1_9_6(options.userAgent),
-        hp: normalizeString_1_9_6(options.hp),
-        uaid: normalizeString_1_9_6(options.uaid),
-        jsid: normalizeString_1_9_6(options.jsid),
-        token: normalizeString_1_9_6(options.token),
-        tokenPrepetuity: normalizeString_1_9_6(options.tokenPrepetuity || options.rk),
+        did: normalizeString(options.did),
+        startId: normalizeString(options.startId),
+        userId: normalizeString(options.userId),
+        userAgent: normalizeString(options.userAgent),
+        hp: normalizeString(options.hp),
+        uaid: normalizeString(options.uaid),
+        jsid: normalizeString(options.jsid),
+        token: normalizeString(options.token),
+        tokenPrepetuity: normalizeString(options.tokenPrepetuity || options.rk),
         cookieSend: options.cookieSend !== undefined ? !!options.cookieSend : true,
-        signWasmVersion: normalizeString_1_9_6(options.signWasmVersion || ''),
+        signWasmVersion: normalizeString(options.signWasmVersion || ''),
         signWasmOk: options.signWasmOk !== undefined ? !!options.signWasmOk : false,
-        signWasmBytes: normalizeSignWasmBytes_1_9_6(options.signWasmBytes || null),
-        signWasmBase64: normalizeString_1_9_6(options.signWasmBase64 || ''),
+        signWasmBytes: normalizeSignWasmBytes(options.signWasmBytes || null),
+        signWasmBase64: normalizeString(options.signWasmBase64 || ''),
         deviceInfo: options.deviceInfo || null,
-        smk: normalizeString_1_9_6(options.smk),
-        smk1: normalizeString_1_9_6(options.smk1),
-        smi: normalizeString_1_9_6(options.smi),
+        smk: normalizeString(options.smk),
+        smk1: normalizeString(options.smk1),
+        smi: normalizeString(options.smi),
         serial: Number.isFinite(Number(options.serial)) ? Number(options.serial) : undefined,
         tps: Number.isFinite(Number(options.tps)) ? Number(options.tps) : undefined,
         tacticsVersion: Number.isFinite(Number(options.tacticsVersion))
@@ -1161,15 +1161,15 @@ function createBbContext_1_9_6(options = {}) {
         remoteTask: options.remoteTask || null,
     };
     if (!context.startId) {
-        context.startId = getStartId_1_9_6();
+        context.startId = getStartId();
     }
     if (!context.hp && context.did) {
-        ensureHp_1_9_6(context);
+        ensureHp(context);
     }
     return context;
 }
 
-function resolveBundledFile_1_9_6(candidates) {
+function resolveBundledFile(candidates) {
     for (const candidate of candidates) {
         if (candidate && fs.existsSync(candidate)) {
             return candidate;
@@ -1178,7 +1178,7 @@ function resolveBundledFile_1_9_6(candidates) {
     return null;
 }
 
-class StubWasmRuntime_1_9_6 {
+class StubWasmRuntime {
     constructor(options = {}) {
         this.userAgent =
             options.userAgent ||
@@ -1192,8 +1192,8 @@ class StubWasmRuntime_1_9_6 {
                   : () => Date.now();
         this.wasmPath =
             options.wasmPath ||
-            resolveBundledFile_1_9_6([
-                path.join(__dirname, 'bs_stub_1_9_6.wasm'),
+            resolveBundledFile([
+                path.join(__dirname, 'runtime.wasm'),
                 path.join(__dirname, '..', '..', '.analysis', 'bs_stub.wasm'),
             ]);
         if (!this.wasmPath) {
@@ -1214,18 +1214,18 @@ class StubWasmRuntime_1_9_6 {
         }
         const wasmBinary = fs.readFileSync(this.wasmPath);
         const imports = {
-            env: this.buildImports_1_9_6(),
-            wasi_snapshot_preview1: this.buildImports_1_9_6(),
+            env: this.buildImports(),
+            wasi_snapshot_preview1: this.buildImports(),
         };
         const { instance } = await WebAssembly.instantiate(wasmBinary, imports);
         this.instance = instance;
         this.exports = instance.exports;
         this.memory = this.exports.memory;
-        this.syncMemoryViews_1_9_6();
+        this.syncMemoryViews();
         return this;
     }
 
-    buildImports_1_9_6() {
+    buildImports() {
         return {
             __cxa_throw: () => {
                 throw new Error('wasm __cxa_throw');
@@ -1234,22 +1234,22 @@ class StubWasmRuntime_1_9_6 {
                 throw new Error('wasm abort');
             },
             _tzset_js: (timezonePtr, daylightPtr, stdPtr, dstPtr) =>
-                this.tzset_1_9_6(timezonePtr, daylightPtr, stdPtr, dstPtr),
+                this.tzset(timezonePtr, daylightPtr, stdPtr, dstPtr),
             emscripten_date_now: () => this.dateNowFn(),
-            emscripten_resize_heap: (requestedSize) => this.resizeHeap_1_9_6(requestedSize),
-            environ_get: (envPtr, bufPtr) => this.environGet_1_9_6(envPtr, bufPtr),
-            environ_sizes_get: (countPtr, sizePtr) => this.environSizesGet_1_9_6(countPtr, sizePtr),
+            emscripten_resize_heap: (requestedSize) => this.resizeHeap(requestedSize),
+            environ_get: (envPtr, bufPtr) => this.environGet(envPtr, bufPtr),
+            environ_sizes_get: (countPtr, sizePtr) => this.environSizesGet(countPtr, sizePtr),
             exit: () => 0,
             fd_close: () => 52,
             fd_seek: () => 70,
             fd_write: (fd, iovPtr, iovCount, writtenPtr) =>
-                this.fdWrite_1_9_6(fd, iovPtr, iovCount, writtenPtr),
+                this.fdWrite(fd, iovPtr, iovCount, writtenPtr),
             js_invoke: (targetPtr, methodPtr, argsPtr) =>
-                this.jsInvoke_1_9_6(targetPtr, methodPtr, argsPtr),
+                this.jsInvoke(targetPtr, methodPtr, argsPtr),
         };
     }
 
-    syncMemoryViews_1_9_6() {
+    syncMemoryViews() {
         const buffer = this.memory.buffer;
         this.HEAP8 = new Int8Array(buffer);
         this.HEAPU8 = new Uint8Array(buffer);
@@ -1257,7 +1257,7 @@ class StubWasmRuntime_1_9_6 {
         this.HEAPU32 = new Uint32Array(buffer);
     }
 
-    resizeHeap_1_9_6(requestedSize) {
+    resizeHeap(requestedSize) {
         const oldSize = this.HEAPU8.length;
         const maxSize = 2147483648;
         if ((requestedSize >>>= 0) > maxSize) {
@@ -1270,45 +1270,45 @@ class StubWasmRuntime_1_9_6 {
             const deltaPages = (grown - this.memory.buffer.byteLength + 65535) / 65536 | 0;
             try {
                 this.memory.grow(deltaPages);
-                this.syncMemoryViews_1_9_6();
+                this.syncMemoryViews();
                 return true;
             } catch (error) {}
         }
         return false;
     }
 
-    getEnvironmentStrings_1_9_6() {
+    getEnvironmentStrings() {
         return ['USER=web_user', 'LOGNAME=web_user', 'PATH=/', 'PWD=/', 'HOME=/home/web_user', 'LANG=C.UTF-8'];
     }
 
-    environSizesGet_1_9_6(countPtr, sizePtr) {
-        const strings = this.getEnvironmentStrings_1_9_6();
+    environSizesGet(countPtr, sizePtr) {
+        const strings = this.getEnvironmentStrings();
         this.HEAP32[countPtr >> 2] = strings.length;
         let totalBytes = 0;
         strings.forEach((entry) => {
-            totalBytes += this.lengthBytesUTF8_1_9_6(entry) + 1;
+            totalBytes += this.lengthBytesUTF8(entry) + 1;
         });
         this.HEAP32[sizePtr >> 2] = totalBytes;
         return 0;
     }
 
-    environGet_1_9_6(envPtr, bufPtr) {
-        const strings = this.getEnvironmentStrings_1_9_6();
+    environGet(envPtr, bufPtr) {
+        const strings = this.getEnvironmentStrings();
         let offset = 0;
         strings.forEach((entry, index) => {
             const ptr = bufPtr + offset;
             this.HEAP32[(envPtr >> 2) + index] = ptr;
-            offset += this.stringToUTF8_1_9_6(entry, ptr, Infinity) + 1;
+            offset += this.stringToUTF8(entry, ptr, Infinity) + 1;
         });
         return 0;
     }
 
-    fdWrite_1_9_6(fd, iovPtr, iovCount, writtenPtr) {
+    fdWrite(fd, iovPtr, iovCount, writtenPtr) {
         let written = 0;
         for (let index = 0; index < iovCount; index += 1) {
             const base = this.HEAPU32[(iovPtr >> 2) + index * 2];
             const length = this.HEAPU32[(iovPtr >> 2) + index * 2 + 1];
-            const text = this.UTF8ToString_1_9_6(base, length, true);
+            const text = this.UTF8ToString(base, length, true);
             if (!this.quiet) {
                 if (fd === 1) {
                     process.stdout.write(text);
@@ -1322,7 +1322,7 @@ class StubWasmRuntime_1_9_6 {
         return 0;
     }
 
-    tzset_1_9_6(timezonePtr, daylightPtr, stdPtr, dstPtr) {
+    tzset(timezonePtr, daylightPtr, stdPtr, dstPtr) {
         const year = new Date().getFullYear();
         const january = new Date(year, 0, 1);
         const july = new Date(year, 6, 1);
@@ -1341,20 +1341,20 @@ class StubWasmRuntime_1_9_6 {
         const standard = formatOffset(januaryOffset);
         const daylight = formatOffset(julyOffset);
         if (julyOffset < januaryOffset) {
-            this.stringToUTF8_1_9_6(standard, stdPtr, 17);
-            this.stringToUTF8_1_9_6(daylight, dstPtr, 17);
+            this.stringToUTF8(standard, stdPtr, 17);
+            this.stringToUTF8(daylight, dstPtr, 17);
         } else {
-            this.stringToUTF8_1_9_6(standard, dstPtr, 17);
-            this.stringToUTF8_1_9_6(daylight, stdPtr, 17);
+            this.stringToUTF8(standard, dstPtr, 17);
+            this.stringToUTF8(daylight, stdPtr, 17);
         }
     }
 
-    lengthBytesUTF8_1_9_6(text) {
-        return Buffer.byteLength(normalizeString_1_9_6(text), 'utf8');
+    lengthBytesUTF8(text) {
+        return Buffer.byteLength(normalizeString(text), 'utf8');
     }
 
-    stringToUTF8_1_9_6(text, ptr, maxBytes) {
-        const buffer = Buffer.from(`${normalizeString_1_9_6(text)}\0`, 'utf8');
+    stringToUTF8(text, ptr, maxBytes) {
+        const buffer = Buffer.from(`${normalizeString(text)}\0`, 'utf8');
         const length = maxBytes === Infinity ? buffer.length : Math.min(buffer.length, maxBytes);
         this.HEAPU8.set(buffer.subarray(0, length), ptr);
         if (length < maxBytes && this.HEAPU8[ptr + length - 1] !== 0) {
@@ -1363,7 +1363,7 @@ class StubWasmRuntime_1_9_6 {
         return length - 1;
     }
 
-    UTF8ToString_1_9_6(ptr, length, noStopAtNull = false) {
+    UTF8ToString(ptr, length, noStopAtNull = false) {
         if (!ptr) {
             return '';
         }
@@ -1377,33 +1377,33 @@ class StubWasmRuntime_1_9_6 {
         return Buffer.from(this.HEAPU8.subarray(ptr, end)).toString('utf8');
     }
 
-    mallocBytes_1_9_6(bytes) {
+    mallocBytes(bytes) {
         const ptr = this.exports.malloc(bytes.length);
         this.HEAPU8.set(bytes, ptr);
         return ptr;
     }
 
-    mallocString_1_9_6(text) {
-        const length = this.lengthBytesUTF8_1_9_6(text) + 1;
+    mallocString(text) {
+        const length = this.lengthBytesUTF8(text) + 1;
         const ptr = this.exports.malloc(length);
-        this.stringToUTF8_1_9_6(text, ptr, length);
+        this.stringToUTF8(text, ptr, length);
         return ptr;
     }
 
-    free_1_9_6(ptr) {
+    free(ptr) {
         if (ptr) {
             this.exports.free(ptr);
         }
     }
 
-    freeReturnedString_1_9_6(ptr) {
+    freeReturnedString(ptr) {
         if (ptr) {
             this.exports.free_memory(ptr);
         }
     }
 
-    resolveTarget_1_9_6(name) {
-        const target = normalizeString_1_9_6(name);
+    resolveTarget(name) {
+        const target = normalizeString(name);
         if (!target) {
             return null;
         }
@@ -1416,15 +1416,15 @@ class StubWasmRuntime_1_9_6 {
             return JSON;
         }
         if (target === 'window' || target === 'globalThis' || target === 'Module') {
-            return this.getWindowTarget_1_9_6();
+            return this.getWindowTarget();
         }
         if (target === 'eval') {
-            return { call: (code) => this.evaluateWindowCode_1_9_6(code) };
+            return { call: (code) => this.evaluateWindowCode(code) };
         }
-        return this.getWindowTarget_1_9_6();
+        return this.getWindowTarget();
     }
 
-    getWindowTarget_1_9_6() {
+    getWindowTarget() {
         const self = this;
         return {
             navigator: { userAgent: self.userAgent },
@@ -1435,7 +1435,7 @@ class StubWasmRuntime_1_9_6 {
             },
             JSON,
             eval(code) {
-                return self.evaluateWindowCode_1_9_6(code);
+                return self.evaluateWindowCode(code);
             },
             has_env() {
                 return 0;
@@ -1461,9 +1461,9 @@ class StubWasmRuntime_1_9_6 {
         };
     }
 
-    evaluateWindowCode_1_9_6(code) {
-        return vm.runInNewContext(normalizeString_1_9_6(code), {
-            window: this.getWindowTarget_1_9_6(),
+    evaluateWindowCode(code) {
+        return vm.runInNewContext(normalizeString(code), {
+            window: this.getWindowTarget(),
             navigator: { userAgent: this.userAgent },
             Date: {
                 now: () => this.dateNowFn(),
@@ -1472,7 +1472,7 @@ class StubWasmRuntime_1_9_6 {
         });
     }
 
-    parseInvokeArgs_1_9_6(rawArgs) {
+    parseInvokeArgs(rawArgs) {
         if (!rawArgs) {
             return [];
         }
@@ -1480,12 +1480,12 @@ class StubWasmRuntime_1_9_6 {
         return Array.isArray(parsed) ? parsed : [parsed];
     }
 
-    jsInvoke_1_9_6(targetPtr, methodPtr, argsPtr) {
+    jsInvoke(targetPtr, methodPtr, argsPtr) {
         try {
-            const targetName = this.UTF8ToString_1_9_6(targetPtr);
-            const methodName = this.UTF8ToString_1_9_6(methodPtr);
-            const rawArgs = argsPtr ? this.UTF8ToString_1_9_6(argsPtr) : '';
-            const target = this.resolveTarget_1_9_6(targetName);
+            const targetName = this.UTF8ToString(targetPtr);
+            const methodName = this.UTF8ToString(methodPtr);
+            const rawArgs = argsPtr ? this.UTF8ToString(argsPtr) : '';
+            const target = this.resolveTarget(targetName);
             if (!target) {
                 throw new Error(`target not found: ${targetName}`);
             }
@@ -1493,78 +1493,78 @@ class StubWasmRuntime_1_9_6 {
             if (typeof method !== 'function') {
                 throw new Error(`method not found: ${targetName}.${methodName}`);
             }
-            const result = method.apply(target, this.parseInvokeArgs_1_9_6(rawArgs));
+            const result = method.apply(target, this.parseInvokeArgs(rawArgs));
             const serialized = JSON.stringify(result);
-            const ptr = this.mallocString_1_9_6(serialized);
+            const ptr = this.mallocString(serialized);
             return ptr;
         } catch (error) {
-            const ptr = this.mallocString_1_9_6(`[invoke error] ${error.message}`);
+            const ptr = this.mallocString(`[invoke error] ${error.message}`);
             return ptr;
         }
     }
 
     async encrypt(text) {
         await this.init();
-        const inputPtr = this.mallocString_1_9_6(text);
+        const inputPtr = this.mallocString(text);
         const outputPtr = this.exports.en(inputPtr);
-        const output = this.UTF8ToString_1_9_6(outputPtr);
-        this.free_1_9_6(inputPtr);
-        this.freeReturnedString_1_9_6(outputPtr);
+        const output = this.UTF8ToString(outputPtr);
+        this.free(inputPtr);
+        this.freeReturnedString(outputPtr);
         return output;
     }
 
     async decrypt(text) {
         await this.init();
-        const inputPtr = this.mallocString_1_9_6(text);
+        const inputPtr = this.mallocString(text);
         const outputPtr = this.exports.de(inputPtr);
-        const output = this.UTF8ToString_1_9_6(outputPtr);
-        this.free_1_9_6(inputPtr);
-        this.freeReturnedString_1_9_6(outputPtr);
+        const output = this.UTF8ToString(outputPtr);
+        this.free(inputPtr);
+        this.freeReturnedString(outputPtr);
         return output;
     }
 
     async runWac(did, sign, wasmBytes) {
         await this.init();
-        const blob = normalizeSignWasmBytes_1_9_6(wasmBytes);
+        const blob = normalizeSignWasmBytes(wasmBytes);
         if (!blob) {
             return '';
         }
-        const didText = normalizeString_1_9_6(did);
-        const signText = normalizeString_1_9_6(sign);
-        const didPtr = this.mallocString_1_9_6(didText);
-        const signPtr = this.mallocString_1_9_6(signText);
-        const blobPtr = this.mallocBytes_1_9_6(blob);
+        const didText = normalizeString(did);
+        const signText = normalizeString(sign);
+        const didPtr = this.mallocString(didText);
+        const signPtr = this.mallocString(signText);
+        const blobPtr = this.mallocBytes(blob);
         const outputPtr = this.exports.run_wac(
             didPtr,
-            this.lengthBytesUTF8_1_9_6(didText),
+            this.lengthBytesUTF8(didText),
             signPtr,
-            this.lengthBytesUTF8_1_9_6(signText),
+            this.lengthBytesUTF8(signText),
             blobPtr,
             blob.length
         );
-        const output = this.UTF8ToString_1_9_6(outputPtr);
-        this.free_1_9_6(didPtr);
-        this.free_1_9_6(signPtr);
-        this.free_1_9_6(blobPtr);
-        this.freeReturnedString_1_9_6(outputPtr);
+        const output = this.UTF8ToString(outputPtr);
+        this.free(didPtr);
+        this.free(signPtr);
+        this.free(blobPtr);
+        this.freeReturnedString(outputPtr);
         return output;
     }
 }
 
-async function getStubRuntime_1_9_6(options = {}) {
-    if (!defaultStubRuntimePromise_1_9_6 || options.noCache) {
-        defaultStubRuntimePromise_1_9_6 = new StubWasmRuntime_1_9_6(options).init();
+async function getStubRuntime(options = {}) {
+    if (!defaultStubRuntimePromise || options.noCache) {
+        defaultStubRuntimePromise = new StubWasmRuntime(options).init();
     }
-    return defaultStubRuntimePromise_1_9_6;
+    return defaultStubRuntimePromise;
 }
 
-async function buildRushPurchaseBbHeaders_1_9_6(bodyCanonical, context, options = {}) {
-    const randomId = options.randomId || getRandomId_1_9_6(options.now || Date.now());
-    const sign = bsHash_1_9_6(bodyCanonical, 27, 4096, randomId);
+async function buildRushPurchaseBbHeaders(bodyCanonical, context, options = {}) {
+    const randomId = options.randomId || getRandomId(options.now || Date.now());
+    const sign = bsHash(bodyCanonical, 27, 4096, randomId);
     let signWac = '';
     if (context.signWasmOk && context.signWasmBytes) {
         try {
-            signWac = await (await getStubRuntime_1_9_6(options.runtimeOptions)).runWac(
+            signWac = await (await getStubRuntime(options.runtimeOptions)).runWac(
                 context.did || '',
                 sign,
                 context.signWasmBytes
@@ -1588,16 +1588,16 @@ async function buildRushPurchaseBbHeaders_1_9_6(bodyCanonical, context, options 
         140: context.signWasmVersion || '',
         141: signWac || '',
     };
-    const payloadArray = objectToArray_1_9_6(payload);
+    const payloadArray = objectToArray(payload);
     const gUd = options.forceSm4Outer
-        ? processData_1_9_6(payloadArray, context)
+        ? processData(payloadArray, context)
         : context.signWasmOk
-            ? await processDataForSign_1_9_6(payloadArray, context, options)
-            : processData_1_9_6(payloadArray, context);
+            ? await processDataForSign(payloadArray, context, options)
+            : processData(payloadArray, context);
     return {
-        [CONTENT_WEB_BB_HEADER_1_9_6]: gUd,
-        [CONTENT_HH_BB_HEADER_1_9_6]: sign,
-        [SDK_VER_BB_HEADER_1_9_6]: context.sdkVersion,
+        [CONTENT_WEB_BB_HEADER]: gUd,
+        [CONTENT_HH_BB_HEADER]: sign,
+        [SDK_VER_BB_HEADER]: context.sdkVersion,
         randomId,
         sign,
         signWac,
@@ -1605,42 +1605,42 @@ async function buildRushPurchaseBbHeaders_1_9_6(bodyCanonical, context, options 
     };
 }
 
-function buildBangcleBootstrapHeaders_1_9_6(context, options = {}) {
+function buildBangcleBootstrapHeaders(context, options = {}) {
     return {
-        [CONTENT_INFO_BB_HEADER_1_9_6]: buildContentInfoPayload_1_9_6(context, options.now || Date.now()),
+        [CONTENT_INFO_BB_HEADER]: buildContentInfoPayload(context, options.now || Date.now()),
     };
 }
 
-function buildBangcleCookieState_1_9_6(context, options = {}) {
+function buildBangcleCookieState(context, options = {}) {
     const now = options.now || Date.now();
-    ensureHp_1_9_6(context, now);
+    ensureHp(context, now);
     return {
         _sdk_v_: context.sdkVersion,
         _bs_device_id: context.hp,
-        _d_u: buildDUCookieValue_1_9_6(context, options),
+        _d_u: buildDUCookieValue(context, options),
     };
 }
 
-function buildBangcleWrappedState_1_9_6(context, options = {}) {
-    const appKey = options.appKey || context.sdkConfig?.app_key || DEFAULT_BB_APP_KEY_1_9_6;
+function buildBangcleWrappedState(context, options = {}) {
+    const appKey = options.appKey || context.sdkConfig?.app_key || DEFAULT_BB_APP_KEY;
     const now = options.now || Date.now();
     const signWasmTtlMs =
-        options.signWasmTtlMs !== undefined ? options.signWasmTtlMs : SIGN_WASM_STORAGE_TTL_MS_1_9_6;
+        options.signWasmTtlMs !== undefined ? options.signWasmTtlMs : SIGN_WASM_STORAGE_TTL_MS;
     const local = {};
 
     if (context.did) {
-        local.__ud = wrapStoredValue_1_9_6('__ud', context.did, options.didTtlMs ?? 0, appKey);
+        local.__ud = wrapStoredValue('__ud', context.did, options.didTtlMs ?? 0, appKey);
     }
     if (context.hp) {
-        local.__mg__ = wrapStoredValue_1_9_6(
+        local.__mg__ = wrapStoredValue(
             '__mg__',
             context.hp,
-            options.hpTtlMs !== undefined ? options.hpTtlMs : GEN_F_TOKEN_TTL_MS_1_9_6,
+            options.hpTtlMs !== undefined ? options.hpTtlMs : GEN_F_TOKEN_TTL_MS,
             appKey
         );
     }
     if (context.tokenPrepetuity) {
-        local.__rk = wrapStoredValue_1_9_6(
+        local.__rk = wrapStoredValue(
             '__rk',
             context.tokenPrepetuity,
             options.rkTtlMs ?? 0,
@@ -1648,7 +1648,7 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
         );
     }
     if (context.uaid) {
-        local.__idua_ = wrapStoredValue_1_9_6(
+        local.__idua_ = wrapStoredValue(
             '__idua_',
             context.uaid,
             options.idTtlMs ?? 0,
@@ -1656,7 +1656,7 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
         );
     }
     if (context.jsid) {
-        local.__idjs_ = wrapStoredValue_1_9_6(
+        local.__idjs_ = wrapStoredValue(
             '__idjs_',
             context.jsid,
             options.idTtlMs ?? 0,
@@ -1664,40 +1664,40 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
         );
     }
     if (context.token) {
-        local.__tok_ = wrapStoredValue_1_9_6(
+        local.__tok_ = wrapStoredValue(
             '__tok_',
             context.token,
-            options.tokenTtlMs !== undefined ? options.tokenTtlMs : TOKEN_STORAGE_TTL_MS_1_9_6,
+            options.tokenTtlMs !== undefined ? options.tokenTtlMs : TOKEN_STORAGE_TTL_MS,
             appKey
         );
     }
     if (context.signWasmVersion) {
-        local[WASM_SIGN_VERSION_KEY_1_9_6] = wrapStoredValue_1_9_6(
-            WASM_SIGN_VERSION_KEY_1_9_6,
+        local[WASM_SIGN_VERSION_KEY] = wrapStoredValue(
+            WASM_SIGN_VERSION_KEY,
             context.signWasmVersion,
             signWasmTtlMs,
             appKey
         );
     }
     if (context.signWasmOk !== undefined) {
-        local[WASM_SIGN_OK_STORAGE_KEY_1_9_6] = wrapStoredValue_1_9_6(
-            WASM_SIGN_OK_STORAGE_KEY_1_9_6,
+        local[WASM_SIGN_OK_STORAGE_KEY] = wrapStoredValue(
+            WASM_SIGN_OK_STORAGE_KEY,
             context.signWasmOk ? 1 : 0,
             signWasmTtlMs,
             appKey
         );
     }
-    const signWasmBase64 = serializeSignWasmBase64_1_9_6(context);
+    const signWasmBase64 = serializeSignWasmBase64(context);
     if (signWasmBase64) {
-        local[WASM_SIGN_STORAGE_KEY_1_9_6] = wrapStoredValue_1_9_6(
-            WASM_SIGN_STORAGE_KEY_1_9_6,
+        local[WASM_SIGN_STORAGE_KEY] = wrapStoredValue(
+            WASM_SIGN_STORAGE_KEY,
             signWasmBase64,
             signWasmTtlMs,
             appKey
         );
     }
     if (context.sdkVersion) {
-        local._bb_v_ = wrapStoredValue_1_9_6(
+        local._bb_v_ = wrapStoredValue(
             '_bb_v_',
             context.sdkVersion,
             options.sdkVersionTtlMs,
@@ -1705,7 +1705,7 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
         );
     }
     if (context.serial !== undefined) {
-        local.h_five_serial = wrapStoredValue_1_9_6(
+        local.h_five_serial = wrapStoredValue(
             'h_five_serial',
             Number(context.serial),
             options.serialTtlMs ?? 0,
@@ -1713,27 +1713,27 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
         );
     }
     if (context.deviceInfo && typeof context.deviceInfo === 'object') {
-        local.h_five_cp = wrapStoredValue_1_9_6(
+        local.h_five_cp = wrapStoredValue(
             'h_five_cp',
             context.deviceInfo,
-            options.deviceInfoTtlMs ?? DEVICE_INFO_STORAGE_TTL_MS_1_9_6,
+            options.deviceInfoTtlMs ?? DEVICE_INFO_STORAGE_TTL_MS,
             appKey
         );
     }
     if (Array.isArray(context.remoteTask)) {
-        local.h_five_co = wrapStoredValue_1_9_6(
+        local.h_five_co = wrapStoredValue(
             'h_five_co',
             [
-                cloneJsonValue_1_9_6(context.remoteTask),
+                cloneJsonValue(context.remoteTask),
                 Number(context.timeDelta || context.sdkConfig?.td || 0),
                 Number(context.tacticsVersion || 0),
             ],
-            options.remoteConfigTtlMs ?? REMOTE_CONFIG_STORAGE_TTL_MS_1_9_6,
+            options.remoteConfigTtlMs ?? REMOTE_CONFIG_STORAGE_TTL_MS,
             appKey
         );
     }
     if (context.tps !== undefined) {
-        local.__tps = wrapStoredValue_1_9_6(
+        local.__tps = wrapStoredValue(
             '__tps',
             Number(context.tps),
             options.tpsTtlMs ?? 0,
@@ -1746,7 +1746,7 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
         session.__36_i__ = context.startId;
     }
     const tokenShard =
-        context.sessionTokenShard || deriveBangcleSessionTokenShard_1_9_6(context.tokenPrepetuity);
+        context.sessionTokenShard || deriveBangcleSessionTokenShard(context.tokenPrepetuity);
     if (tokenShard) {
         session.__st__ = tokenShard;
     }
@@ -1759,82 +1759,82 @@ function buildBangcleWrappedState_1_9_6(context, options = {}) {
     return {
         local,
         session,
-        cookieState: buildBangcleCookieState_1_9_6(context, { ...options, now }),
+        cookieState: buildBangcleCookieState(context, { ...options, now }),
         globals: {
-            [GLOBAL_SIGN_VERSION_1_9_6]: context.signWasmVersion || '',
-            [GLOBAL_SIGN_WASM_OK_1_9_6]: !!context.signWasmOk,
+            [GLOBAL_SIGN_VERSION]: context.signWasmVersion || '',
+            [GLOBAL_SIGN_WASM_OK]: !!context.signWasmOk,
         },
     };
 }
 
 module.exports = {
-    SDK_VERSION_1_9_6,
-    DEFAULT_BB_APP_KEY_1_9_6,
-    DEFAULT_BB_HOST_1_9_6,
-    DEFAULT_WASM_RUNTIME_FALLBACK_HOST_1_9_6,
-    DEFAULT_UPLOAD_PATH_1_9_6,
-    DEFAULT_WASM_VERSION_LIST_PATH_1_9_6,
-    DEFAULT_WASM_DOWNLOAD_PATH_1_9_6,
-    CONTENT_WEB_BB_HEADER_1_9_6,
-    CONTENT_HH_BB_HEADER_1_9_6,
-    CONTENT_INFO_BB_HEADER_1_9_6,
-    SDK_VER_BB_HEADER_1_9_6,
-    WASM_SIGN_STORAGE_KEY_1_9_6,
-    WASM_SIGN_VERSION_KEY_1_9_6,
-    WASM_SIGN_OK_STORAGE_KEY_1_9_6,
-    GLOBAL_SIGN_VERSION_1_9_6,
-    GLOBAL_SIGN_WASM_OK_1_9_6,
-    DEFAULT_STORAGE_TTL_MS_1_9_6,
-    PERSISTENT_STORAGE_TTL_MS_1_9_6,
-    SIGN_WASM_STORAGE_TTL_MS_1_9_6,
-    TOKEN_STORAGE_TTL_MS_1_9_6,
-    GEN_F_TOKEN_TTL_MS_1_9_6,
-    DEVICE_INFO_STORAGE_TTL_MS_1_9_6,
-    REMOTE_CONFIG_STORAGE_TTL_MS_1_9_6,
-    DEFAULT_BB_TASK_1_9_6,
-    guid_1_9_6,
-    getRandomId_1_9_6,
-    getStartId_1_9_6,
-    bsHash_1_9_6,
-    sm4Key_1_9_6,
-    sm4Encrypt_1_9_6,
-    sm4Decrypt_1_9_6,
-    wrapStoredValue_1_9_6,
-    unwrapStoredValue_1_9_6,
-    applyWrappedBangcleState_1_9_6,
-    buildBangcleWrappedState_1_9_6,
-    deriveBangcleSessionTokenShard_1_9_6,
-    xorHexStringWithOne_1_9_6,
-    objectToArray_1_9_6,
-    jsonSerialize_1_9_6,
-    urlParamsConcat_1_9_6,
-    processData_1_9_6,
-    processDataForSign_1_9_6,
-    unProcessData_1_9_6,
-    generateBsDeviceId_1_9_6,
-    createBbContext_1_9_6,
-    buildContentInfoPayload_1_9_6,
-    buildCReportPayloadObject_1_9_6,
-    buildDUCookieValue_1_9_6,
-    normalizeBangcleHost_1_9_6,
-    buildBangcleUploadUrl_1_9_6,
-    buildBangcleWasmVersionListUrl_1_9_6,
-    buildBangcleWasmDownloadUrl_1_9_6,
-    buildBangcleVersionListRequest_1_9_6,
-    parseBangcleJsonPayload_1_9_6,
-    extractBangcleWasmVersions_1_9_6,
-    decodeBangcleSignWasmBase64_1_9_6,
-    extractBangcleWasmDownloadPayload_1_9_6,
-    shouldSkipBangcleHook_1_9_6,
-    buildBangcleUploadInfoPayloadObject_1_9_6,
-    buildBangcleUploadEventPayloadObject_1_9_6,
-    buildBangcleUploadPayload_1_9_6,
-    buildBangcleUploadInfoPayload_1_9_6,
-    buildBangcleUploadEventPayload_1_9_6,
-    buildBangcleCookieState_1_9_6,
-    buildBangcleBootstrapHeaders_1_9_6,
-    buildRushPurchaseBbHeaders_1_9_6,
-    normalizeSignWasmBytes_1_9_6,
-    StubWasmRuntime_1_9_6,
-    getStubRuntime_1_9_6,
+    SDK_VERSION,
+    DEFAULT_BB_APP_KEY,
+    DEFAULT_BB_HOST,
+    DEFAULT_WASM_RUNTIME_FALLBACK_HOST,
+    DEFAULT_UPLOAD_PATH,
+    DEFAULT_WASM_VERSION_LIST_PATH,
+    DEFAULT_WASM_DOWNLOAD_PATH,
+    CONTENT_WEB_BB_HEADER,
+    CONTENT_HH_BB_HEADER,
+    CONTENT_INFO_BB_HEADER,
+    SDK_VER_BB_HEADER,
+    WASM_SIGN_STORAGE_KEY,
+    WASM_SIGN_VERSION_KEY,
+    WASM_SIGN_OK_STORAGE_KEY,
+    GLOBAL_SIGN_VERSION,
+    GLOBAL_SIGN_WASM_OK,
+    DEFAULT_STORAGE_TTL_MS,
+    PERSISTENT_STORAGE_TTL_MS,
+    SIGN_WASM_STORAGE_TTL_MS,
+    TOKEN_STORAGE_TTL_MS,
+    GEN_F_TOKEN_TTL_MS,
+    DEVICE_INFO_STORAGE_TTL_MS,
+    REMOTE_CONFIG_STORAGE_TTL_MS,
+    DEFAULT_BB_TASK,
+    guid,
+    getRandomId,
+    getStartId,
+    bsHash,
+    sm4Key,
+    sm4Encrypt,
+    sm4Decrypt,
+    wrapStoredValue,
+    unwrapStoredValue,
+    applyWrappedBangcleState,
+    buildBangcleWrappedState,
+    deriveBangcleSessionTokenShard,
+    xorHexStringWithOne,
+    objectToArray,
+    jsonSerialize,
+    urlParamsConcat,
+    processData,
+    processDataForSign,
+    unProcessData,
+    generateBsDeviceId,
+    createBbContext,
+    buildContentInfoPayload,
+    buildCReportPayloadObject,
+    buildDUCookieValue,
+    normalizeBangcleHost,
+    buildBangcleUploadUrl,
+    buildBangcleWasmVersionListUrl,
+    buildBangcleWasmDownloadUrl,
+    buildBangcleVersionListRequest,
+    parseBangcleJsonPayload,
+    extractBangcleWasmVersions,
+    decodeBangcleSignWasmBase64,
+    extractBangcleWasmDownloadPayload,
+    shouldSkipBangcleHook,
+    buildBangcleUploadInfoPayloadObject,
+    buildBangcleUploadEventPayloadObject,
+    buildBangcleUploadPayload,
+    buildBangcleUploadInfoPayload,
+    buildBangcleUploadEventPayload,
+    buildBangcleCookieState,
+    buildBangcleBootstrapHeaders,
+    buildRushPurchaseBbHeaders,
+    normalizeSignWasmBytes,
+    StubWasmRuntime,
+    getStubRuntime,
 };

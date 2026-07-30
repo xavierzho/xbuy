@@ -12,4 +12,4 @@ if [[ -x ".venv/bin/python" ]]; then
 fi
 
 echo "[frp-worker] python=${MT_PYTHON:-python3}"
-exec ./start_distributed_worker.sh "${MASTER_WS}"
+exec "${PROJECT_DIR}/scripts/start_distributed_worker.sh" "${MASTER_WS}"

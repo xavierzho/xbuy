@@ -6,6 +6,7 @@ accounts_*.txt
 ui_state.json
 remote_tunnel_url.txt
 debug_last_api.json
+pay_link_phones_addresses.txt
 state_backups/
 
 # OS / editor noise
@@ -37,10 +38,18 @@ logs/
 *.wasm
 *.spec
 
+# BB 实时运行时及版本归档属于可复现算法资产，需要随版本保存。
+!node_bridge/bb/*.bin
+!node_bridge/bb/*.wasm
+!node_bridge/reverse/**/*.bin
+!node_bridge/reverse/**/*.wasm
+
 # Reverse-engineering generated artifacts and large dumps
 tools/**/.theos/
 tools/**/logs/
 tools/**/packages/
 tools/**/dumps
 tools/**/extracted
+tools/audit/h5_bundles/
+tools/audit/ios_app_security/
 local_yidun/ddddocr-fastapi/.venv-ocr

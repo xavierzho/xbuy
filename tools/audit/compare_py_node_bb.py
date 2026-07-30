@@ -6,13 +6,17 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 import py_bb_new
 
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ACCOUNTS_PATH = os.path.join(BASE_DIR, "accounts.json")
+ACCOUNTS_PATH = os.path.join(str(BASE_DIR), "accounts.json")
 
 
 def _first_account() -> dict[str, Any]:

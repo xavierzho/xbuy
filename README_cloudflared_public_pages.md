@@ -5,7 +5,7 @@ It now starts automatically when `start.py` starts the WebUI.
 Manual fallback on the home master machine after the WebUI is already open on `127.0.0.1:8989`:
 
 ```text
-start_cloudflared_public_pages.bat
+scripts/windows/start_cloudflared_public_pages.bat
 ```
 
 It starts two local whitelist gates:

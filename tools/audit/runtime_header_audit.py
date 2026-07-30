@@ -1,10 +1,16 @@
 from __future__ import annotations
 import json, os, re, sys
 from http.cookies import SimpleCookie
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import app
 import py_bb_new
 
-ROOT=os.path.dirname(os.path.abspath(__file__))
+ROOT=str(ROOT)
 
 def load_account():
     data=json.load(open(os.path.join(ROOT,'accounts.json'),encoding='utf-8'))

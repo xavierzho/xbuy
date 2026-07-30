@@ -6,7 +6,7 @@ cd "${ROOT_DIR}"
 
 PYTHON_BIN="${PYTHON_BIN:-}"
 if [[ -z "${PYTHON_BIN}" ]]; then
-  for candidate in python3.14 python3.13 python3.12 python3; do
+  for candidate in python3.12 python3; do
     if command -v "${candidate}" >/dev/null 2>&1; then
       PYTHON_BIN="${candidate}"
       break
@@ -15,11 +15,21 @@ if [[ -z "${PYTHON_BIN}" ]]; then
 fi
 
 if [[ -z "${PYTHON_BIN}" ]]; then
-  echo "[bootstrap] missing python; install Python 3.14 or set PYTHON_BIN=/path/to/python" >&2
+  echo "[bootstrap] missing python; install Python 3.12 or set PYTHON_BIN=/path/to/python3.12" >&2
   exit 1
 fi
 
 echo "[bootstrap] python=$(${PYTHON_BIN} --version 2>&1)"
+PY_MM="$("${PYTHON_BIN}" - <<'PY'
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}")
+PY
+)"
+if [[ "${PY_MM}" != "3.12" ]]; then
+  echo "[bootstrap] Python 3.12 is required, got ${PY_MM}. Set PYTHON_BIN=/path/to/python3.12" >&2
+  exit 1
+fi
+
 if [[ ! -d ".venv" ]]; then
   "${PYTHON_BIN}" -m venv .venv
 fi

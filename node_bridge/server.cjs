@@ -191,8 +191,7 @@ function tlsImpersonateFrom(_obj) {
     _obj.impersonate ||
     process.env.MT_NODE_TLS_IMPERSONATE ||
     "safari17_0";
-  const s = String(v || "").trim() || "safari17_0";
-  return s;
+  return String(v || "").trim() || "safari17_0";
 }
 
 /** 恒 true：/prewarm 与业务相同走 curl_cffi_worker。 */
@@ -503,7 +502,7 @@ class CurlCffiWorkerPool {
 
   async run(job) {
     const t0 = Date.now();
-    let hostHint = "";
+    let hostHint;
     try {
       hostHint = new URL(String((job && job.url) || "http://local/")).host;
     } catch (_) {
@@ -755,8 +754,7 @@ function rushIsSoftLimitLike(_res) {
   if (cs === "429" || cs === "4293") return true;
   const low = msg.toLowerCase();
   if (low.includes("429")) return true;
-  if (msg.includes("人数较多") || msg.includes("稍后再试") || msg.includes("排队")) return true;
-  return false;
+  return msg.includes("人数较多") || msg.includes("稍后再试") || msg.includes("排队");
 }
 
 function sleepMs(ms) {

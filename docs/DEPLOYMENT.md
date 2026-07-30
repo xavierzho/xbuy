@@ -9,7 +9,7 @@
 
 ## 依赖要求
 
-- Python 3.14 优先，脚本会依次尝试 `python3.14`、`python3.13`、`python3.12`、`python3`。
+- Python 3.12。项目只保留 `.venv` 一个虚拟环境，bootstrap 会拒绝非 3.12 环境。
 - Node.js + npm，用于 `node_bridge/`、`bs_dvid_node/`、`local_yidun/service/`。
 - Go，用于编译 `go_bridge/rush_bridge`。
 - `curl`，用于健康检查。
@@ -30,7 +30,7 @@ scripts/bootstrap.sh
 如需指定 Python：
 
 ```bash
-PYTHON_BIN=/opt/homebrew/bin/python3.14 scripts/bootstrap.sh
+PYTHON_BIN=/usr/local/bin/python3.12 scripts/bootstrap.sh
 ```
 
 ## 本机启动
@@ -65,6 +65,7 @@ MT_HTTP_BACKEND=node
 MT_RUSH_HTTP_NODE=1
 MT_BATCH_RUSH_NODE=1
 MT_CURL_WORKER_POOL=1
+MT_TLS_ENGINE=ja3_client
 ```
 
 公网隧道：
@@ -104,14 +105,16 @@ loginctl enable-linger "$USER"
 主控机启动 WebUI 后，worker 节点执行：
 
 ```bash
-MT_DIST_MASTER_WS=ws://主控机IP:8765 make worker
+MT_TLS_ENGINE=ja3_client MT_DIST_MASTER_WS=ws://主控机IP:8765 make worker
 ```
 
 或：
 
 ```bash
-scripts/run_worker.sh ws://主控机IP:8765
+MT_TLS_ENGINE=ja3_client scripts/run_worker.sh ws://主控机IP:8765
 ```
+
+macOS/Linux 使用 `ja3_client`。`reqrio` 只适用于 Windows 的 `reqrio.dll` 链路。
 
 ## 部署前检查
 

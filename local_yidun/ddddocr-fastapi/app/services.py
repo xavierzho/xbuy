@@ -3,9 +3,7 @@ import cv2
 import numpy as np
 from io import BytesIO
 from PIL import Image
-from typing import Union, List, Optional, Dict, Any, Tuple
-import os
-import time
+from typing import Union, List, Optional, Dict, Any
 
 
 CAPTCHA_LOGIC_WIDTH = 328
@@ -93,7 +91,7 @@ def pick_hole_from_candidates(bg_gray, peaks, template_h, template_w):
         # 诱饵特征：半透明叠加 → 接近正常背景亮度，纹理保留
         # 综合评分：越暗越好，乘以置信度
         darkness_score = (255 - avg) / 255.0
-        uniformity_score = max(0, 1 - std / 80.0)
+        uniformity_score = max(0.0, 1 - std / 80.0)
         # 综合评分 = 置信度 * 0.4 + 暗度 * 0.4 + 均匀度 * 0.2
         score = conf * 0.4 + darkness_score * 0.4 + uniformity_score * 0.2
         scored.append((px, py, conf, score, avg, std))
@@ -107,7 +105,7 @@ def pick_hole_from_candidates(bg_gray, peaks, template_h, template_w):
     # Debug log
     print(f'[slide] candidates: {[(s[0], round(s[4],1), round(s[5],1), round(s[3],3)) for s in scored]}')
 
-    return (best[0], best[1], best[2])
+    return best[0], best[1], best[2]
 
 
 def normalize_yidun_slider_x(raw_x: int, bg_width: int) -> int:

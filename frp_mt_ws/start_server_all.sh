@@ -159,8 +159,8 @@ if [[ ! -f "${PROJECT_DIR}/distributed_worker.py" ]]; then
   echo "[server-all] missing distributed_worker.py in ${PROJECT_DIR}"
   exit 1
 fi
-if [[ ! -x "${PROJECT_DIR}/start_distributed_worker.sh" ]]; then
-  chmod +x "${PROJECT_DIR}/start_distributed_worker.sh" || true
+if [[ ! -x "${PROJECT_DIR}/scripts/start_distributed_worker.sh" ]]; then
+  chmod +x "${PROJECT_DIR}/scripts/start_distributed_worker.sh" || true
 fi
 if [[ ! -x "${SCRIPT_DIR}/start_worker_via_frp.sh" ]]; then
   chmod +x "${SCRIPT_DIR}/start_worker_via_frp.sh" || true

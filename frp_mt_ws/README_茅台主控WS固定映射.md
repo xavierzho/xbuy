@@ -32,7 +32,7 @@ start_frpc_home.bat
 公网服务器节点启动：
 
 ```bash
-../start_distributed_worker.sh ws://127.0.0.1:18765
+../scripts/start_distributed_worker.sh ws://127.0.0.1:18765
 ```
 
 或者在本目录执行：
@@ -91,7 +91,7 @@ proxyBindAddr = "127.0.0.1"
 这样 `18765` 不会暴露给全网，节点本机连：
 
 ```bash
-./start_distributed_worker.sh ws://127.0.0.1:18765
+../scripts/start_distributed_worker.sh ws://127.0.0.1:18765
 ```
 
 ## 3. 家里主控电脑配置
@@ -129,13 +129,13 @@ start_frpc_home.bat
 如果节点就在公网服务器本机：
 
 ```bash
-./start_distributed_worker.sh ws://127.0.0.1:18765
+../scripts/start_distributed_worker.sh ws://127.0.0.1:18765
 ```
 
 如果是其他节点电脑通过这台公网服务器中转：
 
 ```bash
-./start_distributed_worker.sh ws://公网服务器IP:18765
+../scripts/start_distributed_worker.sh ws://公网服务器IP:18765
 ```
 
 ## 5. 常见问题

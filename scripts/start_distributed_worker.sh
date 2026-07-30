@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT_DIR}"
 
 MASTER_WS="${1:-${MT_DIST_MASTER_WS:-ws://192.168.31.105:8765}}"
 
@@ -19,7 +20,7 @@ export MT_RUSH_HTTP_NODE="${MT_RUSH_HTTP_NODE:-1}"
 export MT_BATCH_RUSH_NODE="${MT_BATCH_RUSH_NODE:-1}"
 export MT_GO_TLS_CLIENT="${MT_GO_TLS_CLIENT:-1}"
 export MT_GO_TLS_CLIENT_PROFILE="${MT_GO_TLS_CLIENT_PROFILE:-chrome_138}"
-export MT_TLS_ENGINE="${MT_TLS_ENGINE:-reqrio}"
+export MT_TLS_ENGINE="${MT_TLS_ENGINE:-ja3_client}"
 export MT_HTTP_BACKEND="${MT_HTTP_BACKEND:-node}"
 export MT_CURL_WORKER_POOL="${MT_CURL_WORKER_POOL:-1}"
 
@@ -32,6 +33,9 @@ echo "[dist-worker] memory_only=${MT_DIST_MEMORY_ONLY} rush_only=${MT_DIST_RUSH_
 echo "[dist-worker] go_bridge=${MT_GO_BRIDGE_PORT} tls_engine=${MT_TLS_ENGINE} tls_client=${MT_GO_TLS_CLIENT} tls_profile=${MT_GO_TLS_CLIENT_PROFILE} bb=stable_py_v1.0.8"
 
 PY_BIN="${MT_PYTHON:-}"
+if [[ -z "${PY_BIN}" && -n "${VIRTUAL_ENV:-}" && -x "${VIRTUAL_ENV}/bin/python" ]]; then
+  PY_BIN="${VIRTUAL_ENV}/bin/python"
+fi
 if [[ -z "${PY_BIN}" && -x ".venv/bin/python" ]]; then
   PY_BIN="$(pwd)/.venv/bin/python"
 fi
@@ -43,4 +47,5 @@ if [[ -z "${PY_BIN}" ]]; then
   fi
 fi
 
+echo "[dist-worker] python=${PY_BIN}"
 exec "${PY_BIN}" distributed_worker.py "${MASTER_WS}"

@@ -45,7 +45,7 @@ Then the worker on that server connects to:
 
 ```bash
 cd /root/5.1茅台
-./start_distributed_worker.sh ws://127.0.0.1:18765
+../scripts/start_distributed_worker.sh ws://127.0.0.1:18765
 ```
 
 ## Notes
