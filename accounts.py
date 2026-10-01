@@ -2557,7 +2557,7 @@ class AccountPool:
     ) -> list[dict]:
         """
         批量黑号检测：仅处理已登录账号；结果写入 risk_tag / risk_message / risk_checked_at 并落盘。
-        规则与 mt/test-full-flow.js testAccount 一致（741 + branch/one 探测）。
+        规则与 black_account_probe 一致（741 + branch/one；活动 ID 由 purchaseInfoV2 动态拉取）。
         """
         if phones is None:
             targets = [p for p in self._phones if self._map[p].status == STATUS_OK]

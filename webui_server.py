@@ -32,6 +32,7 @@ import threading
 import time
 import traceback
 import http.client
+import ssl
 import urllib.error
 import urllib.request
 import uuid
@@ -92,6 +93,7 @@ from grab_bot_ops import (
     grab_set_all_amt,
     grab_set_all_delay,
     import_address_book_from_json_file,
+    add_phones_to_account_group,
     load_ui_state_raw,
     merge_address_book_into_ui_state,
     merge_ui_state_from_post,
@@ -1087,7 +1089,11 @@ def sync_api_listen_ports() -> None:
         prev = list(API_LISTEN_PORTS)
         # 扩容
         while len(API_LISTEN_PORTS) < desired:
-            p = PORT + len(API_LISTEN_PORTS)
+            if not API_LISTEN_PORTS:
+                # 主端口 PORT 已由 bind_webui_servers 占用；勿重复 bind 导致 Address already in use
+                API_LISTEN_PORTS.append(PORT)
+                continue
+            p = max(API_LISTEN_PORTS) + 1
             while p in API_LISTEN_PORTS:
                 p += 1
             try:
@@ -2214,6 +2220,20 @@ def _remote_login_page_authorized(handler: BaseHTTPRequestHandler) -> bool:
     return hmac.compare_digest(tok, REMOTE_LOGIN_SECRET.encode("utf-8"))
 
 
+def _infer_http_proxy_scheme_from_api_urls(urls: list[str]) -> str:
+    """部分厂商提取接口返回的是 HTTP 代理；未勾选格式时按域名推断，避免默认写成 socks5。"""
+    for raw in urls:
+        host = (urlparse(str(raw or "").strip()).hostname or "").lower()
+        if not host:
+            continue
+        # 快代理私密/隧道等提取域名，出口默认 HTTP（非 SOCKS5）
+        if host == "kdlapi.com" or host.endswith(".kdlapi.com"):
+            return "http"
+        if host == "kuaidaili.com" or host.endswith(".kuaidaili.com"):
+            return "http"
+    return ""
+
+
 def _proxy_import_scheme(payload: dict | None) -> str:
     if not isinstance(payload, dict):
         return ""
@@ -2230,7 +2250,8 @@ def _proxy_import_scheme(payload: dict | None) -> str:
         return "https"
     if payload.get("useHttp") is True:
         return "http"
-    return ""
+    urls = _proxy_api_urls_from_payload(payload)
+    return _infer_http_proxy_scheme_from_api_urls(urls)
 
 
 def _coerce_proxy_scheme(proxy_url: str, scheme: str) -> str:
@@ -2304,9 +2325,58 @@ def _proxy_auth_from_api_url(url: str) -> tuple[str, str]:
                     return s
         return ""
 
-    user = pick("UserName", "Username", "username", "userName", "user", "User", "account", "Account")
-    pwd = pick("UserPwd", "Password", "password", "passWord", "pwd", "Pwd", "pass", "Pass")
+    user = pick(
+        "UserName",
+        "Username",
+        "username",
+        "userName",
+        "proxyUser",
+        "proxy_user",
+        "authUser",
+        "user",
+        "User",
+        "account",
+        "Account",
+    )
+    pwd = pick(
+        "UserPwd",
+        "Password",
+        "password",
+        "passWord",
+        "proxyPwd",
+        "proxy_pwd",
+        "proxyPassword",
+        "proxy_password",
+        "authPass",
+        "authPwd",
+        "pwd",
+        "Pwd",
+        "pass",
+        "Pass",
+    )
     return user, pwd
+
+
+def _proxy_auth_from_payload(payload: dict | None) -> tuple[str, str]:
+    """优先用请求体里的代理账密，其次从提取 API URL 查询参数读取。"""
+    if not isinstance(payload, dict):
+        payload = {}
+    user = str(
+        payload.get("proxyUser")
+        or payload.get("proxyUsername")
+        or payload.get("authUser")
+        or ""
+    ).strip()
+    pwd = str(
+        payload.get("proxyPassword")
+        or payload.get("proxyPwd")
+        or payload.get("authPass")
+        or payload.get("authPwd")
+        or ""
+    ).strip()
+    if user and pwd:
+        return user, pwd
+    return _proxy_auth_from_api_url(str(payload.get("url") or ""))
 
 
 def _attach_proxy_auth_if_needed(raw: str, *, user: str = "", pwd: str = "") -> str:
@@ -2647,6 +2717,10 @@ def _proxy_fill_clean_payload(payload: dict) -> dict:
     use_https = payload.get("useHttps") is True or scheme == "https"
     use_http = (not use_https) and (payload.get("useHttp") is True or scheme == "http")
     proxy_scheme = "https" if use_https else ("http" if use_http else "")
+    if not proxy_scheme:
+        proxy_scheme = _infer_http_proxy_scheme_from_api_urls(urls)
+        use_http = proxy_scheme == "http"
+    proxy_user, proxy_pwd = _proxy_auth_from_payload({**payload, "url": urls[0], "urls": urls})
     target_phones = payload.get("phones")
     if target_phones is not None and not isinstance(target_phones, list):
         target_phones = None
@@ -2658,6 +2732,8 @@ def _proxy_fill_clean_payload(payload: dict) -> dict:
         "proxyScheme": proxy_scheme,
         "useHttp": bool(use_http),
         "useHttps": bool(use_https),
+        "proxyUser": proxy_user,
+        "proxyPassword": proxy_pwd,
         "timeoutSec": timeout_sec,
         "targetCount": target_count,
         "parallel": parallel,
@@ -3066,6 +3142,38 @@ def _collect_proxy_lines_from_obj(obj) -> list[str]:
     return out
 
 
+def _proxy_api_https_opener(*, insecure: bool = False):
+    """直连外部代理提取 API；绕过本机 HTTP(S)_PROXY，可选关闭证书校验。"""
+    handlers: list = [urllib.request.ProxyHandler({})]
+    if insecure:
+        handlers.append(urllib.request.HTTPSHandler(context=ssl._create_unverified_context()))
+    else:
+        try:
+            import certifi  # type: ignore
+
+            ctx = ssl.create_default_context(cafile=certifi.where())
+            handlers.append(urllib.request.HTTPSHandler(context=ctx))
+        except Exception:
+            pass
+    return urllib.request.build_opener(*handlers)
+
+
+def _is_ssl_cert_verify_error(ex: BaseException) -> bool:
+    msg = str(ex or "")
+    if "CERTIFICATE_VERIFY_FAILED" in msg:
+        return True
+    if "unable to get local issuer certificate" in msg.lower():
+        return True
+    cur: BaseException | None = ex
+    seen = 0
+    while cur is not None and seen < 6:
+        if isinstance(cur, ssl.SSLCertVerificationError):
+            return True
+        cur = cur.__cause__ or cur.__context__
+        seen += 1
+    return False
+
+
 def _fetch_proxy_lines_from_api(payload: dict) -> dict:
     """调用外部 API，抽取代理行并返回（不直接落盘）。"""
     url = str(payload.get("url") or "").strip()
@@ -3093,13 +3201,22 @@ def _fetch_proxy_lines_from_api(payload: dict) -> dict:
         else:
             data = b""
     req = urllib.request.Request(url, data=data, method=method, headers=req_headers)
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
+        opener = _proxy_api_https_opener(insecure=False)
         with opener.open(req, timeout=timeout) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
             status = int(getattr(resp, "status", 200))
     except Exception as ex:
-        return {"ok": False, "error": f"API 请求失败: {ex}"}
+        if url.lower().startswith("https://") and _is_ssl_cert_verify_error(ex):
+            try:
+                opener = _proxy_api_https_opener(insecure=True)
+                with opener.open(req, timeout=timeout) as resp:
+                    raw = resp.read().decode("utf-8", errors="replace")
+                    status = int(getattr(resp, "status", 200))
+            except Exception as ex2:
+                return {"ok": False, "error": f"API 请求失败: {ex2}"}
+        else:
+            return {"ok": False, "error": f"API 请求失败: {ex}"}
 
     return _parse_proxy_api_response(payload, raw, status)
 
@@ -3108,7 +3225,7 @@ def _parse_proxy_api_response(payload: dict, raw: str, status: int) -> dict:
     """抽取外部代理 API 返回体里的代理行，供单 API/多 API 路径共用。"""
     path_expr = str(payload.get("jsonPath") or "").strip()
     preferred_scheme = _proxy_import_scheme(payload)
-    api_user, api_pwd = _proxy_auth_from_api_url(str(payload.get("url") or ""))
+    api_user, api_pwd = _proxy_auth_from_payload(payload)
     candidates: list[str] = []
     fmt = "text"
     try:
@@ -4779,6 +4896,29 @@ def _batch_all_mt_realtime(tasks: list[dict]) -> bool:
     return bool(tasks) and all(isinstance(t, dict) and _batch_mt_realtime_from_payload(t) for t in tasks)
 
 
+def _batch_account_stagger_ms() -> int:
+    """错峰启动各账号，减轻同刻打满代理/CDN。与 Go 侧 MT_HF_ACCOUNT_STAGGER_MS 共用。"""
+    raw = (
+        os.environ.get("MT_HF_ACCOUNT_STAGGER_MS")
+        or os.environ.get("MT_ACCOUNT_STAGGER_MS")
+        or "80"
+    ).strip().lower()
+    if raw in ("0", "off", "false", "no"):
+        return 0
+    try:
+        v = int(raw)
+    except (TypeError, ValueError):
+        return 80
+    return max(0, min(5000, v))
+
+
+def _batch_rush_one_mt_realtime_staggered(payload: dict, emit=None, task_index: int | None = None) -> dict:
+    stagger = _batch_account_stagger_ms()
+    if stagger > 0 and task_index is not None and int(task_index) > 0:
+        time.sleep(int(task_index) * stagger / 1000.0)
+    return _batch_rush_one_mt_realtime(payload, emit=emit, task_index=task_index)
+
+
 def _batch_all_fire_and_forget(tasks: list[dict]) -> bool:
     return bool(tasks) and all(isinstance(t, dict) and _fire_and_forget_from_payload(t) for t in tasks)
 
@@ -5040,6 +5180,7 @@ def _batch_rush_prepare_one(payload: dict) -> dict:
             "attempts": attempts,
             "rushLoopDelayMs": _parse_rush_loop_delay_ms_from_payload(payload),
             "tlsImpersonate": TLS_PROFILE,
+            "accountKey": phone,
             # WebUI「高频」模式：透传给 Node /rush_loop，启用并发连发（fire-and-forget）
             "fireAndForget": faf_b,
         }
@@ -5567,8 +5708,18 @@ def _run_batch_rush_api(tasks: list[dict], concurrency: int) -> list[dict]:
         flush=True,
     )
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
-        worker_fn = _batch_rush_one_mt_realtime if mt_realtime else _batch_rush_one_blocking
-        futs = {ex.submit(worker_fn, tasks[i]): i for i in range(n)}
+        if mt_realtime:
+            stagger = _batch_account_stagger_ms()
+            if stagger > 0:
+                print(
+                    f"[batch_rush] MT 账号错峰启动：taskIndex×{stagger}ms（MT_HF_ACCOUNT_STAGGER_MS）",
+                    flush=True,
+                )
+            worker_fn = _batch_rush_one_mt_realtime_staggered
+            futs = {ex.submit(worker_fn, tasks[i], None, i): i for i in range(n)}
+        else:
+            worker_fn = _batch_rush_one_blocking
+            futs = {ex.submit(worker_fn, tasks[i]): i for i in range(n)}
         for fu in concurrent.futures.as_completed(futs):
             i = futs[fu]
             try:
@@ -6776,9 +6927,15 @@ def _run_batch_rush_stream_api_inner(tasks: list[dict], concurrency: int, emit) 
         emit_mt({"type": "go_start", "total": n, "concurrency": max_workers, "mode": "mt_realtime"})
         success = 0
         failed = 0
+        stagger = _batch_account_stagger_ms()
+        if stagger > 0:
+            print(
+                f"[batch_rush] MT 账号错峰启动：taskIndex×{stagger}ms（MT_HF_ACCOUNT_STAGGER_MS）",
+                flush=True,
+            )
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
             futs = {
-                ex.submit(_batch_rush_one_mt_realtime, tasks[i], emit_mt, i): i
+                ex.submit(_batch_rush_one_mt_realtime_staggered, tasks[i], emit_mt, i): i
                 for i in range(n)
             }
             for fu in concurrent.futures.as_completed(futs):
@@ -8602,6 +8759,51 @@ class Handler(BaseHTTPRequestHandler):
                     )
                 )
 
+            if path == "/api/operation_log/export_disk":
+                date_key = str(payload.get("dateKey") or "").strip()
+                time_key = str(payload.get("timeKey") or "").strip()
+                if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_key):
+                    return self._send_json(json_err("dateKey 须为 YYYY-MM-DD（北京时间）"), 400)
+                if not re.fullmatch(r"\d{6}", time_key):
+                    return self._send_json(json_err("timeKey 须为 HHMMSS（北京时间）"), 400)
+                raw_lines = payload.get("lines")
+                if not isinstance(raw_lines, list) or not raw_lines:
+                    return self._send_json(json_err("lines 须为非空数组"), 400)
+                if len(raw_lines) > 12000:
+                    return self._send_json(json_err("lines 过多（上限 12000 行）"), 400)
+                out_lines: list[str] = []
+                for it in raw_lines:
+                    s = str(it if it is not None else "")
+                    s = s.replace("\r", " ").replace("\x00", " ")
+                    if len(s) > 4000:
+                        s = s[:4000] + "…"
+                    out_lines.append(s)
+                if not out_lines:
+                    return self._send_json(json_err("无有效日志行"), 400)
+                PAY_RECORD_EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+                fn = f"op_log_{date_key}_{time_key}.txt"
+                if not re.fullmatch(r"op_log_\d{4}-\d{2}-\d{2}_\d{6}\.txt", fn):
+                    return self._send_json(json_err("文件名不合法"), 400)
+                out_path = (PAY_RECORD_EXPORT_DIR / fn).resolve()
+                try:
+                    out_path.relative_to(PAY_RECORD_EXPORT_DIR.resolve())
+                except ValueError:
+                    return self._send_json(json_err("路径异常"), 400)
+                text = "\ufeff" + "\n".join(out_lines) + "\n"
+                out_path.write_text(text, encoding="utf-8", newline="\n")
+                return self._send_json(
+                    json_ok(
+                        {
+                            "saved": True,
+                            "path": str(out_path),
+                            "count": len(out_lines),
+                            "dir": str(PAY_RECORD_EXPORT_DIR.resolve()),
+                            "filename": fn,
+                        },
+                        "操作日志已写入抢购记录目录",
+                    )
+                )
+
             if path == "/api/accounts/export_disk":
                 date_key = str(payload.get("dateKey") or "").strip()
                 if not re.fullmatch(r"\d{8}", date_key):
@@ -9911,6 +10113,19 @@ class Handler(BaseHTTPRequestHandler):
                     remark=remark or None,
                 )
                 e = POOL.get(phone)
+                # 同备注 → 同标签分组：远程上号成功且写了备注时，并入 ui_state 同名分组
+                try:
+                    rem_tag = str((e.remark if e else "") or remark or "").strip()
+                    login_ok = False
+                    if isinstance(res, dict):
+                        try:
+                            login_ok = int(res.get("code", -1)) == 2000
+                        except (TypeError, ValueError):
+                            login_ok = str(res.get("code", "")) == "2000"
+                    if login_ok and rem_tag and phone:
+                        add_phones_to_account_group(rem_tag, phone)
+                except Exception:
+                    traceback.print_exc()
                 # ── 远程上号 IP 一致性：登录成功后不清除 e.proxy ──
                 # send_code 时已将 e.proxy 锁定为某条代理 IP。
                 # 登录后前端还会依次请求 realname/address/remote_black_check。

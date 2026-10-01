@@ -37,8 +37,38 @@ public final class MainHook implements IXposedHookLoadPackage {
             return;
         }
         XposedBridge.log("[MoutaiHook] process=" + lpparam.processName);
-        hookFrameworkChecks();
-        hookCoralline(lpparam.classLoader);
+        XposedBridge.log("[MoutaiHook] baseline mode: no methods hooked");
+    }
+
+    /** Neutralize the isolated-process verdict before the shell consumes it. */
+    private static void hookSecneoResult(ClassLoader loader) {
+        Class<?> shell = XposedHelpers.findClassIfExists(
+                "com.secneo.apkwrapper.H", loader);
+        if (shell == null) {
+            // jadx renames H to C0314H in generated source; runtime normally keeps H.
+            shell = XposedHelpers.findClassIfExists(
+                    "com.secneo.apkwrapper.C0314H", loader);
+        }
+        if (shell == null) {
+            XposedBridge.log("[MoutaiHook] Secneo H not found");
+            return;
+        }
+        final Class<?> type = shell;
+        try {
+            XposedBridge.hookAllMethods(type, "cis", new XC_MethodReplacement() {
+                @Override
+                protected Object replaceHookedMethod(MethodHookParam param) {
+                    Object pid = param.args.length > 0 ? param.args[0] : "?";
+                    XposedBridge.log("[MoutaiHook] H.cis(" + pid + ") CALLED => 0");
+                    return 0;
+                }
+            });
+            XposedBridge.log("[MoutaiHook] hooked H.cis(int) => 0");
+        } catch (Throwable error) {
+            XposedBridge.log("[MoutaiHook] H.cis: " + error);
+        }
+
+        XposedBridge.log("[MoutaiHook] minimal mode: only H.cis is active");
     }
 
     private static void replaceAll(
@@ -116,7 +146,7 @@ public final class MainHook implements IXposedHookLoadPackage {
 
     private static void hookFrameworkChecks() {
         try {
-            XposedHelpers.findAndHookMethod(File.class, "exists",
+            XposedBridge.hookAllMethods(File.class, "exists",
                     new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) {
@@ -131,9 +161,9 @@ public final class MainHook implements IXposedHookLoadPackage {
         }
 
         try {
-            XposedHelpers.findAndHookMethod(System.class, "exit", int.class,
+            XposedBridge.hookAllMethods(System.class, "exit",
                     XC_MethodReplacement.DO_NOTHING);
-            XposedHelpers.findAndHookMethod(Process.class, "killProcess", int.class,
+            XposedBridge.hookAllMethods(Process.class, "killProcess",
                     new XC_MethodHook() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) {

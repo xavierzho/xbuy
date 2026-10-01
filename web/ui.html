@@ -1755,7 +1755,10 @@
       <div class="card log-top-card">
         <div class="card-title" style="justify-content:space-between">
           <span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>操作日志</span>
-          <button class="btn-xs danger" onclick="clearLog()">清空</button>
+          <span style="display:flex;gap:8px;align-items:center">
+            <button type="button" class="btn-xs secondary" onclick="exportOperationLogToDisk()" title="写入项目根目录「抢购记录」：含全局操作日志与各账号卡片日志">导出抢购记录</button>
+            <button class="btn-xs danger" onclick="clearLog()">清空</button>
+          </span>
         </div>
         <div class="rush-code-stats" id="rushCodeStatsBar"></div>
         <div class="log-box" id="logBox"></div>
@@ -2130,6 +2133,30 @@ function regroupRiskAccountsFromCurrent() {
 
 // 抢购成功自动归类：没有「抢购成功」分组时自动创建，并把号加进去
 const RUSH_OK_GROUP_NAME = '抢购成功';
+const RESERVED_ACCOUNT_GROUP_NAMES = new Set(['全部', WHITE_ACCOUNT_GROUP_NAME, BLACK_ACCOUNT_GROUP_NAME, RUSH_OK_GROUP_NAME]);
+
+/** 同备注（分享链接上的标签）的账号并入同名分组，主控刷新列表时补齐 */
+function syncRemarkGroupsFromAccountsIfChanged() {
+  const g = _loadGroups();
+  let changed = false;
+  for (const row of (accounts || [])) {
+    const ph = String(row && row.phone || '').trim();
+    const rem = String(row && row.remark || '').trim();
+    if (!ph || !rem || RESERVED_ACCOUNT_GROUP_NAMES.has(rem)) continue;
+    if (!Array.isArray(g[rem])) {
+      g[rem] = [];
+      changed = true;
+    }
+    if (!g[rem].includes(ph)) {
+      g[rem].push(ph);
+      changed = true;
+    }
+  }
+  if (!changed) return false;
+  _saveGroups(g);
+  return true;
+}
+
 function autoMoveToRushOkGroup(phone) {
   const ph = String(phone || '').trim();
   if (!ph) return;
@@ -2230,6 +2257,9 @@ const BATCH_RUSH_RETRY_KEY = 'rush_batch_rush_retry_v1';
 const BATCH_RUSH_DELAY_MS_KEY = 'rush_batch_rush_delay_ms_v1';
 const BATCH_CONCURRENCY_KEY = 'rush_batch_concurrency_v1';
 const BATCH_MT_STREAM_SHARD_SIZE_KEY = 'rush_batch_mt_stream_shard_size_v1';
+const BATCH_AUTO_SHARD_SIZE_KEY = 'rush_batch_auto_shard_size_v1';
+const BATCH_AUTO_SHARD_GAP_MS_KEY = 'rush_batch_auto_shard_gap_ms_v1';
+const BATCH_AUTO_SHARD_BY_NODES_KEY = 'rush_batch_auto_shard_by_nodes_v1';
 const DISTRIBUTED_RUSH_KEY = 'rush_distributed_enabled_v1';
 const GLOBAL_MOBILE_RELAY_KEY = 'rush_global_mobile_relay_enabled_v1';
 /** 读取「预热并行账号」；无控件时默认 6 */
@@ -2627,10 +2657,12 @@ let _pendingOrderOpsOrderId = '';
 function addrBookKey(p) {
   return String(p == null ? '' : p).trim();
 }
-/** 北京时间多轮补抢：首枪后每 5 分钟一批，至当日 9:30；已抢到（得记录号）的号不再参与后续轮 */
+/** 北京时间多轮补抢：首枪后每 5 分钟一批，至当日场次截止（早场 9:30 / 晚场 21:00）；已抢到（得记录号）的号不再参与后续轮 */
 let scheduleMultiWaveActive = false;
 let scheduleSessionStartMs = 0;
 let scheduleWaveEndMs = 0;
+/** 当前场次截止文案，如 09:30 / 21:00 */
+let scheduleWaveEndLabel = '09:30';
 let scheduleCurrentRound = 0;
 let scheduleNextRoundMs = 0;
 let scheduleRoundInProgress = false;
@@ -3294,6 +3326,9 @@ async function pushUiStateServerNow() {
       batchRushDelayMs: (() => { try { return localStorage.getItem(BATCH_RUSH_DELAY_MS_KEY); } catch (e) { return null; } })(),
       batchConcurrency: (() => { try { return localStorage.getItem(BATCH_CONCURRENCY_KEY); } catch (e) { return null; } })(),
       batchMtStreamShardSize: (() => { try { return localStorage.getItem(BATCH_MT_STREAM_SHARD_SIZE_KEY); } catch (e) { return null; } })(),
+      batchAutoShardSize: (() => { try { return localStorage.getItem(BATCH_AUTO_SHARD_SIZE_KEY); } catch (e) { return null; } })(),
+      batchAutoShardGapMs: (() => { try { return localStorage.getItem(BATCH_AUTO_SHARD_GAP_MS_KEY); } catch (e) { return null; } })(),
+      batchAutoShardByNodes: (() => { try { return localStorage.getItem(BATCH_AUTO_SHARD_BY_NODES_KEY); } catch (e) { return null; } })(),
       autoChain: (() => { try { return localStorage.getItem(AUTO_CHAIN_LS); } catch (e) { return null; } })(),
       showDeviceRefresh: (() => { try { return localStorage.getItem(SHOW_DEVICE_REFRESH_LS); } catch (e) { return null; } })(),
       proxyPoolApi: {
@@ -3361,6 +3396,15 @@ async function pullUiStateFromServer() {
     if (st.batchMtStreamShardSize != null && st.batchMtStreamShardSize !== '') {
       try { localStorage.setItem(BATCH_MT_STREAM_SHARD_SIZE_KEY, String(st.batchMtStreamShardSize)); } catch (e) {}
     }
+    if (st.batchAutoShardSize != null && st.batchAutoShardSize !== '') {
+      try { localStorage.setItem(BATCH_AUTO_SHARD_SIZE_KEY, String(st.batchAutoShardSize)); } catch (e) {}
+    }
+    if (st.batchAutoShardGapMs != null && st.batchAutoShardGapMs !== '') {
+      try { localStorage.setItem(BATCH_AUTO_SHARD_GAP_MS_KEY, String(st.batchAutoShardGapMs)); } catch (e) {}
+    }
+    if (st.batchAutoShardByNodes != null && st.batchAutoShardByNodes !== '') {
+      try { localStorage.setItem(BATCH_AUTO_SHARD_BY_NODES_KEY, String(st.batchAutoShardByNodes)); } catch (e) {}
+    }
     if (st.autoChain != null && st.autoChain !== '') {
       try { localStorage.setItem(AUTO_CHAIN_LS, String(st.autoChain)); } catch (e) {}
     }
@@ -3421,16 +3465,27 @@ function bjWallClockMs(y, mo, d, hh, mm, ss) {
   return new Date(`${y}-${p2(mo)}-${p2(d)}T${p2(hh)}:${p2(mm)}:${p2(ss)}+08:00`).getTime();
 }
 
+/** 定时场次：早场补货至 09:30；晚场投放至 21:00（与常见 startTimeList 对齐） */
+function schedSessionPresetInfo() {
+  const el = document.getElementById('schedSessionPreset');
+  const v = el ? String(el.value || 'morning').trim() : 'morning';
+  if (v === 'evening') {
+    return { key: 'evening', name: '晚场', hh: 21, mm: 0, label: '21:00', hintStart: '20:00' };
+  }
+  return { key: 'morning', name: '早场', hh: 9, mm: 30, label: '09:30', hintStart: '09:00' };
+}
+
 function scheduleTick() {
   if (!scheduleMultiWaveActive || scheduleRoundInProgress) return;
   if (Date.now() < scheduleNextRoundMs) return;
 
+  const endLabel = scheduleWaveEndLabel || '09:30';
   const slotMs = scheduleSessionStartMs + scheduleCurrentRound * 5 * 60 * 1000;
   if (slotMs > scheduleWaveEndMs) {
     scheduleMultiWaveActive = false;
     scheduleNextRoundMs = 0;
-    log('[定时] 已超过北京时间当日 9:30 末批，补抢结束', 'info');
-    toast('定时补抢已结束（9:30）', 'ok');
+    log('[定时] 已超过北京时间当日 ' + endLabel + ' 末批，补抢结束', 'info');
+    toast('定时补抢已结束（' + endLabel + '）', 'ok');
     scheduleSaveUiPrefs();
     return;
   }
@@ -3451,7 +3506,7 @@ function scheduleTick() {
     if (!scheduleMultiWaveActive) return;
     if (scheduleNextRoundMs > scheduleWaveEndMs) {
       scheduleMultiWaveActive = false;
-      log('[定时] 全部计划批次已排满（下一轮将超过 9:30），定时结束', 'info');
+      log('[定时] 全部计划批次已排满（下一轮将超过 ' + endLabel + '），定时结束', 'info');
       toast('定时补抢已完成全部批次', 'ok');
       scheduleSaveUiPrefs();
     }
@@ -3692,6 +3747,11 @@ function wireSchedulePickersAfterBatchRender() {
       scheduleSaveUiPrefs();
     };
   });
+  const sessEl = document.getElementById('schedSessionPreset');
+  if (sessEl && !sessEl.dataset.wired) {
+    sessEl.dataset.wired = '1';
+    sessEl.onchange = () => scheduleSaveUiPrefs();
+  }
 
   if (window._schedCalOutsideHandler) {
     document.removeEventListener('click', window._schedCalOutsideHandler, true);
@@ -3723,14 +3783,19 @@ function armSchedule() {
 
   const ymd = bjYmdFromMs(startMs);
   if (!ymd) { toast('无法解析北京日期', 'err'); return; }
-  const endMs = bjWallClockMs(ymd.y, ymd.mo, ymd.d, 9, 30, 0);
+  const sess = schedSessionPresetInfo();
+  const endMs = bjWallClockMs(ymd.y, ymd.mo, ymd.d, sess.hh, sess.mm, 0);
   if (startMs > endMs) {
-    toast('开始时间不能晚于当日北京时间 9:30（官方末批补货）', 'err');
+    toast(
+      '开始时间不能晚于当日北京时间 ' + sess.label + '（' + sess.name + '末批）',
+      'err'
+    );
     return;
   }
 
   scheduleSessionStartMs = startMs;
   scheduleWaveEndMs = endMs;
+  scheduleWaveEndLabel = sess.label;
   scheduleCurrentRound = 0;
   scheduleNextRoundMs = startMs;
   scheduleRushDonePhones.clear();
@@ -3739,10 +3804,14 @@ function armSchedule() {
   schedulePrewarmArmedForRound = null;
 
   const dt = new Date(startMs).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false });
-  toast('已启用定时补抢（北京时间）首枪 ≈ ' + dt, 'ok');
+  toast('已启用' + sess.name + '定时补抢（北京时间）首枪 ≈ ' + dt + '，至 ' + sess.label, 'ok');
   const sal = document.getElementById('schedAllLogged');
   const allMode = !sal || sal.checked;
-  log(`[定时] 多轮补抢：首枪 ${dt}，每 5 分钟一批至当日 9:30；${allMode ? '每轮全员已登录账号' : '仅未抢到记录号的账号跟随后续轮'}（需本页保持打开）`, 'info');
+  log(
+    `[定时] ${sess.name}多轮补抢：首枪 ${dt}，每 5 分钟一批至当日 ${sess.label}；` +
+      `${allMode ? '每轮全员已登录账号' : '仅未抢到记录号的账号跟随后续轮'}（需本页保持打开）`,
+    'info'
+  );
   schedulePersistRushCfg();
   schedulePushUiStateServer();
   scheduleSaveUiPrefs();
@@ -3755,6 +3824,7 @@ function cancelSchedule() {
   scheduleRoundInProgress = false;
   scheduleSessionStartMs = 0;
   scheduleWaveEndMs = 0;
+  scheduleWaveEndLabel = '09:30';
   scheduleCurrentRound = 0;
   scheduleRushDonePhones.clear();
   schedulePrewarmArmedForRound = null;
@@ -3796,7 +3866,7 @@ function updateScheduleLiveStatus() {
   parts.push(allMode ? ('范围：每轮全部已登录（' + nLog + '）') : ('范围：仅未抢到记录号（' + pending.length + '/' + nLog + '）'));
   if (scheduleWaveEndMs > now) {
     const leftMin = Math.max(0, Math.ceil((scheduleWaveEndMs - now) / 60000));
-    parts.push('距当日 9:30 末批约 ' + leftMin + ' 分钟');
+    parts.push('距当日 ' + (scheduleWaveEndLabel || '09:30') + ' 末批约 ' + leftMin + ' 分钟');
   }
   textEl.textContent = parts.join(' · ');
 }
@@ -5356,6 +5426,7 @@ function gatherUiPrefs() {
     batch: {
       schedDate: elv('schedDate'),
       schedTime: elv('schedTime'),
+      schedSessionPreset: elv('schedSessionPreset') || 'morning',
       schedAllLogged: !!(document.getElementById('schedAllLogged') && document.getElementById('schedAllLogged').checked),
       schedPrewarmBefore: !!(document.getElementById('schedPrewarmBefore') && document.getElementById('schedPrewarmBefore').checked),
       schedPrewarmLeadSec: elv('schedPrewarmLeadSec'),
@@ -5367,6 +5438,9 @@ function gatherUiPrefs() {
       rushRoundGapMs: elv('batchRushRoundGapMs'),
       rushRoundGapJitterMs: elv('batchRushRoundGapJitterMs'),
       mtStreamShardSize: elv('batchMtStreamShardSize'),
+      autoShardSize: elv('batchAutoShardSize'),
+      autoShardGapMs: elv('batchAutoShardGapMs'),
+      autoShardByNodes: !!(document.getElementById('batchAutoShardByNodes') && document.getElementById('batchAutoShardByNodes').checked),
       addressRefreshGapMs: elv('addressRefreshGapMs'),
     },
     items: { search: elv('itemSearch') },
@@ -5399,7 +5473,7 @@ function bindUiPrefsAutosave() {
   const ids = new Set([
     'rushPhone', 'rushItem', 'rushActId', 'rushImtp', 'rushAmount', 'rushSrc', 'rushRetry', 'rushDelay', 'rushRounds', 'rushRoundGapMs', 'rushRoundGapJitterMs',
     'rushBranch', 'rushFastLoop', 'rushFireAndForget', 'rushMtMode', 'rushNeedCode', 'rushReferer', 'composeRecId', 'composeCnt',
-    'schedDate', 'schedTime', 'schedHour', 'schedMinute', 'schedSecond', 'schedAllLogged', 'schedPrewarmBefore', 'schedPrewarmLeadSec', 'prewarmAllParallel', 'batchPairLines', 'batchDefaultAmt', 'batchRushRetry', 'batchRushDelayMs', 'batchRushRounds', 'batchRushRoundGapMs', 'batchRushRoundGapJitterMs', 'batchMtStreamShardSize', 'addressRefreshGapMs', 'batchConcurrency', 'itemSearch',
+    'schedDate', 'schedTime', 'schedHour', 'schedMinute', 'schedSecond', 'schedSessionPreset', 'schedAllLogged', 'schedPrewarmBefore', 'schedPrewarmLeadSec', 'prewarmAllParallel', 'batchPairLines', 'batchDefaultAmt', 'batchRushRetry', 'batchRushDelayMs', 'batchRushRounds', 'batchRushRoundGapMs', 'batchRushRoundGapJitterMs', 'batchMtStreamShardSize', 'batchAutoShardSize', 'batchAutoShardGapMs', 'batchAutoShardByNodes', 'addressRefreshGapMs', 'batchConcurrency', 'itemSearch',
   ]);
   const onInp = (ev) => {
     const t = ev.target;
@@ -5458,6 +5532,9 @@ function restoreUiPrefs() {
   if (raw.batch) {
     sv('schedDate', raw.batch.schedDate);
     sv('schedTime', raw.batch.schedTime);
+    if (raw.batch.schedSessionPreset === 'evening' || raw.batch.schedSessionPreset === 'morning') {
+      sv('schedSessionPreset', raw.batch.schedSessionPreset);
+    }
     const sal0 = document.getElementById('schedAllLogged');
     if (sal0 && raw.batch.schedAllLogged != null) sal0.checked = !!raw.batch.schedAllLogged;
     const spwb = document.getElementById('schedPrewarmBefore');
@@ -5472,6 +5549,10 @@ function restoreUiPrefs() {
     sv('batchRushRoundGapMs', raw.batch.rushRoundGapMs != null ? String(raw.batch.rushRoundGapMs) : '');
     sv('batchRushRoundGapJitterMs', raw.batch.rushRoundGapJitterMs != null ? String(raw.batch.rushRoundGapJitterMs) : '');
     sv('batchMtStreamShardSize', raw.batch.mtStreamShardSize != null ? String(raw.batch.mtStreamShardSize) : '');
+    sv('batchAutoShardSize', raw.batch.autoShardSize != null ? String(raw.batch.autoShardSize) : '');
+    sv('batchAutoShardGapMs', raw.batch.autoShardGapMs != null ? String(raw.batch.autoShardGapMs) : '');
+    const basn = document.getElementById('batchAutoShardByNodes');
+    if (basn && raw.batch.autoShardByNodes != null) basn.checked = !!raw.batch.autoShardByNodes;
     sv('addressRefreshGapMs', raw.batch.addressRefreshGapMs != null ? String(raw.batch.addressRefreshGapMs) : '');
   }
   if (raw.items && raw.items.search != null) {
@@ -5516,6 +5597,9 @@ function mergeUiPrefsBatchPanelAfterRender() {
   if (raw.batch && typeof raw.batch === 'object') {
     sv('schedDate', raw.batch.schedDate);
     sv('schedTime', raw.batch.schedTime);
+    if (raw.batch.schedSessionPreset === 'evening' || raw.batch.schedSessionPreset === 'morning') {
+      sv('schedSessionPreset', raw.batch.schedSessionPreset);
+    }
     const salM = document.getElementById('schedAllLogged');
     if (salM && raw.batch.schedAllLogged != null) salM.checked = !!raw.batch.schedAllLogged;
     const spwbM = document.getElementById('schedPrewarmBefore');
@@ -5530,6 +5614,10 @@ function mergeUiPrefsBatchPanelAfterRender() {
     sv('batchRushRoundGapMs', raw.batch.rushRoundGapMs);
     sv('batchRushRoundGapJitterMs', raw.batch.rushRoundGapJitterMs);
     sv('batchMtStreamShardSize', raw.batch.mtStreamShardSize);
+    sv('batchAutoShardSize', raw.batch.autoShardSize);
+    sv('batchAutoShardGapMs', raw.batch.autoShardGapMs);
+    const basnM = document.getElementById('batchAutoShardByNodes');
+    if (basnM && raw.batch.autoShardByNodes != null) basnM.checked = !!raw.batch.autoShardByNodes;
     sv('addressRefreshGapMs', raw.batch.addressRefreshGapMs);
   }
   if (raw.rush && typeof raw.rush === 'object') {
@@ -5815,6 +5903,92 @@ function scheduleFlushMainLogDom() {
     if (_mainLogPending.length) scheduleFlushMainLogDom();
   }, _bulkUiBusyDepth ? 260 : MAIN_LOG_FLUSH_MS);
 }
+
+/** 导出前同步刷完内存日志（不等 DOM 节流） */
+function flushMainLogNow() {
+  if (_mainLogFlushT) {
+    clearTimeout(_mainLogFlushT);
+    _mainLogFlushT = null;
+  }
+  while (_mainLogPending.length) {
+    _mainLogLines.push(formatTerminalLogLine(_mainLogPending.shift()));
+  }
+  if (_mainLogLines.length > MAIN_LOG_MAX_LINES) {
+    _mainLogLines.splice(0, _mainLogLines.length - MAIN_LOG_MAX_LINES);
+  }
+}
+
+function bjDateTimeKeysForExport(d) {
+  const dt = d instanceof Date ? d : new Date();
+  const dateKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(dt);
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Shanghai',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(dt);
+  const pick = (t) => {
+    const p = parts.find(x => x.type === t);
+    return p ? p.value : '00';
+  };
+  const timeKey = pick('hour') + pick('minute') + pick('second');
+  const label = dateKey.replace(/-/g, '/') + ' ' + pick('hour') + ':' + pick('minute') + ':' + pick('second');
+  return { dateKey, timeKey, label };
+}
+
+/** 操作日志 + 各账号卡片日志 → 服务端「抢购记录」目录 op_log_日期_时分秒.txt */
+async function exportOperationLogToDisk() {
+  flushMainLogNow();
+  const { dateKey, timeKey, label } = bjDateTimeKeysForExport(new Date());
+  const lines = [];
+  lines.push('# rushbuy 操作日志导出 ' + label + ' (Asia/Shanghai)');
+  lines.push('');
+  lines.push('=== 全局操作日志 ===');
+  if (_mainLogLines.length) lines.push(..._mainLogLines.slice());
+  else lines.push('（无）');
+  const acct = getAcctLogStore();
+  const phones = Object.keys(acct || {})
+    .filter(ph => Array.isArray(acct[ph]) && acct[ph].length)
+    .sort();
+  if (phones.length) {
+    lines.push('');
+    lines.push('=== 各账号日志 ===');
+    phones.forEach(ph => {
+      lines.push('');
+      lines.push('--- ' + ph + ' ---');
+      lines.push(...acct[ph]);
+    });
+  }
+  const hasMain = _mainLogLines.length > 0;
+  const hasAcct = phones.length > 0;
+  if (!hasMain && !hasAcct) {
+    toast('暂无日志可导出', 'warn');
+    return;
+  }
+  toast('正在写入抢购记录…', 'info');
+  const res = await api('/api/operation_log/export_disk', {
+    dateKey,
+    timeKey,
+    lines,
+  });
+  if (!res.ok || !res.data) {
+    toast(formatApiFailure(res) || '导出失败（请确认 WebUI 已启动）', 'err');
+    return;
+  }
+  const p = res.data.path || '';
+  const dir = res.data.dir || '';
+  const fn = res.data.filename || '';
+  const n = Number(res.data.count || lines.length);
+  log('[导出] 操作日志 ' + n + ' 行 → ' + (p || dir || '抢购记录') + (fn ? ' (' + fn + ')' : ''), 'ok');
+  toast('已导出 ' + n + ' 行 → 抢购记录/' + (fn || 'op_log'), 'ok');
+}
+
 function toast(msg, type='info') {
   const el = document.getElementById('toast');
   if (!el) return;
@@ -6822,6 +6996,95 @@ function getBatchMtStreamShardSize() {
   return n;
 }
 
+function batchAutoShardByNodesEnabled() {
+  const el = document.getElementById('batchAutoShardByNodes');
+  return !!(el && el.checked);
+}
+
+function getBatchAutoShardSizeManual() {
+  const el = document.getElementById('batchAutoShardSize');
+  let raw = el ? String(el.value).trim() : '';
+  if (raw === '') {
+    try { raw = localStorage.getItem(BATCH_AUTO_SHARD_SIZE_KEY) || ''; } catch (e) { raw = ''; }
+  }
+  let n = parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 0) n = 0;
+  return Math.max(0, Math.min(512, n));
+}
+
+function getBatchAutoShardGapMs() {
+  const el = document.getElementById('batchAutoShardGapMs');
+  let raw = el ? String(el.value).trim() : '';
+  if (raw === '') {
+    try { raw = localStorage.getItem(BATCH_AUTO_SHARD_GAP_MS_KEY) || ''; } catch (e) { raw = ''; }
+  }
+  let n = parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 0) n = 5000;
+  return Math.max(0, Math.min(300000, n));
+}
+
+/** 0=不分批；勾选「按节点均分」时用在线节点数；否则用手填每批账号数 */
+function resolveBatchAutoShardSize(totalCount, onlineNodes) {
+  const total = Math.max(0, Number(totalCount) || 0);
+  if (total <= 1) return 0;
+  if (batchAutoShardByNodesEnabled()) {
+    const nodes = Math.max(0, Number(onlineNodes) || 0);
+    if (nodes > 0) return Math.max(1, Math.ceil(total / nodes));
+  }
+  const manual = getBatchAutoShardSizeManual();
+  if (manual <= 0) return 0;
+  return Math.max(1, Math.min(512, manual));
+}
+
+function persistBatchAutoShardPrefs() {
+  try {
+    localStorage.setItem(BATCH_AUTO_SHARD_SIZE_KEY, String(getBatchAutoShardSizeManual()));
+    localStorage.setItem(BATCH_AUTO_SHARD_GAP_MS_KEY, String(getBatchAutoShardGapMs()));
+    localStorage.setItem(BATCH_AUTO_SHARD_BY_NODES_KEY, batchAutoShardByNodesEnabled() ? '1' : '0');
+  } catch (e) {}
+  scheduleSaveUiPrefs();
+  schedulePushUiStateServer();
+}
+
+function restoreBatchAutoShardPrefs() {
+  const sizeEl = document.getElementById('batchAutoShardSize');
+  const gapEl = document.getElementById('batchAutoShardGapMs');
+  const byNodesEl = document.getElementById('batchAutoShardByNodes');
+  try {
+    const sz = localStorage.getItem(BATCH_AUTO_SHARD_SIZE_KEY);
+    if (sizeEl && sz != null && sz !== '') {
+      const n = parseInt(sz, 10);
+      if (Number.isFinite(n) && n >= 0) sizeEl.value = String(n);
+    }
+    const gp = localStorage.getItem(BATCH_AUTO_SHARD_GAP_MS_KEY);
+    if (gapEl && gp != null && gp !== '') {
+      const n = parseInt(gp, 10);
+      if (Number.isFinite(n) && n >= 0) gapEl.value = String(n);
+    }
+    if (byNodesEl) byNodesEl.checked = localStorage.getItem(BATCH_AUTO_SHARD_BY_NODES_KEY) === '1';
+  } catch (e) {}
+  if (sizeEl && String(sizeEl.value || '').trim() === '') sizeEl.value = '7';
+  if (gapEl && String(gapEl.value || '').trim() === '') gapEl.value = '5000';
+  if (byNodesEl && localStorage.getItem(BATCH_AUTO_SHARD_BY_NODES_KEY) == null) {
+    byNodesEl.checked = distributedRushEnabled();
+  }
+}
+
+function wireBatchAutoShardPrefsOnce() {
+  ['batchAutoShardSize', 'batchAutoShardGapMs'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.shardWired) return;
+    el.dataset.shardWired = '1';
+    el.addEventListener('change', persistBatchAutoShardPrefs);
+    el.addEventListener('input', persistBatchAutoShardPrefs);
+  });
+  const byNodesEl = document.getElementById('batchAutoShardByNodes');
+  if (byNodesEl && !byNodesEl.dataset.shardWired) {
+    byNodesEl.dataset.shardWired = '1';
+    byNodesEl.addEventListener('change', persistBatchAutoShardPrefs);
+  }
+}
+
 /** 受控并发：多账号并行执行，避免单线程卡死 */
 async function runPool(limit, items, fn) {
   const q = [...items];
@@ -6957,6 +7220,7 @@ async function loadAccounts(opts) {
   accounts = res.data.accounts || [];
   syncWasmBbCheckboxFromAccounts();
   syncRiskGroupsFromAccountsIfChanged();
+  syncRemarkGroupsFromAccountsIfChanged();
   // 清理已不存在的勾选项
   const allPhones = new Set(accounts.map(a => String(a.phone || '').trim()));
   [...selectedDeletePhones].forEach(ph => { if (!allPhones.has(ph)) selectedDeletePhones.delete(ph); });
@@ -6986,6 +7250,7 @@ async function refreshAccountsLite() {
   accounts = res.data.accounts || [];
   syncWasmBbCheckboxFromAccounts();
   syncRiskGroupsFromAccountsIfChanged();
+  syncRemarkGroupsFromAccountsIfChanged();
   const allPhones = new Set(accounts.map(a => String(a.phone || '').trim()));
   [...selectedDeletePhones].forEach(ph => { if (!allPhones.has(ph)) selectedDeletePhones.delete(ph); });
   renderGroupTabs();
@@ -7424,7 +7689,7 @@ function renderAcctConfigPanel(force) {
   const cfg = getRushCfg();
   const batchHtml = `
     <div class="card batch-panel">
-      <div class="card-title"><span class="dot"></span>批量与定时（北京时间）</div>
+      <div class="card-title"><span class="dot"></span>批量与定时（北京时间 · 早场/晚场）</div>
       <div class="form-row" style="align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:12px">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.5;max-width:720px">
           <input type="checkbox" id="globalForceLocalIp" style="width:18px;height:18px;margin-top:3px;flex-shrink:0;cursor:pointer;accent-color:var(--accent)">
@@ -7458,6 +7723,13 @@ function renderAcctConfigPanel(force) {
             <select id="schedSecond" title="秒"></select>
           </div>
         </div>
+        <div class="form-group" style="max-width:280px">
+          <label>场次（决定末批截止）</label>
+          <select id="schedSessionPreset" title="早场补货 / 晚场投放" style="width:100%">
+            <option value="morning">早场 · 每 5 分钟至当日 09:30</option>
+            <option value="evening">晚场 · 每 5 分钟至当日 21:00</option>
+          </select>
+        </div>
         <button type="button" class="btn success" onclick="armSchedule()">启用定时批量抢购</button>
         <button type="button" class="btn secondary" onclick="cancelSchedule()">取消定时</button>
       </div>
@@ -7479,7 +7751,7 @@ function renderAcctConfigPanel(force) {
         <span id="schedStatusDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--text3);margin-right:10px;vertical-align:middle"></span>
         <span id="schedStatusText" style="vertical-align:middle;color:var(--text)">定时状态：未开启（页面需保持打开）</span>
       </div>
-      <p class="hint">到达设定时间（<strong>北京时间</strong>）后开启<strong>多轮补抢</strong>：首枪对该批账号执行「批量抢购」，之后<strong>每 5 分钟</strong>自动再抢一轮，直到当日<strong>9:30 末批</strong>。是否「全员跟轮」见上方勾选。请勿关闭页面。<br><span style="color:var(--text2)">日期请点按钮展开<strong>页内日历</strong>选择（不依赖系统弹窗，内嵌窗口可用）；时间为下拉框。</span></p>
+      <p class="hint">到达设定时间（<strong>北京时间</strong>）后开启<strong>多轮补抢</strong>：首枪执行「批量抢购」，之后<strong>每 5 分钟</strong>一轮，直到所选场次末批——<strong>早场 09:30</strong> / <strong>晚场 21:00</strong>。晚场建议首枪设 <strong>20:00</strong>。是否「全员跟轮」见上方勾选。请勿关闭页面。<br><span style="color:var(--text2)">日期请点按钮展开<strong>页内日历</strong>选择；时间与场次用下拉框。</span></p>
       <div class="divider"></div>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:10px">
         <div class="form-group" style="max-width:130px">
@@ -7495,6 +7767,7 @@ function renderAcctConfigPanel(force) {
           <input type="number" id="batchRushDelayMs" min="0" value="500" title="一键配置/填充时写入各卡「间隔(ms)」；批量抢购现为各号独立 rushOne，枪间间隔以各卡为准">
         </div>
         <button type="button" class="btn success" onclick="applySelectedItemToAllAccounts()">一键配置全部已登录账号</button>
+        <button type="button" class="btn secondary" onclick="applySprayRushPreset()" title="MT 模式 5 lane；高频/分批/手机发关；重试10·lane间隔80ms；各号代理错开+账号错峰；代理池建议≥账号×10">大并发扫射预设</button>
       </div>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:10px">
         <div class="form-group" style="max-width:120px">
@@ -7505,6 +7778,17 @@ function renderAcctConfigPanel(force) {
           <label title="批量 MT 回包事件分片；0=关闭，多流只拆回流通道，总账号并发仍按批量并发数分配">MT回流/流</label>
           <input type="number" id="batchMtStreamShardSize" min="0" max="300" value="50" title="批量 MT 超过该账号数时自动拆成多条 NDJSON 流接收事件；0=关闭。">
         </div>
+        <div class="form-group" style="max-width:110px">
+          <label title="未勾选「按节点均分」时生效；0=不分批">每批账号数</label>
+          <input type="number" id="batchAutoShardSize" min="0" max="512" value="7" title="自动分批时每批最多几个号；0=不分批。勾选「按节点均分」时忽略本项。">
+        </div>
+        <div class="form-group" style="max-width:120px">
+          <label title="自动分批时，上一批全部结束后再等多久开始下一批">批间间隔ms</label>
+          <input type="number" id="batchAutoShardGapMs" min="0" max="300000" value="5000" title="自动分批的批间等待毫秒；0=立即下一批。">
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center" title="勾选后按当前在线分布式节点数自动均分账号（14号+2节点=每批7号），顺序执行各批，无需手动分组">
+          <input type="checkbox" id="batchAutoShardByNodes" checked> 按节点均分
+        </label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center" title="主控只拆分账号和任务；节点本机实时组包、拉起 Go 发包，并把每枪结果回传到这里">
           <input type="checkbox" id="distributedRushEnabled"> 分布式节点
         </label>
@@ -7588,7 +7872,7 @@ function renderAcctConfigPanel(force) {
       </div>
       <div class="divider"></div>
       <div class="card-title" style="margin-top:6px"><span class="dot"></span>批量黑号检测</div>
-      <p class="hint" style="margin-top:4px">对已登录账号发起 741 分支探测（与 MT test-full-flow 规则一致）；结果写入账号并保存到 <code>accounts.json</code>。若接口返回「当前活动未开启」或 4030「购买活动信息异常」等，视为<strong>正常</strong>（活动未开售但账号可访问接口）；「检测异常」多为代理/网关或非业务 HTTP。</p>
+      <p class="hint" style="margin-top:4px">对已登录账号发起 741（飞天带杯）branch/one 探测；活动 ID 先经 <code>purchaseInfoV2</code> 动态拉取，不写死场次。结果写入账号并保存到 <code>accounts.json</code>。若接口返回「当前活动未开启」或 4030「购买活动信息异常」等，视为<strong>正常</strong>（活动未开售但账号可访问接口）；「检测异常」多为代理/网关或未拉到活动 ID。</p>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-top:8px">
         <div class="form-group" style="max-width:130px">
           <label>429 最大重试</label>
@@ -7700,6 +7984,8 @@ function renderAcctConfigPanel(force) {
         mtShardEl.addEventListener('change', onMtShardPersist);
         mtShardEl.addEventListener('input', onMtShardPersist);
       }
+      restoreBatchAutoShardPrefs();
+      wireBatchAutoShardPrefsOnce();
       const distCb = document.getElementById('distributedRushEnabled');
       try {
         const sd = localStorage.getItem(DISTRIBUTED_RUSH_KEY);
@@ -9010,8 +9296,132 @@ async function applyBatchRushResultRow(row, plan, silentToast) {
   }
 }
 
+async function countProxyPoolLines() {
+  const ta = document.getElementById('proxyPoolEditor');
+  if (ta) {
+    const n = String(ta.value || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean).length;
+    if (n > 0) return n;
+  }
+  try {
+    const res = await api('/api/proxy_pool');
+    if (res.ok && res.data && Array.isArray(res.data.items)) return res.data.items.length;
+  } catch (e) { /* ignore */ }
+  return 0;
+}
+
+function applySprayRushPreset() {
+  const setNum = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.value = String(v);
+  };
+  const setChk = (id, on) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!on;
+  };
+  // MT 大并发：5 lane 等响应扫射；关高频/分批/手机发，靠多 IP 扛并发
+  setChk('rushFireAndForget', false);
+  setChk('rushMtMode', true);
+  setChk('rushMtModeBatch', true);
+  setChk('rushMtNoWait', false);
+  setChk('rushFastLoop', false);
+  setChk('batchAutoShardByNodes', false);
+  setChk('globalMobileRelayEnabled', false);
+  setNum('batchAutoShardSize', 0);
+  setNum('batchAutoShardGapMs', 0);
+  setNum('batchRushRetry', 10);
+  setNum('batchRushDelayMs', 80);
+  setNum('batchRushRounds', '');
+  setNum('batchRushRoundGapMs', '');
+  setNum('batchRushRoundGapJitterMs', '');
+  _enforceRushModeExclusive('rushMtModeBatch');
+  saveUiPrefsNow();
+  toast('已应用大并发扫射预设（MT·5lane·不分批·间隔80ms）', 'ok');
+  log('[批量抢购] 大并发扫射预设：MT ON（5 lane 等响应），⚡高频/按节点均分/全局手机发 OFF；重试10·lane间隔80ms；各号代理池错开+账号错峰；代理池建议≥账号数×10（16号≈160+）', 'info');
+}
+
 async function runBatchRushCore(phoneList, silentToast) {
   if (_batchRushBackendInFlight) {
+    toast('批量抢购任务正在执行，请勿重复点击', 'warn');
+    return;
+  }
+  const poolN = await countProxyPoolLines();
+  const acctN = phoneList.length;
+  const mtOn = typeof rushMtModeEnabled === 'function' && rushMtModeEnabled();
+  // MT 每号约 5 lane 同发，代理需求 ≈ 账号×lanes×冗余；高频按账号×5
+  const suggestMin = mtOn ? Math.max(acctN * 10, 100) : Math.max(acctN * 5, 50);
+  const warnBelow = mtOn ? acctN * 5 : acctN * 3;
+  if (poolN <= 0) {
+    log(`[批量抢购] 代理池为空：${mtOn ? 'MT' : '高频'}扫射极易 429/带宽超限，请先补池（建议≥${suggestMin} 条）`, 'warn');
+  } else if (poolN < warnBelow) {
+    log(`[批量抢购] 代理池 ${poolN} 条偏少（本次 ${acctN} 号${mtOn ? '·MT 5lane' : ''}），建议≥${suggestMin} 条以免同 IP 429/带宽超限`, 'warn');
+  } else if (mtOn && poolN < suggestMin) {
+    log(`[批量抢购] 代理池 ${poolN} 条可用，MT 更稳建议补到 ≥${suggestMin} 条`, 'info');
+  }
+  let onlineNodes = 0;
+  if (distributedRushEnabled()) {
+    try {
+      const res = await api('/api/distributed/status');
+      onlineNodes = Number((res.data && res.data.online) || 0);
+    } catch (e) { /* ignore */ }
+  }
+  const shardSize = resolveBatchAutoShardSize(phoneList.length, onlineNodes);
+  const shardGapMs = getBatchAutoShardGapMs();
+  let chunks = [phoneList];
+  if (shardSize > 0 && phoneList.length > shardSize) {
+    chunks = [];
+    for (let i = 0; i < phoneList.length; i += shardSize) {
+      chunks.push(phoneList.slice(i, i + shardSize));
+    }
+    const byNodes = batchAutoShardByNodesEnabled() && onlineNodes > 0;
+    log(
+      `[批量抢购] 自动分批：${phoneList.length} 号 → ${chunks.length} 批` +
+      (byNodes ? `（${onlineNodes} 个在线节点均分，每批约 ${shardSize} 号）` : `（每批 ${shardSize} 号）`) +
+      `，批间 ${shardGapMs}ms`,
+      'info',
+    );
+  }
+  if (chunks.length <= 1) {
+    return runBatchRushCoreChunk(phoneList, silentToast, null);
+  }
+  const runSeq = ++_batchRushRunSeq;
+  const runCtrl = new AbortController();
+  _batchRushBackendInFlight = true;
+  _batchRushAbortController = runCtrl;
+  setBulkUiBusy(true);
+  const stopBtn = document.getElementById('btnStopRush');
+  if (stopBtn) stopBtn.style.display = '';
+  try {
+    for (let ci = 0; ci < chunks.length; ci++) {
+      if (runCtrl.signal.aborted) break;
+      if (ci > 0 && shardGapMs > 0) {
+        log(`[批量抢购] 批间等待 ${shardGapMs}ms（即将第 ${ci + 1}/${chunks.length} 批）…`, 'info');
+        await sleep(shardGapMs);
+        if (runCtrl.signal.aborted) break;
+      }
+      log(`[批量抢购] ── 自动分批 第 ${ci + 1}/${chunks.length} 批（${chunks[ci].length} 号）──`, 'info');
+      await runBatchRushCoreChunk(chunks[ci], silentToast, {
+        runSeq,
+        runCtrl,
+        shardIndex: ci + 1,
+        shardTotal: chunks.length,
+      });
+    }
+  } finally {
+    while (_batchShotQueue.length) {
+      flushBatchRushShots();
+      await sleep(0);
+    }
+    setBulkUiBusy(false);
+    _rushShotMainLogCompress = false;
+    _batchRushBackendInFlight = false;
+    _batchRushAbortController = null;
+    const stopBtn2 = document.getElementById('btnStopRush');
+    if (stopBtn2) stopBtn2.style.display = 'none';
+  }
+}
+
+async function runBatchRushCoreChunk(phoneList, silentToast, shared) {
+  if (!shared && _batchRushBackendInFlight) {
     toast('批量抢购任务正在执行，请勿重复点击', 'warn');
     return;
   }
@@ -9066,13 +9476,15 @@ async function runBatchRushCore(phoneList, silentToast) {
     return;
   }
   const tBatch0 = Date.now();
-  const runSeq = ++_batchRushRunSeq;
-  const runCtrl = new AbortController();
-  _batchRushBackendInFlight = true;
-  _batchRushAbortController = runCtrl;
-  setBulkUiBusy(true);
-  const stopBtn = document.getElementById('btnStopRush');
-  if (stopBtn) stopBtn.style.display = '';
+  const runSeq = shared ? shared.runSeq : ++_batchRushRunSeq;
+  const runCtrl = shared ? shared.runCtrl : new AbortController();
+  if (!shared) {
+    _batchRushBackendInFlight = true;
+    _batchRushAbortController = runCtrl;
+    setBulkUiBusy(true);
+    const stopBtn = document.getElementById('btnStopRush');
+    if (stopBtn) stopBtn.style.display = '';
+  }
   try {
     if (highN === tasks.length) {
       log('[批量抢购] 高频账号级流水线：每个账号自己组自己的 N 枪，组完立即交给 Go 发包并实时回包', 'info');
@@ -9283,18 +9695,25 @@ async function runBatchRushCore(phoneList, silentToast) {
       okN ? 'ok' : 'warn',
     );
   } finally {
-    const ownsCurrentRun = _batchRushRunSeq === runSeq && _batchRushAbortController === runCtrl;
-    if (ownsCurrentRun) {
+    if (!shared) {
+      const ownsCurrentRun = _batchRushRunSeq === runSeq && _batchRushAbortController === runCtrl;
+      if (ownsCurrentRun) {
+        while (_batchShotQueue.length) {
+          flushBatchRushShots();
+          await sleep(0);
+        }
+        setBulkUiBusy(false);
+        _rushShotMainLogCompress = false;
+        _batchRushBackendInFlight = false;
+        _batchRushAbortController = null;
+        const stopBtn2 = document.getElementById('btnStopRush');
+        if (stopBtn2) stopBtn2.style.display = 'none';
+      }
+    } else {
       while (_batchShotQueue.length) {
         flushBatchRushShots();
         await sleep(0);
       }
-      setBulkUiBusy(false);
-      _rushShotMainLogCompress = false;
-      _batchRushBackendInFlight = false;
-      _batchRushAbortController = null;
-      const stopBtn2 = document.getElementById('btnStopRush');
-      if (stopBtn2) stopBtn2.style.display = 'none';
     }
   }
 }

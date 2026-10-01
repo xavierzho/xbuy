@@ -2729,6 +2729,33 @@ def priority_act_from_purchase_info(res: dict) -> str | None:
     return _deep_scan_priority_act_id(res)
 
 
+def priority_act_for_sku(res: dict, sku_id: str) -> str | None:
+    """
+    从 purchaseInfoV2 中按 skuId（如 741）精确取 itemPriorityActId。
+    无匹配 SKU 时回退到 priority_act_from_purchase_info。
+    """
+    want = str(sku_id or "").strip()
+    if not want or not isinstance(res, dict) or not _api_ok(res.get("code")):
+        return priority_act_from_purchase_info(res) if isinstance(res, dict) else None
+    data = res.get("data")
+    if not isinstance(data, dict):
+        return priority_act_from_purchase_info(res)
+    pmap = data.get("purchaseInfoMap") or {}
+    if isinstance(pmap, dict):
+        for _k, v in pmap.items():
+            if not isinstance(v, dict):
+                continue
+            pi = v.get("purchaseInfo") if isinstance(v.get("purchaseInfo"), dict) else v
+            if not isinstance(pi, dict):
+                continue
+            sid = str(pi.get("skuId") or v.get("skuId") or "").strip()
+            if sid == want:
+                aid = _act_id_from_purchase_map_value(v)
+                if aid:
+                    return aid
+    return priority_act_from_purchase_info(res)
+
+
 def _black_probe_benign_activity_msg(code: object, message: str) -> bool:
     """
     活动未开售 / 非抢购窗口：说明账号与 Token 已抵达抢购接口，不应记为 probe_error 或黑号。
@@ -3708,7 +3735,7 @@ class Session:
                     self._set_proxy_from_rotation(self._rotate_next_proxy())
                     self._proxy_prewarm_ok_for = ""
                     print(
-                        f"[代理池] 预连接失败({reason[:80]}) → 切换出口 {_proxy_hostport_for_log(self._proxy_url)} "
+                        f"[代理池] 预连接失败({reason[:160]}) → 切换出口 {_proxy_hostport_for_log(self._proxy_url)} "
                         f"({attempt + 1}/{max_tries})"
                     )
                     continue
@@ -6384,8 +6411,8 @@ class Session:
     def black_account_probe(self, max_retries: int = 50) -> dict:
         """
         黑号检测：与 mt/test-full-flow.js testAccount 同规则。
-        使用 741 飞天带杯 + branch/one + 固定备用活动 ID，发真实抢购探测请求（不保证能抢到）。
-        返回字段：success, status(normal|token_expired|blacklisted|possibly_blacklisted|probe_error), message, mt_code?, http_status?, retry_count
+        使用 741 飞天带杯 + branch/one；itemPriorityActId 经 purchaseInfoV2 动态拉取（不写死场次）。
+        返回字段：success, status(normal|token_expired|blacklisted|possibly_blacklisted|probe_error), message, mt_code?, http_status?, retry_count, act_id?
         说明：4293+「当前下单人数较多…」标为 possibly_blacklisted（疑似）：发售期外也常出现，不等同永久黑号；4099/4003 仍为 blacklisted。
         HTTP 480 + 4030「购买活动信息异常」或文案「当前活动未开启」等为活动未开售态，标为 normal（非黑号）。
 
@@ -6393,8 +6420,32 @@ class Session:
         时会在代理池内换线重试，便于单号检测尽快碰到可用出口；日志可能出现多次「切换出口」。
         """
         item = "741"
-        act_id = "72346"
+        spu_id = "IMTP1000313"
         referer = f"{H5_HOST}/mt/item/smsp-detail?appConfig=2_1_2"
+        try:
+            _aid, pinfo = self.fetch_priority_act_id(
+                spu_id, hot=True, referer=referer
+            )
+            act_id = priority_act_for_sku(pinfo, item) or _aid
+        except Exception as ex:
+            return {
+                "success": False,
+                "status": "probe_error",
+                "message": f"动态拉取活动 ID 异常: {ex}",
+                "retry_count": 0,
+            }
+        if not act_id:
+            return {
+                "success": False,
+                "status": "probe_error",
+                "message": (
+                    f"purchaseInfoV2 未返回 sku={item}（spu={spu_id}）的 itemPriorityActId，"
+                    "无法发起黑号探测（活动未配置或接口结构变化）"
+                ),
+                "retry_count": 0,
+            }
+        act_id = str(act_id).strip()
+        print(f"[黑号检测] purchaseInfoV2 → item={item} actId={act_id}")
         path = "/xhr/front/trade/priority/rushPurchase/hot/branch/one"
         url = f"{H5_HOST}{path}"
         data = {

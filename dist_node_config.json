@@ -14,6 +14,12 @@
     },
     "小米辣": {
       "concurrency": 200
+    },
+    "mac-worker-1": {
+      "concurrency": 6
+    },
+    "mac-worker-2": {
+      "concurrency": 6
     }
   }
 }

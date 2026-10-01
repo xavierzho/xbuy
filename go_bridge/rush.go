@@ -505,6 +505,57 @@ func newRuntimeProxyPicker(enabled bool, raw []string) *runtimeProxyPicker {
 	}
 }
 
+func seedRuntimeProxyPickerForAccount(p *runtimeProxyPicker, accountKey string) {
+	if p == nil || p.state == nil {
+		return
+	}
+	key := strings.TrimSpace(accountKey)
+	p.state.mu.Lock()
+	defer p.state.mu.Unlock()
+	proxies := p.state.proxies
+	if len(proxies) == 0 {
+		return
+	}
+	if key == "" {
+		return
+	}
+	var h uint32 = 2166136261
+	for i := 0; i < len(key); i++ {
+		h ^= uint32(key[i])
+		h *= 16777619
+	}
+	offset := int(h % uint32(len(proxies)))
+	p.state.next = (p.state.next + offset) % len(proxies)
+}
+
+func newRuntimeProxyPickerForAccount(enabled bool, raw []string, accountKey string) *runtimeProxyPicker {
+	p := newRuntimeProxyPicker(enabled, raw)
+	seedRuntimeProxyPickerForAccount(p, accountKey)
+	return p
+}
+
+func hfAccountStaggerMs() int {
+	raw := strings.TrimSpace(os.Getenv("MT_HF_ACCOUNT_STAGGER_MS"))
+	if raw == "" {
+		return 80
+	}
+	low := strings.ToLower(raw)
+	if low == "0" || low == "off" || low == "false" || low == "no" {
+		return 0
+	}
+	v, err := strconv.Atoi(raw)
+	if err != nil {
+		return 80
+	}
+	if v < 0 {
+		return 0
+	}
+	if v > 5000 {
+		return 5000
+	}
+	return v
+}
+
 func (p *runtimeProxyPicker) updatePool(raw []string) {
 	if p == nil {
 		return
@@ -630,7 +681,7 @@ func execRushLoopSerialWithCallback(req RushLoopRequest, onTrace func(TraceRow))
 	attempts := req.Attempts
 	gapMs := clamp(req.RushLoopDelayMs, 0, 300000)
 	jitMax := clamp(req.RushJitterMsMax, 0, 100)
-	proxyPicker := newRuntimeProxyPicker(req.RuntimeProxyPool, req.ProxyPool)
+	proxyPicker := newRuntimeProxyPickerForAccount(req.RuntimeProxyPool, req.ProxyPool, req.AccountKey)
 
 	var trace []TraceRow
 	var last interface{}
@@ -698,7 +749,7 @@ func execRushLoopLaneParallelWithCallback(req RushLoopRequest, onTrace func(Trac
 	attempts := req.Attempts
 	gapMs := clamp(req.RushLoopDelayMs, 0, 300000)
 	jitMax := clamp(req.RushJitterMsMax, 0, 100)
-	proxyPicker := newRuntimeProxyPicker(req.RuntimeProxyPool, req.ProxyPool)
+	proxyPicker := newRuntimeProxyPickerForAccount(req.RuntimeProxyPool, req.ProxyPool, req.AccountKey)
 
 	type laneAttempt struct {
 		idx int
@@ -1022,12 +1073,10 @@ func (j *asyncRushJob) runtimeProxyPicker(accountKey string, enabled bool, raw [
 		p.updatePool(proxies)
 		return p
 	}
-	p := &runtimeProxyPicker{
-		state:       getRuntimeProxyState(proxies),
-		laneCurrent: make(map[int]runtimeLaneLease),
-		laneBanned:  make(map[int]string),
+	p := newRuntimeProxyPickerForAccount(enabled, raw, key)
+	if p != nil {
+		j.proxyPickers[key] = p
 	}
-	j.proxyPickers[key] = p
 	return p
 }
 
@@ -1143,7 +1192,7 @@ func execRushLoopFireAndForgetWithCallback(req RushLoopRequest, onTrace func(Tra
 	}
 	roundGapBase := clamp(req.RushRoundGapMs, 0, 300000)
 	roundJit := clamp(req.RushRoundGapJitterMs, 0, 60000)
-	proxyPicker := newRuntimeProxyPicker(req.RuntimeProxyPool, req.ProxyPool)
+	proxyPicker := newRuntimeProxyPickerForAccount(req.RuntimeProxyPool, req.ProxyPool, req.AccountKey)
 
 	if total%rounds != 0 {
 		return RushLoopResponse{
@@ -1465,6 +1514,11 @@ func execBatch(req BatchRequest) BatchResponse {
 						return
 					}
 					t := req.Tasks[i]
+					if t.RushLoop && t.FireAndForget {
+						if stagger := hfAccountStaggerMs(); stagger > 0 && i > 0 {
+							sleepMs(i * stagger)
+						}
+					}
 					tls := t.TLSImpersonate
 					if tls == "" {
 						tls = topTLS
@@ -1599,6 +1653,11 @@ func execBatchStream(req BatchRequest, emit func(map[string]interface{})) BatchR
 					return
 				}
 				t := req.Tasks[i]
+				if t.RushLoop && t.FireAndForget {
+					if stagger := hfAccountStaggerMs(); stagger > 0 && i > 0 {
+						sleepMs(i * stagger)
+					}
+				}
 				tls := t.TLSImpersonate
 				if tls == "" {
 					tls = topTLS

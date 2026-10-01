@@ -33,7 +33,7 @@ _BUILTIN_MT_ITEM_LIST: list[dict] = [
         "code": "741",
         "name": "飞天53%vol 500ml贵州外卖酒（带杯）",
         "spuId": "IMTP1000313",
-        "itemPriorityActId": 72346,
+        "itemPriorityActId": 91008,
         "amount": 2,
         "referer": "https://h5.moutai519.com.cn/mt/item/smsp-detail?appConfig=2_1_2",
         "branch": "one",

@@ -180,6 +180,20 @@
       font-weight: 600;
     }
 
+    /* 预填锁定备注 */
+    input[readonly].remark-locked {
+      opacity: .85;
+      cursor: default;
+      background: rgba(255,255,255,.04);
+    }
+    .remark-lock-hint {
+      font-size: 11px;
+      color: var(--text3);
+      margin: -6px 0 12px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
     /* ── 输入框 ── */
     .input-group { margin-bottom: 13px; }
     .input-wrap {
@@ -409,10 +423,11 @@
       <div class="input-group">
         <input type="text" id="idCard" placeholder="身份证号码（18位）" maxlength="18" autocomplete="off">
       </div>
-      <div class="section-label" style="margin-top:8px"><span>账号备注（可选）</span></div>
+      <div class="section-label" style="margin-top:8px" id="newRemarkLabel"><span>账号标签</span></div>
       <div class="input-group">
-        <input type="text" id="newRemark" placeholder="团队名字＋自己名字" maxlength="40" autocomplete="off">
+        <input type="text" id="newRemark" class="remark-locked" readonly tabindex="-1" placeholder="由分享链接指定" maxlength="40" autocomplete="off">
       </div>
+      <div class="remark-lock-hint" id="newRemarkLockHint">标签仅通过链接参数识别，页面不可修改</div>
 
       <div class="section-label" style="margin-top:8px"><span>收货地址</span></div>
       <div class="grid-row">
@@ -435,11 +450,12 @@
 
     <!-- 老用户区 -->
     <div id="areaOld" class="hidden">
-      <div class="step-hint">仅登录账号，可选填写备注用于后台识别</div>
-      <div class="section-label"><span>账号备注（可选）</span></div>
+      <div class="step-hint">仅登录账号；标签由分享链接识别</div>
+      <div class="section-label" id="oldRemarkLabel"><span>账号标签</span></div>
       <div class="input-group">
-        <input type="text" id="oldRemark" placeholder="例如：团队名字＋自己名字" maxlength="40" autocomplete="off">
+        <input type="text" id="oldRemark" class="remark-locked" readonly tabindex="-1" placeholder="由分享链接指定" maxlength="40" autocomplete="off">
       </div>
+      <div class="remark-lock-hint" id="oldRemarkLockHint">标签仅通过链接参数识别，页面不可修改</div>
     </div>
 
     <!-- 手机验证（两个 tab 共用） -->
@@ -463,13 +479,47 @@
 
 <script>
 (function () {
-  var remoteToken = new URLSearchParams(location.search).get('token') || '';
+  var qs = new URLSearchParams(location.search);
+  var remoteToken = qs.get('token') || '';
+  // 备注/标签只认 URL：?remark= / ?tag= / ?label=，页面不可改
+  var linkRemark = (qs.get('remark') || qs.get('tag') || qs.get('label') || '').trim().slice(0, 40);
   var isNewMode = true;
   var codeCountdown = 0;
   var codeTimer = null;
   var lastLoginPhone = '';
 
   var $ = function(id){ return document.getElementById(id); };
+
+  function currentRemark() {
+    return linkRemark;
+  }
+
+  function applyLinkRemarkLock() {
+    ['newRemark', 'oldRemark'].forEach(function(id){
+      var el = $(id);
+      if (!el) return;
+      el.value = linkRemark;
+      el.readOnly = true;
+      el.classList.add('remark-locked');
+      el.title = '由分享链接 ?remark= / ?tag= / ?label= 指定，不可修改';
+      if (!linkRemark) {
+        el.placeholder = '链接未带标签参数';
+      }
+    });
+    ['newRemarkLabel', 'oldRemarkLabel'].forEach(function(id){
+      var el = $(id);
+      if (el) el.innerHTML = '<span>账号标签</span>';
+    });
+    ['newRemarkLockHint', 'oldRemarkLockHint'].forEach(function(id){
+      var el = $(id);
+      if (!el) return;
+      el.classList.remove('hidden');
+      el.textContent = linkRemark
+        ? ('标签「' + linkRemark + '」· 上号后归入同名分组')
+        : '未带 ?remark= / ?tag= / ?label=，本次不上标签';
+    });
+  }
+  applyLinkRemarkLock();
   var elPhone     = $('phone');
   var elVcode     = $('vcode');
   var elBtnCode   = $('btnGetCode');
@@ -529,7 +579,7 @@
     this.value = this.value.replace(/\D/g,'').slice(0,6);
     updateButtons();
   });
-  ['realName','idCard','detailAddress','oldRemark','newRemark'].forEach(function(id){
+  ['realName','idCard','detailAddress'].forEach(function(id){
     var el = $(id); if(el) el.addEventListener('input', updateButtons);
   });
   ['provinceSelect','citySelect','districtSelect','townSelect'].forEach(function(id){
@@ -623,6 +673,7 @@
     elBtnCode.innerText = '发送中...';
     api('/api/accounts/send_code', {
       phone: elPhone.value.trim(),
+      remark: currentRemark(),
       deferPoolPersistUntilOnboard: false,
     })
       .then(function(x){
@@ -657,7 +708,7 @@
       phone: phone,
       code: code,
       nickname: isNewMode ? ($('realName').value.trim() || phone) : undefined,
-      remark: isNewMode ? $('newRemark').value.trim() : $('oldRemark').value.trim(),
+      remark: currentRemark(),
       deferPoolPersistUntilOnboard: false,
     })
     .then(function(x){

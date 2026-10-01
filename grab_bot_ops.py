@@ -690,6 +690,50 @@ def execute_mgmt_chat(pool: Any, text: str) -> Optional[str]:
     return "未知指令"
 
 
+def add_phones_to_account_group(group_name: str, phones) -> dict:
+    """将手机号并入 ui_state.accountGroups[group_name]（不存在则建组）。"""
+    name = str(group_name or "").strip()
+    if not name or name in ("全部", "白号", "黑号", "抢购成功"):
+        return {"ok": False, "added": 0, "group": name}
+    if isinstance(phones, (str, bytes)):
+        raw_list = [phones]
+    elif isinstance(phones, (list, tuple, set)):
+        raw_list = list(phones)
+    else:
+        raw_list = []
+    want: list[str] = []
+    seen: set[str] = set()
+    for raw in raw_list:
+        ph = _norm_phone(str(raw or ""))
+        if not ph or ph in seen:
+            continue
+        seen.add(ph)
+        want.append(ph)
+    if not want:
+        return {"ok": False, "added": 0, "group": name}
+    st = load_ui_state_raw()
+    if not isinstance(st, dict):
+        st = {}
+    groups = st.get("accountGroups")
+    if not isinstance(groups, dict):
+        groups = {}
+    cur = groups.get(name)
+    if not isinstance(cur, list):
+        cur = []
+    have = {_norm_phone(str(x or "")) for x in cur}
+    added = 0
+    for ph in want:
+        if ph in have:
+            continue
+        cur.append(ph)
+        have.add(ph)
+        added += 1
+    groups[name] = cur
+    st["accountGroups"] = groups
+    save_ui_state_raw(st)
+    return {"ok": True, "added": added, "group": name, "size": len(cur)}
+
+
 def merge_ui_state_from_post(payload: dict) -> None:
     """POST /api/ui/state：与 webui_server 一致地合并前端快照。"""
     st = load_ui_state_raw()
