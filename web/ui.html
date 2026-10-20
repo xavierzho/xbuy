@@ -1657,20 +1657,33 @@
               <option value="four">分支四</option>
             </select>
           </div>
-          <div class="form-group" style="align-self:flex-end;padding-bottom:6px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="单次请求内 Node 连发；与 mt 抢速同级。实时每枪 RTT 见 Node 桥 http://127.0.0.1:19090/rush_panel（默认端口，与 WebUI 无关）">
-              <input type="checkbox" id="rushFastLoop" title="与下方「普通」相同：每枪一次 /api/accounts/rush；勾选后日志标「极速」"> 极速（每枪一次 API，与普通一致）
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="每枪一次 /api/accounts/rush，账号日志逐条刷新；Node 端单枪仍走 rush_loop（需 MT_RUSH_HTTP_NODE=1）">
-              <input type="checkbox" id="rushMtMode"> MT模式
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="仅 MT 模式生效：枪发出后立刻 sleep(间隔ms)，不阻塞等响应，下一枪马上发。间隔严格 = 设置值（不含 RTT）。缺点：拿不到响应 → 抢到后仍会打完剩余枪数。">
-              <input type="checkbox" id="rushMtNoWait"> MT不等响应
-            </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="勾选：shield.py 取值不变，140=v1.1.3.2，141=run_wac 签名，Content-Web-Bb 外层使用 wasm en；不勾选：当前 SM4 链路。">
-              <input type="checkbox" id="rushWasmBb" onchange="toggleWasmBbAll(this.checked)"> wasm BB
-            </label>
+          <div class="form-group" style="min-width:220px;max-width:320px">
+            <label title="单账号与批量抢购共用；三选一，勿再混勾多个模式">启动模式</label>
+            <select id="rushLaunchMode" title="运营常用：选 MT 多线 + 点批量抢购即可">
+              <option value="mt" selected>MT 多线（推荐·等多账号批量）</option>
+              <option value="standard">标准逐枪（每枪等响应）</option>
+              <option value="hf">高频扫射（不等响应·可多轮）</option>
+              <option value="mt_nowait">MT 连发（不等响应·进阶）</option>
+            </select>
           </div>
+          <p class="hint" id="rushLaunchModeHint" style="flex:1 1 100%;margin:0;font-size:12px;line-height:1.45"></p>
+          <details style="flex:1 1 100%;font-size:12px;color:var(--text2)">
+            <summary style="cursor:pointer;color:var(--text3)">高级：旧版模式开关 / wasm BB</summary>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="rushFastLoop" title="与「标准逐枪」相同，仅日志标极速"> 极速（等同标准）
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="rushMtMode"> MT模式
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="rushMtNoWait"> MT不等响应
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer" title="外层 wasm en 签名；一般保持默认即可">
+                <input type="checkbox" id="rushWasmBb" onchange="toggleWasmBbAll(this.checked)"> wasm BB
+              </label>
+            </div>
+          </details>
           <div class="form-group" style="align-self:flex-end;padding-bottom:6px">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="按商品规则自动勾选，可手动改">
               <input type="checkbox" id="rushNeedCode"> 抢购体带 code 字段（自动）
@@ -5411,6 +5424,7 @@ function gatherUiPrefs() {
       branch: elv('rushBranch'),
       needCode: !!(document.getElementById('rushNeedCode') && document.getElementById('rushNeedCode').checked),
       referer: elv('rushReferer'),
+      launchMode: readRushLaunchModeFromCheckboxes(),
       rushFastLoop: !!(document.getElementById('rushFastLoop') && document.getElementById('rushFastLoop').checked),
       fireAndForget: !!(document.getElementById('rushFireAndForget') && document.getElementById('rushFireAndForget').checked),
       mtMode: rushMtModeEnabled(),
@@ -5514,14 +5528,21 @@ function restoreUiPrefs() {
     sv('rushRoundGapJitterMs', r.roundJitMs != null ? String(r.roundJitMs) : '');
     sv('rushBranch', r.branch);
     sv('rushReferer', r.referer);
-    const rfl = document.getElementById('rushFastLoop');
-    if (rfl) rfl.checked = !!r.rushFastLoop;
-    const rff = document.getElementById('rushFireAndForget');
-    if (rff) rff.checked = !!r.fireAndForget;
-    const rmt = document.getElementById('rushMtMode');
-    if (rmt) rmt.checked = !!r.mtMode;
-    const rmb0 = document.getElementById('rushMtModeBatch');
-    if (rmb0 && r.mtMode != null) rmb0.checked = !!r.mtMode;
+    if (r.launchMode && RUSH_LAUNCH_MODE_HINTS[r.launchMode]) {
+      applyRushLaunchMode(r.launchMode, true);
+    } else {
+      const rfl = document.getElementById('rushFastLoop');
+      if (rfl) rfl.checked = !!r.rushFastLoop;
+      const rff = document.getElementById('rushFireAndForget');
+      if (rff) rff.checked = !!r.fireAndForget;
+      const rmt = document.getElementById('rushMtMode');
+      if (rmt) rmt.checked = !!r.mtMode;
+      const rmb0 = document.getElementById('rushMtModeBatch');
+      if (rmb0 && r.mtMode != null) rmb0.checked = !!r.mtMode;
+      const mnw = document.getElementById('rushMtNoWait');
+      if (mnw && r.mtNoWait != null) mnw.checked = !!r.mtNoWait;
+      syncRushLaunchModeSelects(readRushLaunchModeFromCheckboxes());
+    }
     const ncc = document.getElementById('rushNeedCode');
     if (ncc) ncc.checked = !!r.needCode;
   }
@@ -5621,12 +5642,17 @@ function mergeUiPrefsBatchPanelAfterRender() {
     sv('addressRefreshGapMs', raw.batch.addressRefreshGapMs);
   }
   if (raw.rush && typeof raw.rush === 'object') {
-    const rff = document.getElementById('rushFireAndForget');
-    if (rff) rff.checked = !!raw.rush.fireAndForget;
-    const rfl = document.getElementById('rushFastLoop');
-    if (rfl) rfl.checked = !!raw.rush.rushFastLoop;
-    const rmt = document.getElementById('rushMtMode');
-    if (rmt) rmt.checked = !!raw.rush.mtMode;
+    if (raw.rush.launchMode && RUSH_LAUNCH_MODE_HINTS[raw.rush.launchMode]) {
+      applyRushLaunchMode(raw.rush.launchMode, true);
+    } else {
+      const rff = document.getElementById('rushFireAndForget');
+      if (rff) rff.checked = !!raw.rush.fireAndForget;
+      const rfl = document.getElementById('rushFastLoop');
+      if (rfl) rfl.checked = !!raw.rush.rushFastLoop;
+      const rmt = document.getElementById('rushMtMode');
+      if (rmt) rmt.checked = !!raw.rush.mtMode;
+      syncRushLaunchModeSelects(readRushLaunchModeFromCheckboxes());
+    }
     const ncc = document.getElementById('rushNeedCode');
     if (ncc && raw.rush.needCode != null) ncc.checked = !!raw.rush.needCode;
     sv('rushRounds', raw.rush.rounds);
@@ -5635,6 +5661,83 @@ function mergeUiPrefsBatchPanelAfterRender() {
   }
   syncRushMtModeBatchCheckbox();
   _enforceRushModeExclusive('');
+  syncRushLaunchModeSelects(readRushLaunchModeFromCheckboxes());
+}
+
+const RUSH_LAUNCH_MODE_HINTS = {
+  mt: 'MT 多线：每账号 Go 内 5 条 lane 并行，lane 内「等上一枪返回 → 间隔(ms) → 再发」；多账号批量默认用这个。',
+  standard: '标准逐枪：每枪单独走接口，等响应后再发下一枪；最稳、日志最细，单账号调试可用。',
+  hf: '高频扫射：不等响应连发，总枪数 = 重试 × 轮次；适合断线不复用场景。抢到后仍可能打完剩余枪。',
+  mt_nowait: 'MT 连发：一次提交 N 枪，间隔固定、不等 RTT；进阶用法，抢到后仍可能打完剩余枪。',
+};
+
+function rushLaunchModeHintText(mode) {
+  return RUSH_LAUNCH_MODE_HINTS[mode] || RUSH_LAUNCH_MODE_HINTS.mt;
+}
+
+function readRushLaunchModeFromCheckboxes() {
+  const faf = document.getElementById('rushFireAndForget');
+  const mt = document.getElementById('rushMtMode');
+  const mtBatch = document.getElementById('rushMtModeBatch');
+  const mtNoWait = document.getElementById('rushMtNoWait');
+  const mtOn = !!((mt && mt.checked) || (mtBatch && mtBatch.checked));
+  if (faf && faf.checked) return 'hf';
+  if (mtOn && mtNoWait && mtNoWait.checked) return 'mt_nowait';
+  if (mtOn) return 'mt';
+  return 'standard';
+}
+
+function applyRushLaunchMode(mode, skipSave) {
+  const m = (mode && RUSH_LAUNCH_MODE_HINTS[mode]) ? mode : 'mt';
+  const fastCb = document.getElementById('rushFastLoop');
+  const mtMainCb = document.getElementById('rushMtMode');
+  const mtBatchCb = document.getElementById('rushMtModeBatch');
+  const fafCb = document.getElementById('rushFireAndForget');
+  const mtNoWaitCb = document.getElementById('rushMtNoWait');
+  const set = (el, v) => { if (el) el.checked = !!v; };
+  set(fastCb, false);
+  set(fafCb, m === 'hf');
+  set(mtNoWaitCb, m === 'mt_nowait');
+  set(mtMainCb, m === 'mt' || m === 'mt_nowait');
+  set(mtBatchCb, m === 'mt' || m === 'mt_nowait');
+  if (m === 'standard') {
+    set(mtMainCb, false);
+    set(mtBatchCb, false);
+  }
+  _enforceRushModeExclusive('rushLaunchMode');
+  syncRushLaunchModeSelects(m);
+  if (!skipSave) saveUiPrefsNow();
+}
+
+function syncRushLaunchModeSelects(mode) {
+  const m = mode || readRushLaunchModeFromCheckboxes();
+  const hint = rushLaunchModeHintText(m);
+  ['rushLaunchMode', 'rushLaunchModeBatch'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && el.value !== m) el.value = m;
+  });
+  const h1 = document.getElementById('rushLaunchModeHint');
+  const h2 = document.getElementById('rushLaunchModeHintBatch');
+  if (h1) h1.textContent = hint;
+  if (h2) h2.textContent = hint;
+}
+
+function onRushLaunchModeChange(fromId) {
+  const src = document.getElementById(fromId || 'rushLaunchMode') || document.getElementById('rushLaunchModeBatch');
+  if (!src) return;
+  applyRushLaunchMode(src.value, false);
+}
+
+let _rushLaunchModeWired = false;
+function wireRushLaunchModeOnce() {
+  if (_rushLaunchModeWired) return;
+  _rushLaunchModeWired = true;
+  document.addEventListener('change', (ev) => {
+    const t = ev.target;
+    if (!t || !t.id) return;
+    if (t.id === 'rushLaunchMode' || t.id === 'rushLaunchModeBatch') onRushLaunchModeChange(t.id);
+  });
+  syncRushLaunchModeSelects(readRushLaunchModeFromCheckboxes());
 }
 
 function rushMtModeEnabled() {
@@ -5765,10 +5868,12 @@ function wireRushModeExclusiveOnce() {
     if (!id) return;
     if (id !== 'rushFireAndForget' && id !== 'rushMtMode' && id !== 'rushMtModeBatch' && id !== 'rushFastLoop' && String(id).indexOf('cfg_rushfast_') !== 0) return;
     _enforceRushModeExclusive(id);
+    syncRushLaunchModeSelects(readRushLaunchModeFromCheckboxes());
     // 模式切换后立即持久化，避免紧接着点卡片重绘时回填旧值。
     saveUiPrefsNow();
   });
   _enforceRushModeExclusive('');
+  syncRushLaunchModeSelects(readRushLaunchModeFromCheckboxes());
 }
 
 async function syncGlobalForceLocalCheckboxFromServer() {
@@ -5821,6 +5926,7 @@ async function init() {
   wireRushMtModeMainOnce();
   syncRushMtModeBatchCheckbox();
   wireRushModeExclusiveOnce();
+  wireRushLaunchModeOnce();
   restorePayNoticesDisplay();
   ensurePayNoticeTableActionsDelegation();
   bindPayChannelSelectorsSync();
@@ -7753,6 +7859,27 @@ function renderAcctConfigPanel(force) {
       </div>
       <p class="hint">到达设定时间（<strong>北京时间</strong>）后开启<strong>多轮补抢</strong>：首枪执行「批量抢购」，之后<strong>每 5 分钟</strong>一轮，直到所选场次末批——<strong>早场 09:30</strong> / <strong>晚场 21:00</strong>。晚场建议首枪设 <strong>20:00</strong>。是否「全员跟轮」见上方勾选。请勿关闭页面。<br><span style="color:var(--text2)">日期请点按钮展开<strong>页内日历</strong>选择；时间与场次用下拉框。</span></p>
       <div class="divider"></div>
+      <div style="margin-bottom:12px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)">
+        <div class="card-title" style="margin-bottom:8px"><span class="dot"></span>简易流程（运营）</div>
+        <ol style="margin:0 0 10px 18px;padding:0;font-size:13px;line-height:1.55;color:var(--text2)">
+          <li>左侧确认账号<strong style="color:var(--text)">已登录</strong>，代理池已保存（建议条数 ≥ 账号数×10）</li>
+          <li>商品管理选场次 → 点<strong style="color:var(--text)">一键配置全部已登录账号</strong></li>
+          <li>点<strong style="color:var(--text)">核实 BS-DVID/商品</strong>，确认浩天与活动 ID 无误</li>
+          <li>启动模式保持<strong style="color:var(--text)">MT 多线</strong>（默认）→ 点<strong style="color:var(--text)">批量抢购</strong></li>
+        </ol>
+        <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:6px">
+          <div class="form-group" style="min-width:220px;max-width:340px">
+            <label title="与「抢购操作」页同步；四种模式互斥">启动模式</label>
+            <select id="rushLaunchModeBatch">
+              <option value="mt" selected>MT 多线（推荐·等多账号批量）</option>
+              <option value="standard">标准逐枪（每枪等响应）</option>
+              <option value="hf">高频扫射（不等响应·可多轮）</option>
+              <option value="mt_nowait">MT 连发（不等响应·进阶）</option>
+            </select>
+          </div>
+          <p class="hint" id="rushLaunchModeHintBatch" style="flex:1;margin:0;min-width:200px;font-size:12px;line-height:1.45"></p>
+        </div>
+      </div>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:10px">
         <div class="form-group" style="max-width:130px">
           <label>批量默认数量</label>
@@ -7769,44 +7896,46 @@ function renderAcctConfigPanel(force) {
         <button type="button" class="btn success" onclick="applySelectedItemToAllAccounts()">一键配置全部已登录账号</button>
         <button type="button" class="btn secondary" onclick="applySprayRushPreset()" title="MT 模式 5 lane；高频/分批/手机发关；重试10·lane间隔80ms；各号代理错开+账号错峰；代理池建议≥账号×10">大并发扫射预设</button>
       </div>
-      <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:10px">
-        <div class="form-group" style="max-width:120px">
-          <label>批量并发数</label>
-          <input type="number" id="batchConcurrency" min="1" max="2048" value="1" readonly title="自动跟随当前已登录账号数；开始批量抢购时会按本次实际任务数再次对齐。">
+      <details style="margin-bottom:10px;font-size:13px;color:var(--text2)">
+        <summary style="cursor:pointer;color:var(--text3)">高级：并发 / 分批 / 分布式 / 旧版勾选</summary>
+        <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-top:10px">
+          <div class="form-group" style="max-width:120px">
+            <label>批量并发数</label>
+            <input type="number" id="batchConcurrency" min="1" max="2048" value="1" readonly title="自动跟随当前已登录账号数">
+          </div>
+          <div class="form-group" style="max-width:130px">
+            <label>MT回流/流</label>
+            <input type="number" id="batchMtStreamShardSize" min="0" max="300" value="50">
+          </div>
+          <div class="form-group" style="max-width:110px">
+            <label>每批账号数</label>
+            <input type="number" id="batchAutoShardSize" min="0" max="512" value="7">
+          </div>
+          <div class="form-group" style="max-width:120px">
+            <label>批间间隔ms</label>
+            <input type="number" id="batchAutoShardGapMs" min="0" max="300000" value="5000">
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center">
+            <input type="checkbox" id="batchAutoShardByNodes" checked> 按节点均分
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center">
+            <input type="checkbox" id="distributedRushEnabled"> 分布式节点
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center">
+            <input type="checkbox" id="globalMobileRelayEnabled"> 全局手机发
+          </label>
+          <button type="button" class="btn secondary btn-xs" onclick="runPerHostConcurrencyProbe()">测同源并发</button>
         </div>
-        <div class="form-group" style="max-width:130px">
-          <label title="批量 MT 回包事件分片；0=关闭，多流只拆回流通道，总账号并发仍按批量并发数分配">MT回流/流</label>
-          <input type="number" id="batchMtStreamShardSize" min="0" max="300" value="50" title="批量 MT 超过该账号数时自动拆成多条 NDJSON 流接收事件；0=关闭。">
+        <div class="form-row" style="align-items:center;flex-wrap:wrap;gap:12px;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)">
+            <input type="checkbox" id="rushMtModeBatch"> MT模式（镜像，请用上方的启动模式）
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)">
+            <input type="checkbox" id="rushFireAndForget"> ⚡ 高频（镜像）
+          </label>
+          <span style="font-size:12px;color:var(--text3)">高频多轮：优先读下方「批量·轮次」；空则用抢购页轮次三格</span>
         </div>
-        <div class="form-group" style="max-width:110px">
-          <label title="未勾选「按节点均分」时生效；0=不分批">每批账号数</label>
-          <input type="number" id="batchAutoShardSize" min="0" max="512" value="7" title="自动分批时每批最多几个号；0=不分批。勾选「按节点均分」时忽略本项。">
-        </div>
-        <div class="form-group" style="max-width:120px">
-          <label title="自动分批时，上一批全部结束后再等多久开始下一批">批间间隔ms</label>
-          <input type="number" id="batchAutoShardGapMs" min="0" max="300000" value="5000" title="自动分批的批间等待毫秒；0=立即下一批。">
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center" title="勾选后按当前在线分布式节点数自动均分账号（14号+2节点=每批7号），顺序执行各批，无需手动分组">
-          <input type="checkbox" id="batchAutoShardByNodes" checked> 按节点均分
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center" title="主控只拆分账号和任务；节点本机实时组包、拉起 Go 发包，并把每枪结果回传到这里">
-          <input type="checkbox" id="distributedRushEnabled"> 分布式节点
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent);align-self:center" title="批量目标账号统一走手机发包；设备 ID 留空，后端随机分配在线手机。勾选账号优先，否则作用于当前分组已登录账号。">
-          <input type="checkbox" id="globalMobileRelayEnabled"> 全局手机发
-        </label>
-        <span class="hint" style="margin:0;align-self:center">多账号并行；每号独立 <code>/api/accounts/rush</code>，各自等待、各自继续。同域并发连有限时，可 <code>MT_WEBUI_API_SHARD_COUNT</code> 多端口，或 <code>MT_WEBUI_ONE_PORT_PER_ACCOUNT=1</code> 一账号一端口。</span>
-        <button type="button" class="btn secondary" onclick="runPerHostConcurrencyProbe()" title="从内嵌页同时发起多路阻塞请求，由服务端统计瞬时并发连接数，反映本机 WebEngine 对该源的实际上限">测同源并发</button>
-      </div>
-      <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:10px">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)" title="与抢购页「MT模式」同步；每账号默认 5 lane 由 Go 内部并发跑，每个 lane 等响应后再按间隔继续。">
-          <input type="checkbox" id="rushMtModeBatch"> MT模式（5 lane 等响应）
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--accent)" title="高频模式：不等上一枪响应，按重试次数和代理顺序立即连发所有请求。每个账号独立，N次重试×代理轮询同时打出，响应异步收集。适合服务端断连不复用连接场景。">
-          <input type="checkbox" id="rushFireAndForget"> ⚡ 高频（不等响应连发）
-        </label>
-        <span style="font-size:12px;color:var(--text3);align-self:center">多轮参数优先读下行；空则读抢购操作页「轮次」三格</span>
-      </div>
+      </details>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:6px">
         <div class="form-group" style="max-width:88px">
           <label title="覆盖抢购操作页同名字段；留空则跟抢购页">批量·轮次</label>
@@ -7895,6 +8024,7 @@ function renderAcctConfigPanel(force) {
         <button type="button" class="btn secondary" onclick="prewarmHttpAllAccounts()" title="本机 API → Node /prewarm：仅 GET H5 根域名；条数=重试，出口与抢购一致，顺序随机">一键全部HTTP长连接</button>
         <button type="button" class="btn secondary" onclick="enableRushFastAllAccounts()" title="将当前列表内所有已登录账号的卡片「极速」全部勾选并保存">一键极速</button>
         <button type="button" class="btn secondary" onclick="resolveActIdAllAccounts()" title="固定使用本机 IP 直连请求 1 次 purchaseInfoV2，只把得到的「活动 ID」填到当前列表里所有账号；不改各号商品/编号/Referer。">一键全部获取活动ID</button>
+        <button type="button" class="btn secondary" onclick="runBatchVerifyRushReadiness()" title="按各账号卡片上的商品 ID/编号/Referer，核对 BS-DVID、浩天三元组、JWT 与 aid、purchaseInfoV2 活动 ID（不发抢购）">核实 BS-DVID/商品</button>
         <div class="form-group" style="max-width:150px;margin-bottom:0">
           <label title="一键刷新地址时，每两个已登录账号之间的等待；过小易触发 MT 地址接口 429">地址刷新间隔(ms)</label>
           <input type="number" id="addressRefreshGapMs" min="0" max="120000" step="100" value="3000">
@@ -8779,6 +8909,80 @@ async function applySelectedItemToAllAccounts() {
   scheduleSaveUiPrefs();
 }
 
+/** 开抢前核实：与后端 rush 同源解析 BS-DVID + 商品/活动参数，不打 rushPurchase。 */
+async function runBatchVerifyRushReadiness() {
+  const logged = accounts.filter((a) => a.status === '已登录');
+  const tasks = [];
+  for (const a of logged) {
+    const ph = a.phone;
+    const itemCode = document.getElementById(`cfg_item_${ph}`)?.value?.trim() || '';
+    if (!itemCode) continue;
+    tasks.push({
+      phone: ph,
+      itemCode,
+      spuId: document.getElementById(`cfg_imtp_${ph}`)?.value?.trim() || '',
+      actId: document.getElementById(`cfg_act_${ph}`)?.value?.trim() || '',
+      referer: document.getElementById(`cfg_ref_${ph}`)?.value?.trim() || '',
+      branch: document.getElementById(`cfg_branch_${ph}`)?.value?.trim() || '',
+      needCode: !!document.getElementById(`cfg_needcode_${ph}`)?.checked,
+      hot: true,
+    });
+  }
+  if (!tasks.length) {
+    toast('无「已登录且卡片已填商品 ID」的账号', 'err');
+    return;
+  }
+  log(`[核实] ${tasks.length} 个账号：BS-DVID + 商品/活动（purchaseInfoV2）…`, 'info');
+  const res = await api('/api/accounts/verify_rush_readiness', { tasks, delay: 0.35 });
+  if (!res.ok) {
+    log('[核实] ' + formatApiFailure(res), 'err');
+    toast(formatApiFailure(res) || '核实失败', 'err');
+    return;
+  }
+  const sum = res.data.summary || {};
+  let okN = 0;
+  let failN = 0;
+  let warnN = 0;
+  for (const row of res.data.results || []) {
+    if (!row || !row.phone) continue;
+    const ph = row.phone;
+    const iss = Array.isArray(row.issues) ? row.issues : [];
+    const warn = Array.isArray(row.warnings) ? row.warnings : [];
+    const resolved = row.resolved || {};
+    if (row.ok) {
+      okN += 1;
+      if (warn.length) warnN += 1;
+      const act = resolved.actId ? ` actId=${resolved.actId}` : '';
+      const spu = resolved.spuId ? ` spu=${resolved.spuId}` : '';
+      appendAcctLog(
+        ph,
+        '核实通过' + act + spu + (warn.length ? '；提示：' + warn.join('；') : ''),
+      );
+    } else {
+      failN += 1;
+      appendAcctLog(ph, '核实未通过：' + (iss.join('；') || '未知'));
+    }
+    if (resolved.actId) {
+      const ae = document.getElementById(`cfg_act_${ph}`);
+      if (ae && !(ae.value || '').trim()) {
+        ae.value = resolved.actId;
+        setRushPart(ph, 'act', resolved.actId);
+      }
+    }
+    if (resolved.spuId) {
+      const ie = document.getElementById(`cfg_imtp_${ph}`);
+      if (ie && !(ie.value || '').trim()) {
+        ie.value = resolved.spuId;
+        setRushPart(ph, 'imtp', resolved.spuId);
+      }
+    }
+  }
+  const msg = `核实完成：通过 ${okN}，失败 ${failN}${warnN ? `，${warnN} 个有警告` : ''}（共 ${sum.total || tasks.length}）`;
+  log('[核实] ' + msg, failN ? 'warn' : 'ok');
+  toast(msg, failN ? 'warn' : 'ok');
+  scheduleSaveUiPrefs();
+}
+
 /**
  * 批量黑号检测。filterVisible=true：仅左侧搜索框筛选下的已登录号；false：池内全部已登录。
  */
@@ -9319,9 +9523,7 @@ function applySprayRushPreset() {
     if (el) el.checked = !!on;
   };
   // MT 大并发：5 lane 等响应扫射；关高频/分批/手机发，靠多 IP 扛并发
-  setChk('rushFireAndForget', false);
-  setChk('rushMtMode', true);
-  setChk('rushMtModeBatch', true);
+  applyRushLaunchMode('mt', true);
   setChk('rushMtNoWait', false);
   setChk('rushFastLoop', false);
   setChk('batchAutoShardByNodes', false);
@@ -12057,6 +12259,13 @@ function addCustomRegionToAddressTree() {
 function realnameCodeOk(c) {
   return c === 2000 || c === '2000' || Number(c) === 2000 || c === 200 || c === '200' || Number(c) === 200;
 }
+function realnameVerifyStatusDone(vs) {
+  const n = Number(vs);
+  return n === 1 || n === 3;
+}
+function realnameVerifyStatusPending(vs) {
+  return Number(vs) === 2;
+}
 
 function openRealnameModal(phone) {
   realnameCurrentPhone = String(phone || '').trim();
@@ -12091,7 +12300,9 @@ async function queryRealnameFor(phone, opts) {
   let humanLine = txt;
   if (realnameCodeOk(r.code) && realnameVerifiedState === 0) {
     humanLine = '返回code=2000，当前账号未实名';
-  } else if (realnameCodeOk(r.code) && realnameVerifiedState === 1) {
+  } else if (realnameCodeOk(r.code) && realnameVerifyStatusPending(realnameVerifiedState)) {
+    humanLine = '返回code=2000，实名认证处理中（verifyStatus=2）';
+  } else if (realnameCodeOk(r.code) && realnameVerifyStatusDone(realnameVerifiedState)) {
     humanLine = '返回code=2000，当前账号已实名';
   }
   appendAcctLog(ph, '实名查询：' + humanLine.slice(0, 240));
@@ -12101,8 +12312,10 @@ async function queryRealnameFor(phone, opts) {
     && document.getElementById('modalRealname').classList.contains('show')
     && realnameCurrentPhone === ph
   ) {
-    if (realnameVerifiedState === 1) {
-      document.getElementById('rn_result').textContent = '已实名（缓存状态）';
+    if (realnameVerifyStatusDone(realnameVerifiedState)) {
+      document.getElementById('rn_result').textContent = '已实名';
+    } else if (realnameVerifyStatusPending(realnameVerifiedState)) {
+      document.getElementById('rn_result').textContent = '实名认证处理中，请稍后再查';
     } else if (realnameVerifiedState === 0) {
       document.getElementById('rn_result').textContent = '未实名，可填写资料后提交';
     } else {
@@ -12121,7 +12334,7 @@ async function submitRealnameFromModal() {
     return;
   }
   let forceSubmit = false;
-  if (realnameVerifiedState === 1) {
+  if (realnameVerifyStatusDone(realnameVerifiedState)) {
     const ok = confirm(
       '当前登录态显示「已实名」，一般无需再提交。\n\n'
       + '若仍要向茅台服务端再发一次实名认证（可能被拒绝或提示已认证），请点「确定」。'
@@ -12142,7 +12355,11 @@ async function submitRealnameFromModal() {
   const r = res.data.result || {};
   const txt = JSON.stringify(r);
   document.getElementById('rn_result').textContent = txt;
-  if (realnameCodeOk(r.code)) realnameVerifiedState = 1;
+  if (realnameCodeOk(r.code)) {
+    const vs = (r && r.verifyStatus != null) ? r.verifyStatus
+      : (r && r.data && r.data.verifyStatus != null ? r.data.verifyStatus : 2);
+    realnameVerifiedState = Number(vs);
+  }
   appendAcctLog(phone, '实名认证提交：' + txt.slice(0, 240));
   log(`[实名] ${phone} ← ${txt}`, realnameCodeOk(r.code) ? 'ok' : 'warn');
   if (realnameCodeOk(r.code)) toast('实名认证提交成功', 'ok');

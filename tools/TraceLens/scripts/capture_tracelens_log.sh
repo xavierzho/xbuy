@@ -16,6 +16,9 @@ elif [[ "${1:-}" == "--probe" ]]; then
 elif [[ "${1:-}" == "--full" ]]; then
   MODE="full"
   shift
+elif [[ "${1:-}" == "--api" ]]; then
+  MODE="api"
+  shift
 fi
 if [[ "${1:-}" == "-u" || "${1:-}" == "--udid" ]]; then
   UDID="${2:-}"
@@ -30,6 +33,9 @@ IDEVICE_ID="${IDEVICE_ID:-/opt/homebrew/bin/idevice_id}"
 
 if [[ "$MODE" == "raw" || "$MODE" == "probe" ]]; then
   PATTERN=''
+elif [[ "$MODE" == "api" ]]; then
+  # 抓 /xhr 与 payapi：依赖 TraceLens 0.0.46+ 默认 log_level=api（[AFN]/[PAY]）
+  PATTERN='moutai-mall\(TraceLens.*(\[AFN\] (dataTaskWithHTTPMethod|dataTask parameters|dataTask headers|success|failure)|\[PAY\])|TraceLens VERSION 0\.0\.4[6-9]|TraceLens VERSION 0\.0\.[5-9]'
 elif [[ "$MODE" == "full" ]]; then
   PATTERN='TraceLens|FIBER_BOOT|ROOT_KEYS|FIBER|STATE|REACT|CLICK|WK|WKUNLOCK|WKDOM|API|AFN|JSON|XHR_|FETCH_|NSURLSession|NSMutableURLRequest'
 else
@@ -49,6 +55,9 @@ else
 fi
 
 echo "mode: $MODE"
+if [[ "$MODE" == "api" ]]; then
+  echo "tip: install TraceLens >= 0.0.46 (default log_level=api). full noise: defaults write com.moutai.mall tracelens_log_level full"
+fi
 if [[ -n "$UDID" ]]; then
   echo "udid: $UDID"
 fi

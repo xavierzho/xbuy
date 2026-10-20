@@ -811,7 +811,7 @@
           if (res && res.verifyStatus != null) vs = res.verifyStatus;
           else if (res && res.data && res.data.verifyStatus != null) vs = res.data.verifyStatus;
           var n = parseInt(vs, 10);
-          return { ok: n === 1, verifyStatus: isNaN(n) ? null : n };
+          return { ok: (n === 1 || n === 3), verifyStatus: isNaN(n) ? null : n };
         })
         .catch(function(){
           return { ok: false, verifyStatus: null };

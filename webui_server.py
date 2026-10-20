@@ -21,6 +21,10 @@ import queue
 # 抢购 BB 固定使用 shield.py 的 py 稳定版链路；老/新切换入口仅保留兼容。
 # 与启动器一致：发验证码前先跑浩天，把 BS-DVID + deviceConfig(sdk/mfr/mdl) 写入账号再发码。关闭：MT_HAOTIAN_BEFORE_VCODE=0
 os.environ.setdefault("MT_HAOTIAN_BEFORE_VCODE", "1")
+os.environ.setdefault("MT_BB_AUTO_UPDATE", "1")
+os.environ.setdefault("MT_BB_UPDATE_MODE", "sync")
+os.environ.setdefault("MT_BB_AUTO_UPDATE_INTERVAL_SEC", "21600")
+os.environ.setdefault("MT_BB_AUTO_UPDATE_ON_START", "1")
 
 import random
 import re
@@ -47,6 +51,7 @@ from app import (
     H5_HOST,
     TLS_PROFILE,
     Session,
+    verify_status_realname_complete,
     _NodeHttpResponse,
     _batch_rush_parallel_cap,
     _ensure_go_bridge_running,
@@ -113,6 +118,9 @@ os.environ.setdefault("MT_HTTP_BACKEND", "node")
 os.environ.setdefault("MT_RUSH_HTTP_NODE", "1")
 # 批量抢购默认一次性下发 go_bridge /batch，由 Go 统一调度全部账号任务。
 os.environ.setdefault("MT_BATCH_RUSH_NODE", "1")
+# 大代理池：soft 429( body 1/2 ) 默认换 IP 再试；额外 hop 预算见 app._rush_soft429_retry_budget（MT_RUSH_SOFT429_RETRY=auto）
+os.environ.setdefault("MT_RUSH_SOFT429_ROTATE", "1")
+os.environ.setdefault("MT_RUSH_SOFT429_RETRY", "auto")
 # 一账号一监听端口（8989、8990…），前端按手机号选不同源，突破浏览器对同源 HTTP/1.1 并发连接约 6 条的限制。关闭：MT_WEBUI_ONE_PORT_PER_ACCOUNT=0
 os.environ.setdefault("MT_WEBUI_ONE_PORT_PER_ACCOUNT", "1")
 
@@ -1268,6 +1276,194 @@ def ensure_node_bridge_if_configured() -> None:
         )
 
 
+_bb_auto_update_lock = threading.Lock()
+_bb_auto_update_state: dict = {
+    "enabled": False,
+    "intervalSec": 0,
+    "running": False,
+    "lastStartedAt": "",
+    "lastFinishedAt": "",
+    "lastOk": None,
+    "lastReport": None,
+    "lastError": "",
+}
+
+
+def _bb_auto_update_enabled() -> bool:
+    return (os.environ.get("MT_BB_AUTO_UPDATE") or "0").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _bb_auto_update_interval_sec() -> int:
+    raw = (os.environ.get("MT_BB_AUTO_UPDATE_INTERVAL_SEC") or "21600").strip()
+    try:
+        return max(1800, min(7 * 86400, int(raw)))
+    except (TypeError, ValueError):
+        return 21600
+
+
+def _bb_auto_update_on_start() -> bool:
+    return (os.environ.get("MT_BB_AUTO_UPDATE_ON_START") or "1").strip().lower() not in (
+        "0",
+        "false",
+        "no",
+        "off",
+    )
+
+
+def _nodejs_executable() -> str:
+    for name in ("node", "nodejs"):
+        found = shutil.which(name)
+        if found:
+            return found
+    return "node"
+
+
+def bb_auto_update_snapshot() -> dict:
+    with _bb_auto_update_lock:
+        return dict(_bb_auto_update_state)
+
+
+def read_bb_resources_snapshot() -> dict:
+    """Current node_bridge/bb/version.json + auto-update scheduler state (no device)."""
+    path = ROOT / "node_bridge" / "bb" / "version.json"
+    out: dict = {"autoUpdate": bb_auto_update_snapshot()}
+    try:
+        raw = path.read_text(encoding="utf-8")
+        v = json.loads(raw)
+        sign = v.get("signModule") if isinstance(v.get("signModule"), dict) else {}
+        runtime = v.get("runtime") if isinstance(v.get("runtime"), dict) else {}
+        out.update(
+            {
+                "appVersion": v.get("appVersion"),
+                "versionCode": v.get("versionCode"),
+                "sdkVersion": v.get("sdkVersion"),
+                "signWasmVersion": v.get("signWasmVersion"),
+                "signModuleSha256": sign.get("sha256"),
+                "signModuleSize": sign.get("size"),
+                "runtimeUpstream": runtime.get("upstreamName"),
+                "runtimeSha256": runtime.get("sha256"),
+                "checkedAt": v.get("checkedAt"),
+                "headless": True,
+            }
+        )
+    except Exception as ex:
+        out["error"] = str(ex)
+    return out
+
+
+def _bb_update_cli_mode() -> str:
+    mode = (os.environ.get("MT_BB_UPDATE_MODE") or "sync").strip().lower()
+    return mode if mode in ("sync", "auto") else "sync"
+
+
+def _run_bb_update_script(mode: str) -> dict:
+    script = ROOT / "node_bridge" / "bb" / "update.cjs"
+    node_bin = _nodejs_executable()
+    started = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+    with _bb_auto_update_lock:
+        if _bb_auto_update_state.get("running"):
+            return {"ok": False, "skipped": True, "reason": "already_running"}
+        _bb_auto_update_state["running"] = True
+        _bb_auto_update_state["lastStartedAt"] = started
+        _bb_auto_update_state["lastError"] = ""
+
+    try:
+        cli_mode = mode if mode in ("sync", "auto", "check") else "sync"
+        proc = subprocess.run(
+            [node_bin, str(script), f"--{cli_mode}"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=600,
+            env=os.environ.copy(),
+        )
+        stdout = (proc.stdout or "").strip()
+        stderr = (proc.stderr or "").strip()
+        report = None
+        if stdout:
+            try:
+                report = json.loads(stdout)
+            except json.JSONDecodeError:
+                report = {"rawStdout": stdout[-4000:]}
+        ok = proc.returncode == 0 and isinstance(report, dict)
+        err = ""
+        if not ok:
+            err = stderr or stdout or f"exit {proc.returncode}"
+        finished = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+        with _bb_auto_update_lock:
+            _bb_auto_update_state["lastFinishedAt"] = finished
+            _bb_auto_update_state["lastOk"] = ok
+            _bb_auto_update_state["lastReport"] = report
+            _bb_auto_update_state["lastError"] = err
+        if ok and isinstance(report, dict) and report.get("applied"):
+            print(
+                f"[bb-update] 自动已应用 app={report.get('next', {}).get('appVersion')} "
+                f"sign={report.get('next', {}).get('signWasmVersion')}",
+                flush=True,
+            )
+        elif ok:
+            print("[bb-update] 自动检查：无变更", flush=True)
+        else:
+            print(f"[bb-update] 自动更新失败: {err[:500]}", file=sys.stderr, flush=True)
+        return {"ok": ok, "report": report, "error": err}
+    except Exception as ex:
+        finished = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+        with _bb_auto_update_lock:
+            _bb_auto_update_state["lastFinishedAt"] = finished
+            _bb_auto_update_state["lastOk"] = False
+            _bb_auto_update_state["lastError"] = str(ex)
+        print(f"[bb-update] 自动更新异常: {ex}", file=sys.stderr, flush=True)
+        return {"ok": False, "error": str(ex)}
+    finally:
+        with _bb_auto_update_lock:
+            _bb_auto_update_state["running"] = False
+
+
+def run_bb_auto_update_once() -> dict:
+    """Scheduled update: MT_BB_UPDATE_MODE=sync|auto (default sync = always pull latest)."""
+    return _run_bb_update_script(_bb_update_cli_mode())
+
+
+def run_bb_fetch_latest_once() -> dict:
+    """Force headless pull of latest H5 runtime + Bangcle sign wasm (--sync)."""
+    return _run_bb_update_script("sync")
+
+
+def schedule_bb_auto_update() -> None:
+    """Periodic MT_BB_AUTO_UPDATE: App Store version + sign_wasm/runtime refresh."""
+    enabled = _bb_auto_update_enabled()
+    interval = _bb_auto_update_interval_sec()
+    with _bb_auto_update_lock:
+        _bb_auto_update_state["enabled"] = enabled
+        _bb_auto_update_state["intervalSec"] = interval
+    if not enabled:
+        return
+
+    def _loop() -> None:
+        if _bb_auto_update_on_start():
+            try:
+                run_bb_auto_update_once()
+            except Exception:
+                pass
+        while True:
+            time.sleep(interval)
+            try:
+                run_bb_auto_update_once()
+            except Exception:
+                pass
+
+    threading.Thread(
+        target=_loop,
+        daemon=True,
+        name="mt-bb-auto-update",
+    ).start()
+
+
 def schedule_node_bridge_boot() -> None:
     """后台线程预热 shield.py，不阻塞 WebUI 绑定。
     同步等待就绪：MT_SYNC_NODE_BRIDGE_BOOT=1
@@ -1364,6 +1560,7 @@ def bind_webui_servers(*, for_embedded: bool = False) -> list[ThreadingHTTPServe
     global API_LISTEN_PORTS, API_SERVERS
     schedule_go_bridge_boot_if_configured()
     schedule_node_bridge_boot()
+    schedule_bb_auto_update()
     start_distributed_ws_server()
     n = _webui_api_shard_count()
     main_p = PORT
@@ -4435,6 +4632,155 @@ def _rush_prepare_act(
         "referer": referer,
         "route_info": route_info,
         "pinfo": pinfo,
+    }
+
+
+def _verify_bs_dvid_and_device(e, s: Session) -> tuple[list[str], list[str], dict]:
+    """开抢前核实 BS-DVID / 浩天三元组 / JWT 与 aid 对齐。"""
+    issues: list[str] = []
+    warnings: list[str] = []
+    facts: dict = {}
+    bs = (e.bsid or "").strip()
+    facts["hasBsid"] = bool(bs)
+    facts["bsidLen"] = len(bs)
+    if not bs:
+        issues.append("缺少 BS-DVID（bsid）：请走「发码→登录」（发码前浩天）或批量「补全浩天」")
+    else:
+        if len(bs) < 16:
+            warnings.append(f"BS-DVID 长度仅 {len(bs)}，可能无效")
+        sess_bs = (getattr(s, "_bsid", "") or "").strip()
+        facts["sessionBsidMatch"] = (not sess_bs) or sess_bs == bs
+        if sess_bs and sess_bs != bs:
+            issues.append("Session 内 bsid 与账号文件不一致，请刷新登录")
+        wv_ua = (getattr(s, "_wv_ua", "") or "").strip()
+        facts["uaHasBsDvid"] = (not bs) or (f"BS-DVID/{bs}" in wv_ua)
+        if bs and wv_ua and f"BS-DVID/{bs}" not in wv_ua:
+            warnings.append("抢购 User-Agent 可能未正确嵌入 BS-DVID")
+    for key, label in (("sdk", "sdk"), ("mfr", "厂商 mfr"), ("mdl", "机型 mdl")):
+        v = (getattr(e, key, "") or "").strip()
+        facts[key] = bool(v)
+        if not v:
+            warnings.append(f"浩天 deviceConfig 缺少 {label}")
+    aid = (e.aid or "").strip()
+    facts["hasAid"] = bool(aid)
+    if not aid:
+        issues.append("缺少 device-id（aid）")
+    tok = (e.token or "").strip()
+    uid = (e.uid or "").strip()
+    facts["hasToken"] = bool(tok)
+    facts["hasUid"] = bool(uid)
+    if not tok or not uid:
+        issues.append("登录态不完整（token 或 uid 为空）")
+    else:
+        try:
+            from shield import raw_id_from_mt_jwt
+
+            jwt_rid = (raw_id_from_mt_jwt(tok) or "").strip()
+            if jwt_rid:
+                facts["jwtDeviceIdPrefix"] = jwt_rid[:12]
+            if jwt_rid and aid and jwt_rid != aid:
+                issues.append(
+                    "JWT 内 deviceId 与 aid 不一致，易 4011；请「刷新登录」或重新验证码登录"
+                )
+        except Exception:
+            pass
+    return issues, warnings, facts
+
+
+def _verify_rush_product_params(
+    s: Session, task: dict
+) -> tuple[list[str], list[str], dict]:
+    """与真实抢购相同的 _rush_prepare_act / 商品库路由，不打 rushPurchase。"""
+    issues: list[str] = []
+    warnings: list[str] = []
+    resolved: dict = {}
+    item = str(task.get("itemCode") or "").strip()
+    if not item:
+        warnings.append("未填商品 ID，跳过活动 ID / 编号核实")
+        return issues, warnings, resolved
+    act_id = str(task.get("actId") or "").strip()
+    spu = str(task.get("spuId") or "").strip()
+    referer = str(task.get("referer") or "").strip()
+    branch = str(task.get("branch") or "").strip().lower()
+    hot = bool(task.get("hot", True))
+    need_code = bool(task.get("needCode", False))
+
+    route = _resolve_mt_item_route(item, referer)
+    if route.get("ok"):
+        resolved["catalogRoute"] = {
+            "spuId": route.get("spuId"),
+            "branch": route.get("branch"),
+            "referer": route.get("referer"),
+            "needCodeHint": route.get("needCodeHint"),
+            "detailKind": route.get("detailKind"),
+        }
+        rec_branch = str(route.get("branch") or "").strip().lower()
+        if branch and rec_branch and branch != rec_branch:
+            warnings.append(
+                f"分支「{branch}」与商品库推荐「{rec_branch}」不一致"
+            )
+        rec_spu = str(route.get("spuId") or "").strip()
+        if spu and rec_spu and spu != rec_spu:
+            warnings.append(f"编号 {spu} 与库推荐 {rec_spu} 不一致")
+        if not spu and rec_spu:
+            resolved["suggestedSpuId"] = rec_spu
+        if not referer and route.get("referer"):
+            resolved["suggestedReferer"] = route.get("referer")
+    elif not spu and not act_id:
+        issues.append(str(route.get("message") or "无法解析编号（spuId）"))
+
+    prep = _rush_prepare_act(s, item, act_id, spu, referer, hot)
+    if not prep.get("ok"):
+        issues.append(str(prep.get("error") or "活动 ID 解析失败"))
+        if prep.get("detail") is not None:
+            resolved["purchaseInfoDetail"] = prep.get("detail")
+    else:
+        resolved["actId"] = prep.get("act_id")
+        resolved["spuId"] = prep.get("spu_imtp")
+        resolved["referer"] = prep.get("referer")
+        if prep.get("route_info"):
+            resolved["autoResolvedRoute"] = prep.get("route_info")
+        pinfo = prep.get("pinfo")
+        if isinstance(pinfo, dict):
+            resolved["purchaseInfoCode"] = pinfo.get("code")
+            resolved["purchaseInfoMessage"] = pinfo.get("message")
+    if route.get("ok") and route.get("needCodeHint") and not need_code:
+        warnings.append("该商品通常需 needCode，当前未勾选")
+    return issues, warnings, resolved
+
+
+def _verify_one_account_rush_readiness(task: dict) -> dict:
+    phone = str(task.get("phone") or "").strip()
+    e = POOL.get(phone)
+    if not e:
+        return {"phone": phone, "ok": False, "issues": ["账号不存在"], "warnings": []}
+    if e.status != STATUS_OK:
+        return {
+            "phone": phone,
+            "ok": False,
+            "issues": ["账号未登录"],
+            "warnings": [],
+        }
+    try:
+        s = e.ensure_session()
+    except Exception as ex:
+        return {
+            "phone": phone,
+            "ok": False,
+            "issues": [f"Session 失败: {ex}"],
+            "warnings": [],
+        }
+    iss, warn, dev = _verify_bs_dvid_and_device(e, s)
+    p_iss, p_warn, resolved = _verify_rush_product_params(s, task)
+    iss.extend(p_iss)
+    warn.extend(p_warn)
+    return {
+        "phone": phone,
+        "ok": len(iss) == 0,
+        "issues": iss,
+        "warnings": warn,
+        "device": dev,
+        "resolved": resolved,
     }
 
 
@@ -8222,7 +8568,14 @@ class Handler(BaseHTTPRequestHandler):
             snap["nodeRushPanelUrl"] = f"http://{LOCAL_UI_HOST}:{np}/rush_panel"
             snap["nodeRushPanelUrlWebUi"] = f"http://{LOCAL_UI_HOST}:{PORT}/node_rush_panel"
             snap["goBridgeMode"] = _go_bridge_mode_snapshot()
+            snap["bbResources"] = read_bb_resources_snapshot()
             return self._send_json(json_ok(snap))
+        if path == "/api/bb/resources":
+            return self._send_json(json_ok(read_bb_resources_snapshot()))
+        if path == "/api/bb/update/status":
+            payload = bb_auto_update_snapshot()
+            payload["updateMode"] = _bb_update_cli_mode()
+            return self._send_json(json_ok(payload))
         if path == "/api/go_bridge/mode":
             return self._send_json(json_ok(_go_bridge_mode_snapshot()))
         if path == "/api/distributed/status":
@@ -8576,6 +8929,22 @@ class Handler(BaseHTTPRequestHandler):
                         }
                     )
                 )
+
+            if path == "/api/bb/update/run":
+                out = run_bb_auto_update_once()
+                if out.get("skipped"):
+                    return self._send_json(json_ok(out, "已有自动更新任务在运行"))
+                if out.get("ok"):
+                    return self._send_json(json_ok(out, "BB 自动更新已完成"))
+                return self._send_json(json_err(out.get("error") or "BB 自动更新失败", detail=out), 500)
+
+            if path == "/api/bb/update/sync":
+                out = run_bb_fetch_latest_once()
+                if out.get("skipped"):
+                    return self._send_json(json_ok(out, "已有 BB 更新任务在运行"))
+                if out.get("ok"):
+                    return self._send_json(json_ok(out, "已拉取并写入最新 BB 资源"))
+                return self._send_json(json_err(out.get("error") or "拉取最新 BB 资源失败", detail=out), 500)
 
             if path == "/api/ui/state":
                 merge_ui_state_from_post(payload)
@@ -10189,6 +10558,80 @@ class Handler(BaseHTTPRequestHandler):
                     "summary": {"total": len(results), "normal": ok_n, "issue": bl_n},
                 }))
 
+            # 开抢前核实 BS-DVID + 商品参数（与 rush 同源解析，不发抢购 POST）
+            if path == "/api/accounts/verify_rush_readiness":
+                tasks_raw = payload.get("tasks")
+                tasks: list[dict] = []
+                if tasks_raw is not None:
+                    if not isinstance(tasks_raw, list):
+                        return self._send_json(json_err("tasks 须为数组"), 400)
+                    for row in tasks_raw:
+                        if not isinstance(row, dict):
+                            continue
+                        ph = str(row.get("phone") or "").strip()
+                        if not ph:
+                            continue
+                        tasks.append(dict(row))
+                else:
+                    phones_raw = payload.get("phones")
+                    if phones_raw is not None:
+                        if not isinstance(phones_raw, list):
+                            return self._send_json(json_err("phones 须为数组"), 400)
+                        phone_list = [str(p).strip() for p in phones_raw if str(p).strip()]
+                    else:
+                        phone_list = [
+                            p
+                            for p in POOL._phones
+                            if POOL.get(p) and POOL.get(p).status == STATUS_OK
+                        ]
+                    base = {
+                        k: payload.get(k)
+                        for k in (
+                            "itemCode",
+                            "spuId",
+                            "actId",
+                            "referer",
+                            "branch",
+                            "hot",
+                            "needCode",
+                        )
+                        if k in payload
+                    }
+                    for ph in phone_list:
+                        tasks.append({"phone": ph, **base})
+                if not tasks:
+                    return self._send_json(json_err("无待核实任务（需已登录账号或 tasks）"), 400)
+                try:
+                    delay = float(payload.get("delay", 0.35))
+                except (TypeError, ValueError):
+                    delay = 0.35
+                delay = max(0.0, min(10.0, delay))
+                results: list[dict] = []
+                for i, task in enumerate(tasks):
+                    results.append(_verify_one_account_rush_readiness(task))
+                    if i < len(tasks) - 1 and delay > 0:
+                        time.sleep(delay)
+                ok_n = sum(1 for r in results if r.get("ok"))
+                warn_n = sum(
+                    1
+                    for r in results
+                    if r.get("ok") and (r.get("warnings") or [])
+                )
+                return self._send_json(
+                    json_ok(
+                        {
+                            "results": results,
+                            "summary": {
+                                "total": len(results),
+                                "ok": ok_n,
+                                "failed": len(results) - ok_n,
+                                "okWithWarnings": warn_n,
+                            },
+                        },
+                        "核实完成",
+                    )
+                )
+
             # 远程上号页专用：单账号黑号检测（须远程口令；与 batch_black_check 规则相同）
             if path == "/api/accounts/remote_black_check":
                 if not _remote_login_api_authorized(self, payload):
@@ -10497,7 +10940,7 @@ class Handler(BaseHTTPRequestHandler):
                         if (
                             not force_submit
                             and qv is not None
-                            and int(qv) == 1
+                            and verify_status_realname_complete(qv)
                         ):
                             return self._send_json(
                                 json_ok(
@@ -10559,11 +11002,26 @@ class Handler(BaseHTTPRequestHandler):
                         if _ok_submit:
                             e.status = STATUS_OK
                             try:
-                                s._verify_status = 1
+                                q_after = s.realname_query()
+                                qvs = None
+                                if isinstance(q_after, dict):
+                                    qvs = q_after.get("verifyStatus")
+                                    if qvs is None and isinstance(q_after.get("data"), dict):
+                                        qvs = q_after["data"].get("verifyStatus")
+                                if qvs is not None:
+                                    s._verify_status = int(qvs)
+                                elif verify_status_realname_complete(getattr(s, "_verify_status", None)):
+                                    pass
+                                else:
+                                    s._verify_status = 2
                             except Exception:
                                 pass
                             e._sync_from_session()
-                            e.verify_status = 1
+                            try:
+                                if e.verify_status is None and getattr(s, "_verify_status", None) is not None:
+                                    e.verify_status = int(s._verify_status)
+                            except Exception:
+                                pass
                             POOL.save()
                             _pool_synced = True
                     except Exception:

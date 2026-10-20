@@ -14,7 +14,10 @@ PAY_HOST  = https://payapi.moutai519.com.cn
 --- 用户 / 登录 ---
 POST   /xhr/front/user/register/vcode
 POST   /xhr/front/user/register/login
+POST   /xhr/front/user/getRealNameAuthInfo
+POST   /xhr/front/user/authConfig
 POST   /xhr/front/user/realNameAuth
+GET    /xhr/front/user/info
 GET    /xhr/front/user/address/ship/query
 
 --- 优先购列表 / 查询（多为 GET）---

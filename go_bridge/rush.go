@@ -534,6 +534,27 @@ func newRuntimeProxyPickerForAccount(enabled bool, raw []string, accountKey stri
 	return p
 }
 
+func rushSoft429RotateEnabled() bool {
+	raw := strings.TrimSpace(os.Getenv("MT_RUSH_SOFT429_ROTATE"))
+	if raw == "" {
+		return true
+	}
+	low := strings.ToLower(raw)
+	return !(low == "0" || low == "off" || low == "false" || low == "no")
+}
+
+func rushSoft429RotateMinPool() int {
+	raw := strings.TrimSpace(os.Getenv("MT_RUSH_SOFT429_ROTATE_MIN_POOL"))
+	if raw == "" {
+		return 50
+	}
+	v, err := strconv.Atoi(raw)
+	if err != nil || v < 0 {
+		return 50
+	}
+	return v
+}
+
 func hfAccountStaggerMs() int {
 	raw := strings.TrimSpace(os.Getenv("MT_HF_ACCOUNT_STAGGER_MS"))
 	if raw == "" {
@@ -578,6 +599,15 @@ func (p *runtimeProxyPicker) laneBannedProxy(lane int) string {
 	p.laneMu.Lock()
 	defer p.laneMu.Unlock()
 	return p.laneBanned[lane]
+}
+
+func (p *runtimeProxyPicker) poolLen() int {
+	if p == nil || p.state == nil {
+		return 0
+	}
+	p.state.mu.Lock()
+	defer p.state.mu.Unlock()
+	return len(p.state.proxies)
 }
 
 func (p *runtimeProxyPicker) markLaneHTTP429(lane int, proxyURL string) {
@@ -645,7 +675,7 @@ func (p *runtimeProxyPicker) apply(att Attempt) Attempt {
 	return att
 }
 
-func runtimeProxyShouldSwitch(statusCode int, body []byte) bool {
+func runtimeProxyShouldSwitch(statusCode int, body []byte, proxyPoolLen int) bool {
 	if statusCode != 429 {
 		return false
 	}
@@ -654,6 +684,10 @@ func runtimeProxyShouldSwitch(statusCode int, body []byte) bool {
 		return true
 	}
 	if bytes.Equal(trimmed, []byte("1")) || bytes.Equal(trimmed, []byte("2")) {
+		// soft 429：代理池足够大时换 IP 再打，提高各模式穿透率（关：MT_RUSH_SOFT429_ROTATE=0）
+		if rushSoft429RotateEnabled() && proxyPoolLen >= rushSoft429RotateMinPool() {
+			return true
+		}
 		return false
 	}
 	var obj map[string]interface{}
@@ -668,7 +702,7 @@ func runtimeProxyShouldSwitch(statusCode int, body []byte) bool {
 func doRushAttempt(ctx context.Context, att Attempt, picker *runtimeProxyPicker) (int, []byte, string, Attempt, error) {
 	att = picker.apply(att)
 	statusCode, body, actualProxyURL, err := doRequestCtxWithProxy(ctx, att)
-	if err == nil && runtimeProxyShouldSwitch(statusCode, body) {
+	if err == nil && runtimeProxyShouldSwitch(statusCode, body, picker.poolLen()) {
 		picker.markLaneHTTP429(transportLaneID(att), actualProxyURL)
 	}
 	return statusCode, body, actualProxyURL, att, err
@@ -722,7 +756,7 @@ func execRushLoopSerialWithCallback(req RushLoopRequest, onTrace func(TraceRow))
 			onTrace(row)
 		}
 
-		if isStopRush(biz) {
+		if isStopRush(biz) || isBizOk(biz) {
 			break
 		}
 		if i < len(attempts)-1 && gapMs > 0 {

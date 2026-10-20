@@ -3,8 +3,200 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <CFNetwork/CFNetwork.h>
 #import <WebKit/WebKit.h>
+#import <objc/runtime.h>
+#include <mach-o/dyld.h>
+#include <dlfcn.h>
+#include <string.h>
+
+// Dopamine：Boot 仅 getenv；dyld 过滤延至 UIApplicationMain；Sciapodous +load 用 constructor(101) RET 跳过 dyld-init dladdr 扫描（ips 224143）。
 
 static os_log_t tweakLog = NULL;
+static void LogMsg(NSString *msg);
+static _Thread_local int TraceLens_yxReenterGuard = 0;
+static _Thread_local int TraceLens_dyldReentry = 0;
+
+static uint32_t (*TraceLens_raw_dyld_image_count)(void);
+static const char *(*TraceLens_raw_dyld_get_image_name)(uint32_t);
+static const struct mach_header *(*TraceLens_raw_dyld_get_image_header)(uint32_t);
+
+static void TraceLensResolveRawDyld(void) {
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        TraceLens_raw_dyld_image_count =
+            (uint32_t (*)(void))dlsym(RTLD_DEFAULT, "_dyld_image_count");
+        TraceLens_raw_dyld_get_image_name =
+            (const char *(*)(uint32_t))dlsym(RTLD_DEFAULT, "_dyld_get_image_name");
+        TraceLens_raw_dyld_get_image_header =
+            (const struct mach_header *(*)(uint32_t))dlsym(RTLD_DEFAULT, "_dyld_get_image_header");
+    });
+}
+
+static BOOL TweakShouldHideGetenv(const char *name) {
+    if (!name) return NO;
+    if (strncmp(name, "DYLD_", 5) == 0) return YES;
+    return NO;
+}
+
+static BOOL TweakShouldHideDyldImage(const char *name) {
+    if (!name || !name[0]) return NO;
+    static const char *needles[] = {
+        "TraceLens", "tracelens", "MobileSubstrate", "substrate",
+        "ellekit", "libhooker", "systemhook", "libinjector",
+        "TweakInject", "cycript", "frida", "dopamine", "procursus",
+        NULL
+    };
+    for (int i = 0; needles[i]; i++) {
+        if (strstr(name, needles[i]) != NULL) return YES;
+    }
+    return NO;
+}
+
+static const char *TraceLensDyldNameForVisibleIndex(uint32_t index, uint32_t *rawOut) {
+    TraceLensResolveRawDyld();
+    if (!TraceLens_raw_dyld_image_count || !TraceLens_raw_dyld_get_image_name) return NULL;
+
+    uint32_t raw = TraceLens_raw_dyld_image_count();
+    uint32_t visible = 0;
+    for (uint32_t i = 0; i < raw; i++) {
+        const char *name = TraceLens_raw_dyld_get_image_name(i);
+        if (TweakShouldHideDyldImage(name)) continue;
+        if (visible == index) {
+            if (rawOut) *rawOut = i;
+            return name;
+        }
+        visible++;
+    }
+    return NULL;
+}
+
+static const struct mach_header *TraceLensDyldHeaderForVisibleIndex(uint32_t index) {
+    uint32_t raw = 0;
+    if (!TraceLensDyldNameForVisibleIndex(index, &raw)) return NULL;
+    if (!TraceLens_raw_dyld_get_image_header) return NULL;
+    return TraceLens_raw_dyld_get_image_header(raw);
+}
+
+static void TraceLensInstallMainHooks(void);
+static void TraceLensArmUIApplicationMainGate(void);
+static _Atomic bool TraceLens_mainHooksInstalled = false;
+static _Atomic bool TraceLens_sciapodousNuked = false;
+
+extern void MSHookFunction(void *symbol, void *replace, void **result);
+
+static void (*TraceLens_orig_sciapodous_load)(id, SEL);
+
+static void TraceLens_sciapodous_load_replacement(id self, SEL _cmd) {
+    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
+    os_log(tweakLog, "[TraceLens] Sciapodous +load RET (skip Bangcle dyld-init scan)");
+    [[NSUserDefaults standardUserDefaults] setObject:@"load_nuked" forKey:@"tweak_sciapodous_status"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+static void TraceLensNukeSciapodousLoadIfNeeded(void) {
+    if (TraceLens_sciapodousNuked) return;
+
+    Class sciapodousClass = objc_getClass("Sciapodous");
+    if (!sciapodousClass) return;
+
+    Method loadMethod = class_getClassMethod(sciapodousClass, @selector(load));
+    if (!loadMethod) return;
+
+    void *target_addr = (void *)method_getImplementation(loadMethod);
+    if (!target_addr) return;
+
+    MSHookFunction(target_addr,
+                   (void *)TraceLens_sciapodous_load_replacement,
+                   (void **)&TraceLens_orig_sciapodous_load);
+    TraceLens_sciapodousNuked = true;
+    LogNoise([NSString stringWithFormat:@"Sciapodous +load RET @ %p", target_addr]);
+}
+
+__attribute__((constructor(101)))
+static void TraceLensEarlySciapodousNuke(void) {
+    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
+    TraceLensNukeSciapodousLoadIfNeeded();
+}
+
+static int (*TraceLens_orig_UIApplicationMain)(int argc, char **argv, NSString *principalClassName, NSString *defaultName);
+
+static int TraceLens_hook_UIApplicationMain(int argc, char **argv, NSString *principalClassName, NSString *defaultName) {
+    TraceLensInstallMainHooks();
+    return TraceLens_orig_UIApplicationMain(argc, argv, principalClassName, defaultName);
+}
+
+static uint32_t (*TraceLens_orig_dyld_image_count)(void);
+static const char *(*TraceLens_orig_dyld_get_image_name)(uint32_t);
+static const struct mach_header *(*TraceLens_orig_dyld_get_image_header)(uint32_t);
+
+static uint32_t TraceLens_hook_dyld_image_count(void) {
+    if (TraceLens_dyldReentry > 0) {
+        return TraceLens_orig_dyld_image_count ? TraceLens_orig_dyld_image_count() : 0;
+    }
+    TraceLensResolveRawDyld();
+    if (!TraceLens_raw_dyld_image_count || !TraceLens_raw_dyld_get_image_name) {
+        return TraceLens_orig_dyld_image_count ? TraceLens_orig_dyld_image_count() : 0;
+    }
+    TraceLens_dyldReentry++;
+    uint32_t raw = TraceLens_raw_dyld_image_count();
+    uint32_t visible = 0;
+    for (uint32_t i = 0; i < raw; i++) {
+        const char *name = TraceLens_raw_dyld_get_image_name(i);
+        if (!TweakShouldHideDyldImage(name)) visible++;
+    }
+    TraceLens_dyldReentry--;
+    return visible;
+}
+
+static const char *TraceLens_hook_dyld_get_image_name(uint32_t index) {
+    if (TraceLens_dyldReentry > 0) {
+        return TraceLens_orig_dyld_get_image_name ? TraceLens_orig_dyld_get_image_name(index) : NULL;
+    }
+    TraceLens_dyldReentry++;
+    const char *name = TraceLensDyldNameForVisibleIndex(index, NULL);
+    TraceLens_dyldReentry--;
+    if (name) return name;
+    return TraceLens_orig_dyld_get_image_name ? TraceLens_orig_dyld_get_image_name(index) : NULL;
+}
+
+static const struct mach_header *TraceLens_hook_dyld_get_image_header(uint32_t index) {
+    if (TraceLens_dyldReentry > 0) {
+        return TraceLens_orig_dyld_get_image_header ? TraceLens_orig_dyld_get_image_header(index) : NULL;
+    }
+    TraceLens_dyldReentry++;
+    const struct mach_header *hdr = TraceLensDyldHeaderForVisibleIndex(index);
+    TraceLens_dyldReentry--;
+    if (hdr) return hdr;
+    return TraceLens_orig_dyld_get_image_header ? TraceLens_orig_dyld_get_image_header(index) : NULL;
+}
+
+static void TraceLensInstallLateDyldFilter(void) {
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        TraceLensResolveRawDyld();
+        MSHookFunction((void *)_dyld_image_count,
+                       (void *)TraceLens_hook_dyld_image_count,
+                       (void **)&TraceLens_orig_dyld_image_count);
+        MSHookFunction((void *)_dyld_get_image_name,
+                       (void *)TraceLens_hook_dyld_get_image_name,
+                       (void **)&TraceLens_orig_dyld_get_image_name);
+        MSHookFunction((void *)_dyld_get_image_header,
+                       (void *)TraceLens_hook_dyld_get_image_header,
+                       (void **)&TraceLens_orig_dyld_get_image_header);
+        LogNoise(@"TraceLens: dyld image filter armed (post-dyld-init)");
+    });
+}
+
+%group TraceLensBoot
+%hookf(char *, getenv, const char *name) {
+    if (TweakShouldHideGetenv(name)) {
+        return NULL;
+    }
+    return %orig(name);
+}
+
+%end
+
+%group TraceLensMain
 
 // 前向声明 App 私有方法
 @interface NSString (MoutaiHook)
@@ -18,6 +210,40 @@ static os_log_t tweakLog = NULL;
 static void LogMsg(NSString *msg) {
     if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
     os_log(tweakLog, "[TraceLens] %{public}@", msg);
+}
+
+// tracelens_log_level（NSUserDefaults，宿主 com.moutai.mall）：1=api 2=standard 3=full，默认 1
+// api：仅 [AFN] 业务请求/响应 + [PAY] payapi；无 setHeader/[STACK]/[JSON]/WK/UI 噪音
+static int TraceLensLogLevel(void) {
+    static int level = 0;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        id v = [[NSUserDefaults standardUserDefaults] objectForKey:@"tracelens_log_level"];
+        if ([v isKindOfClass:[NSString class]]) {
+            NSString *s = [(NSString *)v lowercaseString];
+            if ([s isEqualToString:@"full"]) level = 3;
+            else if ([s isEqualToString:@"standard"]) level = 2;
+            else level = 1;
+        } else if ([v isKindOfClass:[NSNumber class]]) {
+            level = [(NSNumber *)v intValue];
+        } else {
+            level = 1;
+        }
+        if (level < 1) level = 1;
+        if (level > 3) level = 3;
+    });
+    return level;
+}
+
+static void LogNoise(NSString *msg) {
+    if (TraceLensLogLevel() >= 3) LogMsg(msg);
+}
+
+static BOOL TraceLensUrlIsCaptureTarget(NSString *urlText) {
+    if (urlText.length == 0) return NO;
+    return [urlText containsString:@"moutai519.com.cn"] ||
+           [urlText containsString:@"payapi.moutai519"] ||
+           [urlText containsString:@"mcgw.alipay.com"];
 }
 
 static NSString *TweakFlattenLogText(NSString *text) {
@@ -63,7 +289,7 @@ static NSString *TweakFlattenLogText(NSString *text) {
                 [key rangeOfString:@"tap"].location   != NSNotFound ||
                 [key rangeOfString:@"ipsec"].location != NSNotFound ||
                 [key rangeOfString:@"ppp"].location   != NSNotFound) {
-                LogMsg([NSString stringWithFormat:@"🚫 Filtering VPN interface: %@", key]);
+                LogNoise([NSString stringWithFormat:@"🚫 Filtering VPN interface: %@", key]);
                 return;
             }
             newScoped[key] = obj;
@@ -71,7 +297,7 @@ static NSString *TweakFlattenLogText(NSString *text) {
         dict[@"__SCOPED__"] = newScoped;
     }
 
-    LogMsg(@"✅ Proxy/VPN settings cleaned");
+    LogNoise(@"✅ Proxy/VPN settings cleaned");
     return (__bridge_retained CFDictionaryRef)dict;
 }
 
@@ -81,6 +307,10 @@ static NSString *TweakFlattenLogText(NSString *text) {
 // ===========================================================
 %hook NSString
 - (id)yx_headerEncryptString {
+    if (TraceLens_yxReenterGuard > 0) {
+        return %orig;
+    }
+
     NSString *input = (NSString *)self;
     
     // 记录原始输入到 NSUserDefaults
@@ -101,10 +331,13 @@ static NSString *TweakFlattenLogText(NSString *text) {
     }
     
     if (![fixed isEqualToString:input]) {
-        LogMsg([NSString stringWithFormat:@"🛡️ Encrypt bypass: %@ -> %@", input, fixed]);
+        LogNoise([NSString stringWithFormat:@"🛡️ Encrypt bypass: %@ -> %@", input, fixed]);
         [[NSUserDefaults standardUserDefaults] setObject:fixed forKey:@"tweak_encrypt_fixed"];
         [[NSUserDefaults standardUserDefaults] synchronize];
-        return [fixed yx_headerEncryptString];
+        TraceLens_yxReenterGuard++;
+        id out = [fixed yx_headerEncryptString];
+        TraceLens_yxReenterGuard--;
+        return out;
     }
     
     [[NSUserDefaults standardUserDefaults] synchronize];
@@ -118,100 +351,11 @@ static NSString *TweakFlattenLogText(NSString *text) {
 // ===========================================================
 %hook MassComnunicetion
 - (void)howhareyou:(id)arg1 {
-    LogMsg(@"🛡️ MassComnunicetion howhareyou: intercepted, bypassing jailbreak and security checks.");
+    LogNoise(@"🛡️ MassComnunicetion howhareyou: intercepted, bypassing jailbreak and security checks.");
 }
 %end
 
-// ===========================================================
-// 3. 注入检测绕过 (基于 bypass.js 原理)
-//    通过 Objective-C Runtime 动态定位并物理爆破 +[Sciapodous load]
-// ===========================================================
-#import <objc/runtime.h>
-#import <objc/message.h>
-#include <mach-o/dyld.h>
-
-extern void MSHookFunction(void *symbol, void *replace, void **result);
-
-// 声明空的替换函数 (等同于写入 RET)
-static void (*orig_sciapodous_load)(id, SEL);
-static void sciapodous_load_replacement(id self, SEL _cmd) {
-    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    os_log(tweakLog, "[TraceLens] [Immortal] 物理爆破 (RET) 成功拦截: +[Sciapodous load]");
-    [[NSUserDefaults standardUserDefaults] setObject:@"load_nuked" forKey:@"tweak_sciapodous_status"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-// 必须使用最高优先级的 constructor，在应用的 +load 前进行劫持
-__attribute__((constructor(101)))
-static void immortal_physical_nuke() {
-    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    LogMsg(@"💣 Tweak EARLY LOADED! Initiating Dynamic Nuke on +[Sciapodous load]...");
-    
-    [[NSUserDefaults standardUserDefaults] setObject:@"init_started" forKey:@"tweak_init_status"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    
-    Class sciapodousClass = objc_getClass("Sciapodous");
-    if (sciapodousClass) {
-        Method loadMethod = class_getClassMethod(sciapodousClass, @selector(load));
-        if (loadMethod) {
-            void *target_addr = (void *)method_getImplementation(loadMethod);
-            if (target_addr) {
-                MSHookFunction(target_addr, (void *)sciapodous_load_replacement, (void **)&orig_sciapodous_load);
-                LogMsg([NSString stringWithFormat:@"[Immortal] MSHookFunction 动态绑定成功: %p", target_addr]);
-                [[NSUserDefaults standardUserDefaults] setObject:@"hook_success" forKey:@"tweak_init_status"];
-            } else {
-                LogMsg(@"⚠️ [Immortal] Error: Failed to get IMP for +[Sciapodous load]");
-                [[NSUserDefaults standardUserDefaults] setObject:@"err_no_imp" forKey:@"tweak_init_status"];
-            }
-        } else {
-            LogMsg(@"⚠️ [Immortal] Error: Failed to get Method for +[Sciapodous load]");
-            [[NSUserDefaults standardUserDefaults] setObject:@"err_no_method" forKey:@"tweak_init_status"];
-        }
-    } else {
-        LogMsg(@"⚠️ [Immortal] Error: Class Sciapodous not found!");
-        [[NSUserDefaults standardUserDefaults] setObject:@"err_no_class" forKey:@"tweak_init_status"];
-    }
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
-// ===========================================================
-// 构造函数与后台强制变量清零
-// ===========================================================
-%ctor {
-    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    LogMsg(@"TraceLens VERSION 0.0.39 LOADED");
-    LogMsg(@"💣 Tweak LOADED! Proxy bypass + Inject bypass installed.");
-    
-    // 启动 GCD 定时器，定时强制将检测状态变量 0x2206C2C 清零
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
-    dispatch_source_set_timer(timer, dispatch_walltime(NULL, 0), 100 * NSEC_PER_MSEC, 10 * NSEC_PER_MSEC);
-    
-    // 获取 base_addr
-    uintptr_t base_addr = 0;
-    for (uint32_t i = 0; i < _dyld_image_count(); i++) {
-        const char *name = _dyld_get_image_name(i);
-        if (strstr(name, "moutai-mall") != NULL) {
-            base_addr = (uintptr_t)_dyld_get_image_header(i);
-            break;
-        }
-    }
-    if (base_addr == 0) {
-        base_addr = (uintptr_t)_dyld_get_image_header(0);
-    }
-    
-    volatile char *abnormal_byte = (volatile char *)(base_addr + 0x2206C2C);
-    
-    dispatch_source_set_event_handler(timer, ^{
-        if (*abnormal_byte != 0) {
-            *abnormal_byte = 0;
-            // 写入 NSUserDefaults 以便检测是否起效
-            [[NSUserDefaults standardUserDefaults] setObject:@"reset_triggered" forKey:@"tweak_reset_status"];
-            [[NSUserDefaults standardUserDefaults] synchronize];
-        }
-    });
-    dispatch_resume(timer);
-}
+// Sciapodous +load：constructor(101) RET（见 TraceLensNukeSciapodousLoadIfNeeded），勿 hook 0x4864/0x4A8C
 
 // ===========================================================
 // 4. 彻底屏蔽反调试与设备异常的弹窗来源类 (CONCuhcHdGGlGhKK)
@@ -247,47 +391,7 @@ static void immortal_physical_nuke() {
 %end
 
 // ===========================================================
-// 5. 拦截汇点 C 函数 (sub_100004864 / sub_100004A8C)
-//    使用 MSHookFunction 彻底切断反调试回调机制
-// ===========================================================
-static void (*orig_sub_100004864)(void *, void *);
-static void my_sub_100004864(void *a1, void *a2) {
-    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    os_log(tweakLog, "[TraceLens] 🛡️ BLOCKED sub_100004864");
-}
-
-static void (*orig_sub_100004A8C)(void *);
-static void my_sub_100004A8C(void *a1) {
-    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    os_log(tweakLog, "[TraceLens] 🛡️ BLOCKED sub_100004A8C");
-}
-
-__attribute__((constructor))
-static void immortal_c_func_nuke() {
-    uintptr_t base_addr = 0;
-    for (uint32_t i = 0; i < _dyld_image_count(); i++) {
-        const char *name = _dyld_get_image_name(i);
-        if (strstr(name, "moutai-mall") != NULL) {
-            base_addr = (uintptr_t)_dyld_get_image_header(i);
-            break;
-        }
-    }
-    if (base_addr == 0) {
-        base_addr = (uintptr_t)_dyld_get_image_header(0);
-    }
-    
-    void *target_4864 = (void *)(base_addr + 0x4864);
-    MSHookFunction(target_4864, (void *)my_sub_100004864, (void **)&orig_sub_100004864);
-    
-    void *target_4a8c = (void *)(base_addr + 0x4A8C);
-    MSHookFunction(target_4a8c, (void *)my_sub_100004A8C, (void **)&orig_sub_100004A8C);
-    
-    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    os_log(tweakLog, "[TraceLens] 💣 Tweak C-Func hooks installed at 0x4864 and 0x4A8C");
-}
-
-// ===========================================================
-// 6. API 请求/响应日志
+// 5. API 请求/响应日志
 //    覆盖 NSURLSessionTask、NSMutableURLRequest 和常见 completion 回调。
 // ===========================================================
 static NSString *TweakPreviewData(NSData *data) {
@@ -359,7 +463,7 @@ static void TweakLogScriptHits(NSString *tag, NSURL *url, NSData *data) {
         NSUInteger start = hit.location > 900 ? hit.location - 900 : 0;
         NSUInteger end = MIN(text.length, hit.location + 1800);
         NSString *snippet = [text substringWithRange:NSMakeRange(start, end - start)];
-        LogMsg([NSString stringWithFormat:@"[JS_HIT] %@ url=%@ key=%@ pos=%lu len=%lu snippet=%@",
+        LogNoise([NSString stringWithFormat:@"[JS_HIT] %@ url=%@ key=%@ pos=%lu len=%lu snippet=%@",
                 tag,
                 urlText,
                 key,
@@ -373,6 +477,7 @@ static void TweakLogScriptHits(NSString *tag, NSURL *url, NSData *data) {
 }
 
 static void TweakLogStack(NSString *tag) {
+    if (TraceLensLogLevel() < 3) return;
     NSArray *symbols = [NSThread callStackSymbols];
     NSUInteger maxFrames = MIN((NSUInteger)18, symbols.count);
     for (NSUInteger i = 0; i < maxFrames; i++) {
@@ -382,6 +487,10 @@ static void TweakLogStack(NSString *tag) {
 
 static void TweakLogRequest(NSString *tag, NSURLRequest *request) {
     if (!request) return;
+    int lvl = TraceLensLogLevel();
+    if (lvl < 2) return;
+    NSString *urlText = request.URL.absoluteString ?: @"";
+    if (lvl < 3 && !TraceLensUrlIsCaptureTarget(urlText)) return;
 
     LogMsg([NSString stringWithFormat:@"[API] %@ %@ %@",
             tag,
@@ -409,6 +518,18 @@ static void TweakLogRequest(NSString *tag, NSURLRequest *request) {
 
 static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *data, NSError *error) {
     NSHTTPURLResponse *http = [response isKindOfClass:[NSHTTPURLResponse class]] ? (NSHTTPURLResponse *)response : nil;
+    int lvl = TraceLensLogLevel();
+    NSString *urlText = response.URL.absoluteString ?: @"";
+    if (lvl < 2) {
+        if (![urlText containsString:@"payapi.moutai519"]) return;
+        LogMsg([NSString stringWithFormat:@"[PAY] response status=%ld url=%@ body=%@ error=%@",
+                (long)http.statusCode,
+                urlText,
+                data.length > 0 ? TweakPreviewData(data) : @"<empty>",
+                error ?: (NSError *)@"<nil>"]);
+        return;
+    }
+    if (lvl < 3 && !TraceLensUrlIsCaptureTarget(urlText)) return;
 
     LogMsg([NSString stringWithFormat:@"[API] %@ response status=%ld url=%@ error=%@",
             tag,
@@ -428,17 +549,17 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
 %hook NSMutableURLRequest
 
 - (void)setHTTPMethod:(NSString *)method {
-    LogMsg([NSString stringWithFormat:@"[API] setHTTPMethod %@ url=%@", method, self.URL.absoluteString]);
+    LogNoise([NSString stringWithFormat:@"[API] setHTTPMethod %@ url=%@", method, self.URL.absoluteString]);
     %orig;
 }
 
 - (void)setURL:(NSURL *)URL {
-    LogMsg([NSString stringWithFormat:@"[API] setURL %@", URL.absoluteString]);
+    LogNoise([NSString stringWithFormat:@"[API] setURL %@", URL.absoluteString]);
     %orig;
 }
 
 - (void)setHTTPBody:(NSData *)body {
-    LogMsg([NSString stringWithFormat:@"[API] setHTTPBody url=%@ body=%@",
+    LogNoise([NSString stringWithFormat:@"[API] setHTTPBody url=%@ body=%@",
             self.URL.absoluteString ?: @"<nil-url>",
             TweakPreviewData(body)]);
     if (TweakLooksLikeEncryptedGateway(self.URL, body)) {
@@ -448,14 +569,14 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
 }
 
 - (void)setHTTPBodyStream:(NSInputStream *)inputStream {
-    LogMsg([NSString stringWithFormat:@"[API] setHTTPBodyStream url=%@ stream=%@",
+    LogNoise([NSString stringWithFormat:@"[API] setHTTPBodyStream url=%@ stream=%@",
             self.URL.absoluteString ?: @"<nil-url>",
             inputStream]);
     %orig;
 }
 
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field {
-    LogMsg([NSString stringWithFormat:@"[API] setHeader %@=%@ url=%@",
+    LogNoise([NSString stringWithFormat:@"[API] setHeader %@=%@ url=%@",
             field,
             value,
             self.URL.absoluteString ?: @"<nil-url>"]);
@@ -463,7 +584,7 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
 }
 
 - (void)addValue:(NSString *)value forHTTPHeaderField:(NSString *)field {
-    LogMsg([NSString stringWithFormat:@"[API] addHeader %@=%@ url=%@",
+    LogNoise([NSString stringWithFormat:@"[API] addHeader %@=%@ url=%@",
             field,
             value,
             self.URL.absoluteString ?: @"<nil-url>"]);
@@ -481,7 +602,18 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
         if (!request) request = [self valueForKey:@"originalRequest"];
     } @catch (NSException *e) {}
 
-    TweakLogRequest(@"task.resume", request);
+    if (TraceLensLogLevel() < 2 && request) {
+        NSString *u = request.URL.absoluteString ?: @"";
+        if ([u containsString:@"payapi.moutai519"]) {
+            LogMsg([NSString stringWithFormat:@"[PAY] %@ %@ headers=%@ body=%@",
+                    request.HTTPMethod ?: @"GET",
+                    u,
+                    request.allHTTPHeaderFields.count > 0 ? request.allHTTPHeaderFields : @{},
+                    TweakPreviewData(request.HTTPBody)]);
+        }
+    } else {
+        TweakLogRequest(@"task.resume", request);
+    }
     %orig;
 }
 
@@ -501,7 +633,7 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
 
 - (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url
                         completionHandler:(void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler {
-    LogMsg([NSString stringWithFormat:@"[API] dataTaskWithURL %@", url.absoluteString]);
+    LogNoise([NSString stringWithFormat:@"[API] dataTaskWithURL %@", url.absoluteString]);
 
     return %orig(url, ^(NSData *data, NSURLResponse *response, NSError *error) {
         TweakLogResponse(@"dataTaskWithURL", response, data, error);
@@ -514,7 +646,7 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
                                 completionHandler:(void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler {
     TweakLogRequest(@"uploadTaskWithRequest", request);
     if (bodyData.length > 0) {
-        LogMsg([NSString stringWithFormat:@"[API] uploadTask body=%@", TweakPreviewData(bodyData)]);
+        LogNoise([NSString stringWithFormat:@"[API] uploadTask body=%@", TweakPreviewData(bodyData)]);
         if (TweakLooksLikeEncryptedGateway(request.URL, bodyData)) {
             TweakLogStack(@"uploadTask.encryptedGateway");
         }
@@ -552,7 +684,7 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
                            [preview containsString:@"token"];
 
         if (interesting) {
-            LogMsg([NSString stringWithFormat:@"[JSON] dataWithJSONObject class=%@ json=%@",
+            LogNoise([NSString stringWithFormat:@"[JSON] dataWithJSONObject class=%@ json=%@",
                     NSStringFromClass([obj class]),
                     preview]);
             TweakLogStack(@"NSJSONSerialization.interesting");
@@ -581,7 +713,7 @@ static void TweakLogResponse(NSString *tag, NSURLResponse *response, NSData *dat
                        [preview containsString:@"token"];
 
     if (interesting) {
-        LogMsg([NSString stringWithFormat:@"[JSON] JSONObjectWithData class=%@ json=%@",
+        LogNoise([NSString stringWithFormat:@"[JSON] JSONObjectWithData class=%@ json=%@",
                 obj ? NSStringFromClass([obj class]) : @"<nil>",
                 preview]);
         TweakLogStack(@"NSJSONSerialization.parseInteresting");
@@ -651,6 +783,7 @@ static BOOL TweakLooksLikeItemResponse(NSString *urlText, id responseObject) {
 }
 
 static void TweakScanObjectForTimeFields(id obj, NSString *path, NSUInteger depth) {
+    if (TraceLensLogLevel() < 3) return;
     if (!obj || depth > 8) return;
 
     if ([obj isKindOfClass:[NSDictionary class]]) {
@@ -696,9 +829,9 @@ static void TweakScanObjectForTimeFields(id obj, NSString *path, NSUInteger dept
                                  URLString:(NSString *)URLString
                                 parameters:(id)parameters
                                      error:(NSError **)error {
-    LogMsg([NSString stringWithFormat:@"[AFN] requestWithMethod %@ %@", method, URLString]);
+    LogNoise([NSString stringWithFormat:@"[AFN] requestWithMethod %@ %@", method, URLString]);
     if (parameters) {
-        LogMsg([NSString stringWithFormat:@"[AFN] requestWithMethod parameters=%@", TweakPreviewObject(parameters)]);
+        LogNoise([NSString stringWithFormat:@"[AFN] requestWithMethod parameters=%@", TweakPreviewObject(parameters)]);
     }
     return %orig;
 }
@@ -710,11 +843,11 @@ static void TweakScanObjectForTimeFields(id obj, NSString *path, NSUInteger dept
 - (NSURLRequest *)requestBySerializingRequest:(NSURLRequest *)request
                                withParameters:(id)parameters
                                         error:(NSError **)error {
-    LogMsg([NSString stringWithFormat:@"[AFN] JSON serialize %@ %@",
+    LogNoise([NSString stringWithFormat:@"[AFN] JSON serialize %@ %@",
             request.HTTPMethod ?: @"<nil-method>",
             request.URL.absoluteString ?: @"<nil-url>"]);
     if (parameters) {
-        LogMsg([NSString stringWithFormat:@"[AFN] JSON parameters=%@", TweakPreviewObject(parameters)]);
+        LogNoise([NSString stringWithFormat:@"[AFN] JSON parameters=%@", TweakPreviewObject(parameters)]);
     }
     return %orig;
 }
@@ -745,7 +878,7 @@ static void TweakScanObjectForTimeFields(id obj, NSString *path, NSUInteger dept
                              URLString,
                              TweakPreviewObject(responseObject)]);
                      if (TweakLooksLikeItemResponse(URLString ?: @"", responseObject)) {
-                         LogMsg([NSString stringWithFormat:@"[AFN_ITEM] %@ response=%@",
+                         LogNoise([NSString stringWithFormat:@"[AFN_ITEM] %@ response=%@",
                                  URLString ?: @"<nil-url>",
                                  TweakPreviewObject(responseObject)]);
                      }
@@ -837,7 +970,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 - (WKNavigation *)loadRequest:(NSURLRequest *)request {
     NSString *url = request.URL.absoluteString ?: @"<nil-url>";
     if (TweakIsInterestingH5Text(url)) {
-        LogMsg([NSString stringWithFormat:@"[WK] loadRequest %@", url]);
+        LogNoise([NSString stringWithFormat:@"[WK] loadRequest %@", url]);
 
         WKWebView *webView = self;
         @try {
@@ -845,9 +978,9 @@ static NSString *TraceLensEarlyWebpackScript(void) {
                                                                injectionTime:WKUserScriptInjectionTimeAtDocumentStart
                                                             forMainFrameOnly:NO];
             [webView.configuration.userContentController addUserScript:earlyScript];
-            LogMsg(@"[WK] TraceLens early webpack userScript installed");
+            LogNoise(@"[WK] TraceLens early webpack userScript installed");
         } @catch (NSException *e) {
-            LogMsg([NSString stringWithFormat:@"[WK] early webpack userScript error=%@", e]);
+            LogNoise([NSString stringWithFormat:@"[WK] early webpack userScript error=%@", e]);
         }
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             NSString *script =
@@ -876,12 +1009,12 @@ static NSString *TraceLensEarlyWebpackScript(void) {
                    "return changed;"
                  "}"
                  "var changed=0;"
-                 "if(window.__TraceLensDiagVersion!=='0.0.39'){"
-                   "window.__TraceLensDiagVersion='0.0.39';"
+                 "if(window.__TraceLensDiagVersion!=='0.0.45'){"
+                   "window.__TraceLensDiagVersion='0.0.45';"
                    "window.__TraceLensDiagInstalled=1;"
                    "window.__TraceLensBuffer=window.__TraceLensBuffer||[];"
                    "window.__TraceLensLog=function(tag,obj){try{window.__TraceLensBuffer.push({tag:tag,data:obj,ts:Date.now()});}catch(e){window.__TraceLensBuffer.push({tag:tag,data:String(obj),ts:Date.now()});}};"
-                   "window.__TraceLensLog('TRACE_VERSION',{version:'0.0.39',href:location.href,mode:'minimal-passive'});"
+                   "window.__TraceLensLog('TRACE_VERSION',{version:'0.0.45',href:location.href,mode:'minimal-passive'});"
                    "document.addEventListener('click',function(e){"
                      "var el=e.target, path=[];"
                      "for(var p=el;p&&path.length<8;p=p.parentElement){path.push(p.tagName+'#'+(p.id||'')+'.'+(p.className||'')+'='+tx(p).slice(0,120));}"
@@ -1053,12 +1186,12 @@ static NSString *TraceLensEarlyWebpackScript(void) {
                 "})();";
             [webView evaluateJavaScript:script completionHandler:^(id result, NSError *error) {
                 NSString *preview = TweakPreviewObject(result);
-                LogMsg([NSString stringWithFormat:@"[WKUNLOCK] %@", preview]);
+                LogNoise([NSString stringWithFormat:@"[WKUNLOCK] %@", preview]);
                 if (TweakTextLooksLikeTimeField(preview)) {
-                    LogMsg([NSString stringWithFormat:@"[WKDOM] %@", preview]);
+                    LogNoise([NSString stringWithFormat:@"[WKDOM] %@", preview]);
                 }
                 if (error) {
-                    LogMsg([NSString stringWithFormat:@"[WKDOM] error=%@", error]);
+                    LogNoise([NSString stringWithFormat:@"[WKDOM] error=%@", error]);
                 }
             }];
 
@@ -1069,17 +1202,17 @@ static NSString *TraceLensEarlyWebpackScript(void) {
                         NSString *preview = TweakPreviewObject(result);
                         if (preview.length > 0 && ![preview isEqualToString:@"<nil>"]) {
                             NSString *tag = ([preview containsString:@"PURCHASE_SUMMARY"] || [preview containsString:@"DETAIL_SUMMARY"]) ? @"[WKSUMMARY]" : @"[WKNET]";
-                            LogMsg([NSString stringWithFormat:@"%@ %@", tag, preview]);
+                            LogNoise([NSString stringWithFormat:@"%@ %@", tag, preview]);
                         }
                         if (error) {
-                            LogMsg([NSString stringWithFormat:@"[WKNET_ERR] %@", error]);
+                            LogNoise([NSString stringWithFormat:@"[WKNET_ERR] %@", error]);
                         }
                     }];
                     [webView evaluateJavaScript:@"(function(){var b=window.__TraceLensBuffer||[];var out=b.splice(0,1);return out.length?JSON.stringify(out[0]):'';})();"
                               completionHandler:^(id result, NSError *error) {
                         NSString *preview = TweakPreviewObject(result);
                         if (preview.length > 0 && ![preview isEqualToString:@"<nil>"]) {
-                            LogMsg([NSString stringWithFormat:@"[H5LOG] %@", preview]);
+                            LogNoise([NSString stringWithFormat:@"[H5LOG] %@", preview]);
                         }
                     }];
                 });
@@ -1091,7 +1224,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 
 - (WKNavigation *)loadHTMLString:(NSString *)string baseURL:(NSURL *)baseURL {
     NSString *url = baseURL.absoluteString ?: @"<nil-baseURL>";
-    LogMsg([NSString stringWithFormat:@"[WK] loadHTMLString baseURL=%@ html=%@", url, TweakPreviewString(string)]);
+    LogNoise([NSString stringWithFormat:@"[WK] loadHTMLString baseURL=%@ html=%@", url, TweakPreviewString(string)]);
     return %orig;
 }
 
@@ -1099,15 +1232,15 @@ static NSString *TraceLensEarlyWebpackScript(void) {
          completionHandler:(void (^)(id result, NSError *error))completionHandler {
     BOOL interesting = TweakIsInterestingH5Text(javaScriptString);
     if ([javaScriptString containsString:@"[TraceLensH5]"]) {
-        LogMsg([NSString stringWithFormat:@"[H5LOG] %@", TweakPreviewString(javaScriptString)]);
+        LogNoise([NSString stringWithFormat:@"[H5LOG] %@", TweakPreviewString(javaScriptString)]);
     } else if (interesting) {
-        LogMsg([NSString stringWithFormat:@"[WK] evaluateJavaScript %@", TweakPreviewString(javaScriptString)]);
+        LogNoise([NSString stringWithFormat:@"[WK] evaluateJavaScript %@", TweakPreviewString(javaScriptString)]);
     }
 
     %orig(javaScriptString, ^(id result, NSError *error) {
         BOOL hasResult = result && (![result isKindOfClass:[NSString class]] || [(NSString *)result length] > 0);
         if (hasResult || error) {
-            LogMsg([NSString stringWithFormat:@"[WK] evaluateJavaScript result=%@ error=%@",
+            LogNoise([NSString stringWithFormat:@"[WK] evaluateJavaScript result=%@ error=%@",
                     TweakPreviewObject(result),
                     error ?: (NSError *)@"<nil>"]);
         }
@@ -1116,12 +1249,12 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 }
 
 - (void)setNavigationDelegate:(id)navigationDelegate {
-    LogMsg([NSString stringWithFormat:@"[WK] setNavigationDelegate %@", navigationDelegate]);
+    LogNoise([NSString stringWithFormat:@"[WK] setNavigationDelegate %@", navigationDelegate]);
     %orig;
 }
 
 - (void)setUIDelegate:(id)UIDelegate {
-    LogMsg([NSString stringWithFormat:@"[WK] setUIDelegate %@", UIDelegate]);
+    LogNoise([NSString stringWithFormat:@"[WK] setUIDelegate %@", UIDelegate]);
     %orig;
 }
 
@@ -1131,7 +1264,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 
 - (void)setText:(NSString *)text {
     if (TweakTextLooksLikeTimeField(text)) {
-        LogMsg([NSString stringWithFormat:@"[UI] UILabel setText %@", TweakPreviewString(text)]);
+        LogNoise([NSString stringWithFormat:@"[UI] UILabel setText %@", TweakPreviewString(text)]);
         TweakLogStack(@"UILabel.setText.timeField");
     }
     %orig;
@@ -1140,7 +1273,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 - (void)setAttributedText:(NSAttributedString *)attributedText {
     NSString *text = attributedText.string;
     if (TweakTextLooksLikeTimeField(text)) {
-        LogMsg([NSString stringWithFormat:@"[UI] UILabel setAttributedText %@", TweakPreviewString(text)]);
+        LogNoise([NSString stringWithFormat:@"[UI] UILabel setAttributedText %@", TweakPreviewString(text)]);
         TweakLogStack(@"UILabel.setAttributedText.timeField");
     }
     %orig;
@@ -1152,7 +1285,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 
 - (void)setTitle:(NSString *)title forState:(UIControlState)state {
     if (TweakTextLooksLikeTimeField(title)) {
-        LogMsg([NSString stringWithFormat:@"[UI] UIButton setTitle state=%lu title=%@",
+        LogNoise([NSString stringWithFormat:@"[UI] UIButton setTitle state=%lu title=%@",
                 (unsigned long)state,
                 TweakPreviewString(title)]);
         TweakLogStack(@"UIButton.setTitle.timeField");
@@ -1163,7 +1296,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 - (void)setAttributedTitle:(NSAttributedString *)title forState:(UIControlState)state {
     NSString *text = title.string;
     if (TweakTextLooksLikeTimeField(text)) {
-        LogMsg([NSString stringWithFormat:@"[UI] UIButton setAttributedTitle state=%lu title=%@",
+        LogNoise([NSString stringWithFormat:@"[UI] UIButton setAttributedTitle state=%lu title=%@",
                 (unsigned long)state,
                 TweakPreviewString(text)]);
         TweakLogStack(@"UIButton.setAttributedTitle.timeField");
@@ -1176,7 +1309,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 %hook WKUserContentController
 
 - (void)addScriptMessageHandler:(id <WKScriptMessageHandler>)scriptMessageHandler name:(NSString *)name {
-    LogMsg([NSString stringWithFormat:@"[WK] addScriptMessageHandler name=%@ handler=%@",
+    LogNoise([NSString stringWithFormat:@"[WK] addScriptMessageHandler name=%@ handler=%@",
             name,
             scriptMessageHandler]);
     %orig;
@@ -1189,7 +1322,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 - (NSString *)name {
     NSString *name = %orig;
     if (TweakIsInterestingH5Text(name)) {
-        LogMsg([NSString stringWithFormat:@"[WKMSG] name=%@", name]);
+        LogNoise([NSString stringWithFormat:@"[WKMSG] name=%@", name]);
     }
     return name;
 }
@@ -1198,7 +1331,7 @@ static NSString *TraceLensEarlyWebpackScript(void) {
     id body = %orig;
     NSString *preview = TweakPreviewObject(body);
     if (TweakIsInterestingH5Text(preview)) {
-        LogMsg([NSString stringWithFormat:@"[WKMSG] name=%@ body=%@",
+        LogNoise([NSString stringWithFormat:@"[WKMSG] name=%@ body=%@",
                 self.name,
                 preview]);
         TweakLogStack(@"WKScriptMessage.body");
@@ -1207,3 +1340,49 @@ static NSString *TraceLensEarlyWebpackScript(void) {
 }
 
 %end
+
+%end
+
+static void TraceLensFinishInit(void) {
+    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
+    LogMsg([NSString stringWithFormat:@"TraceLens VERSION 0.0.46 LOADED (log_level=%d: 1=api 2=standard 3=full, default api)",
+            TraceLensLogLevel()]);
+    LogNoise(@"No mach-o 0x4864/0x4A8C/0x2206C2C; late dyld filter; getenv at boot");
+}
+
+static void TraceLensArmUIApplicationMainGate(void) {
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        MSHookFunction((void *)UIApplicationMain,
+                       (void *)TraceLens_hook_UIApplicationMain,
+                       (void **)&TraceLens_orig_UIApplicationMain);
+        LogNoise(@"TraceLens: UIApplicationMain gate armed (manual MSHook)");
+    });
+}
+
+static void TraceLensInstallMainHooks(void) {
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
+        LogNoise(@"TraceLens: installing main hooks (UIApplicationMain entry)");
+        TraceLensInstallLateDyldFilter();
+        %init(TraceLensMain);
+        TraceLensFinishInit();
+        TraceLens_mainHooksInstalled = true;
+    });
+}
+
+%ctor {
+    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
+    TraceLensNukeSciapodousLoadIfNeeded();
+    LogNoise(@"TraceLens boot: getenv only (dyld filter deferred to UIApplicationMain)");
+    %init(TraceLensBoot);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        TraceLensArmUIApplicationMainGate();
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (TraceLens_mainHooksInstalled) return;
+        LogNoise(@"TraceLens: fallback main-hook install (UIApplicationMain not reached)");
+        TraceLensInstallMainHooks();
+    });
+}

@@ -10,6 +10,7 @@
 | 启动主控 WebUI | `bash scripts/run_webui.sh` | 服务器、macOS、本机浏览器测试都用这个入口 |
 | 启动分布式 worker | `scripts/run_worker.sh ws://主控IP:8765` | worker 只负责抢购发包，默认 rush-only |
 | 健康检查 | `bash scripts/healthcheck.sh` | 检查 WebUI 和 Go bridge 是否可用 |
+| BB 零真机更新 | `bash scripts/bb_headless_update.sh` | App Store + H5/Bangcle 自动 `--auto`（见 `docs/HEADLESS_RESOURCES.md`） |
 | Makefile 启动 | `make bootstrap` / `make run` / `make worker` / `make health` | 对上面脚本的快捷封装 |
 
 ## 本地桌面入口
@@ -62,6 +63,8 @@
 
 | 文件 | 用途 |
 | --- | --- |
+| `node_bridge/bb/update.cjs --sync` | **零真机**拉最新 H5 runtime + Bangcle sign wasm |
+| `scripts/bb_fetch_latest.sh` | 同上（`MT_BB_UPDATE_SIGN_FALLBACK=0`） |
 | `node_bridge/bangcle_warmup.cjs` | 手动拉取/预热 Bangcle wasm 状态 |
 | `tools/audit/compare_py_node_bb.py` | 对比 Python 与 Node 的 BB 输出 |
 | `tools/audit/bb_risk_audit.py` | BB 风险字段审计 |
@@ -81,8 +84,7 @@
 | 目录 | 用途 |
 | --- | --- |
 | `tools/TraceLens/` | TraceLens 日志抓取、参数审计 |
-| `tools/BBWasmLens/` | iOS tweak，用于 wasm/运行时参数抓取 |
-| `node_bridge/reverse/` | Node 侧逆向产物留档 |
+| `node_bridge/reverse/` | BB 资源历史归档（`update.cjs` 自动写入） |
 | `frp_mt_ws/` | FRP 主控/worker 公网映射脚本 |
 
 ## 本地数据和生成物

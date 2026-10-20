@@ -6,6 +6,9 @@
 
 static os_log_t tweakLog = NULL;
 
+#define TRACE_LENS_LEGACY_FILE_HOOKS 0
+#define TRACE_LENS_SCIAPODOUS_NUKE 0
+
 // 前向声明 App 私有方法
 @interface NSString (MoutaiHook)
 - (id)yx_headerEncryptString;
@@ -122,34 +125,23 @@ static NSString *TweakFlattenLogText(NSString *text) {
 }
 %end
 
-// ===========================================================
-// 3. 注入检测绕过 (基于 bypass.js 原理)
-//    通过 Objective-C Runtime 动态定位并物理爆破 +[Sciapodous load]
-// ===========================================================
+#if TRACE_LENS_SCIAPODOUS_NUKE
 #import <objc/runtime.h>
 #import <objc/message.h>
 #include <mach-o/dyld.h>
 
 extern void MSHookFunction(void *symbol, void *replace, void **result);
 
-// 声明空的替换函数 (等同于写入 RET)
 static void (*orig_sciapodous_load)(id, SEL);
 static void sciapodous_load_replacement(id self, SEL _cmd) {
     if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
     os_log(tweakLog, "[TraceLens] [Immortal] 物理爆破 (RET) 成功拦截: +[Sciapodous load]");
-    [[NSUserDefaults standardUserDefaults] setObject:@"load_nuked" forKey:@"tweak_sciapodous_status"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
-// 必须使用最高优先级的 constructor，在应用的 +load 前进行劫持
 __attribute__((constructor(101)))
 static void immortal_physical_nuke() {
     if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
     LogMsg(@"💣 Tweak EARLY LOADED! Initiating Dynamic Nuke on +[Sciapodous load]...");
-    
-    [[NSUserDefaults standardUserDefaults] setObject:@"init_started" forKey:@"tweak_init_status"];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-    
     Class sciapodousClass = objc_getClass("Sciapodous");
     if (sciapodousClass) {
         Method loadMethod = class_getClassMethod(sciapodousClass, @selector(load));
@@ -158,37 +150,30 @@ static void immortal_physical_nuke() {
             if (target_addr) {
                 MSHookFunction(target_addr, (void *)sciapodous_load_replacement, (void **)&orig_sciapodous_load);
                 LogMsg([NSString stringWithFormat:@"[Immortal] MSHookFunction 动态绑定成功: %p", target_addr]);
-                [[NSUserDefaults standardUserDefaults] setObject:@"hook_success" forKey:@"tweak_init_status"];
-            } else {
-                LogMsg(@"⚠️ [Immortal] Error: Failed to get IMP for +[Sciapodous load]");
-                [[NSUserDefaults standardUserDefaults] setObject:@"err_no_imp" forKey:@"tweak_init_status"];
             }
-        } else {
-            LogMsg(@"⚠️ [Immortal] Error: Failed to get Method for +[Sciapodous load]");
-            [[NSUserDefaults standardUserDefaults] setObject:@"err_no_method" forKey:@"tweak_init_status"];
         }
-    } else {
-        LogMsg(@"⚠️ [Immortal] Error: Class Sciapodous not found!");
-        [[NSUserDefaults standardUserDefaults] setObject:@"err_no_class" forKey:@"tweak_init_status"];
     }
-    [[NSUserDefaults standardUserDefaults] synchronize];
 }
+#endif
 
 // ===========================================================
 // 构造函数与后台强制变量清零
 // ===========================================================
 %ctor {
     if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
-    LogMsg(@"TraceLens VERSION 0.0.39 LOADED");
-    LogMsg(@"[BBWASM] loaded BBWasmLens 0.0.1");
+    LogMsg(@"TraceLens VERSION 0.0.41 LOADED");
+    LogMsg(@"[BBWASM] loaded BBWasmLens 0.0.2");
     LogMsg(@"💣 Tweak LOADED! Proxy bypass + Inject bypass installed.");
-    
-    // 启动 GCD 定时器，定时强制将检测状态变量 0x2206C2C 清零
+#if !TRACE_LENS_LEGACY_FILE_HOOKS
+    LogMsg(@"ℹ️ Legacy file-offset hooks disabled (safe for moutai 1.9.14+)");
+#endif
+#if !TRACE_LENS_SCIAPODOUS_NUKE
+    LogMsg(@"ℹ️ Sciapodous +load nuke disabled (let Bangcle init on 1.9.14)");
+#endif
+#if TRACE_LENS_LEGACY_FILE_HOOKS
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
     dispatch_source_set_timer(timer, dispatch_walltime(NULL, 0), 100 * NSEC_PER_MSEC, 10 * NSEC_PER_MSEC);
-    
-    // 获取 base_addr
     uintptr_t base_addr = 0;
     for (uint32_t i = 0; i < _dyld_image_count(); i++) {
         const char *name = _dyld_get_image_name(i);
@@ -200,18 +185,16 @@ static void immortal_physical_nuke() {
     if (base_addr == 0) {
         base_addr = (uintptr_t)_dyld_get_image_header(0);
     }
-    
     volatile char *abnormal_byte = (volatile char *)(base_addr + 0x2206C2C);
-    
     dispatch_source_set_event_handler(timer, ^{
         if (*abnormal_byte != 0) {
             *abnormal_byte = 0;
-            // 写入 NSUserDefaults 以便检测是否起效
             [[NSUserDefaults standardUserDefaults] setObject:@"reset_triggered" forKey:@"tweak_reset_status"];
             [[NSUserDefaults standardUserDefaults] synchronize];
         }
     });
     dispatch_resume(timer);
+#endif
 }
 
 // ===========================================================
@@ -247,10 +230,7 @@ static void immortal_physical_nuke() {
 
 %end
 
-// ===========================================================
-// 5. 拦截汇点 C 函数 (sub_100004864 / sub_100004A8C)
-//    使用 MSHookFunction 彻底切断反调试回调机制
-// ===========================================================
+#if TRACE_LENS_LEGACY_FILE_HOOKS
 static void (*orig_sub_100004864)(void *, void *);
 static void my_sub_100004864(void *a1, void *a2) {
     if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
@@ -276,16 +256,14 @@ static void immortal_c_func_nuke() {
     if (base_addr == 0) {
         base_addr = (uintptr_t)_dyld_get_image_header(0);
     }
-    
     void *target_4864 = (void *)(base_addr + 0x4864);
     MSHookFunction(target_4864, (void *)my_sub_100004864, (void **)&orig_sub_100004864);
-    
     void *target_4a8c = (void *)(base_addr + 0x4A8C);
     MSHookFunction(target_4a8c, (void *)my_sub_100004A8C, (void **)&orig_sub_100004A8C);
-    
     if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
     os_log(tweakLog, "[TraceLens] 💣 Tweak C-Func hooks installed at 0x4864 and 0x4A8C");
 }
+#endif
 
 // ===========================================================
 // 6. API 请求/响应日志

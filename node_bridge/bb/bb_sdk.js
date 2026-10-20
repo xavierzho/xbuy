@@ -856,7 +856,13 @@ function buildBangcleWasmVersionListUrl(context, options = {}) {
 
 function buildBangcleWasmDownloadUrl(context, options = {}) {
     const baseUrl = `${resolveBangcleWasmHost(context, options)}${DEFAULT_WASM_DOWNLOAD_PATH}`;
-    const version = normalizeString(options.version || context.signWasmVersion || '');
+    if (options.latest === true || options.omitId === true) {
+        return baseUrl;
+    }
+    const version =
+        options.version !== undefined
+            ? normalizeString(options.version)
+            : normalizeString(context.signWasmVersion || '');
     return version ? `${baseUrl}?id=${encodeURIComponent(version)}` : baseUrl;
 }
 

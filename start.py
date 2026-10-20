@@ -49,6 +49,8 @@ except Exception as e:  # pragma: no cover
 # 若需某类改回 Python curl：启动前设 MT_RUSH_HTTP_NODE=0 或 MT_HTTP_BACKEND=（非 node/1/true/yes）
 os.environ.setdefault("MT_RUSH_HTTP_NODE", "1")
 os.environ.setdefault("MT_BATCH_RUSH_NODE", "1")
+os.environ.setdefault("MT_RUSH_SOFT429_ROTATE", "1")
+os.environ.setdefault("MT_RUSH_SOFT429_RETRY", "auto")
 os.environ.setdefault("MT_HTTP_BACKEND", "node")
 # 写死：TLS worker 侧恒走 Python curl_cffi_worker（与 node_bridge/server.cjs 无混名关系）；环境变量仅作兼容。
 os.environ["MT_NODE_USE_CURL_CFFI_TLS"] = "1"
@@ -66,6 +68,11 @@ os.environ.setdefault("MT_WEBUI_ONE_PORT_PER_ACCOUNT", "1")
 # 与 mt test-full-flow 一致：发验证码前先跑浩天，把 BS-DVID + deviceConfig（sdk/厂商/机型）写入账号再发码。
 # 关闭：MT_HAOTIAN_BEFORE_VCODE=0
 os.environ.setdefault("MT_HAOTIAN_BEFORE_VCODE", "1")
+# WebUI 启动后定时跑 node_bridge/bb/update.cjs --auto（App Store 版本 + sign_wasm/runtime）
+os.environ.setdefault("MT_BB_AUTO_UPDATE", "1")
+os.environ.setdefault("MT_BB_UPDATE_MODE", "sync")
+os.environ.setdefault("MT_BB_AUTO_UPDATE_INTERVAL_SEC", "21600")
+os.environ.setdefault("MT_BB_AUTO_UPDATE_ON_START", "1")
 # 与 webui_server.PORT 一致（须在 import webui_server 之前设置）
 os.environ.setdefault("MT_WEBUI_PORT", "8989")
 

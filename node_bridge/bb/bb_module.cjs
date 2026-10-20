@@ -42,6 +42,11 @@ async function ensureRuntime() {
 // 默认 sign_wasm 状态优先读取本地文件，再读取 live_bangcle_state.json。
 // 生产环境可由 bbBootstrap 或运行时更新器拉取版本列表并刷新本地缓存。
 let _signWasmCacheDefault = null;
+
+function bbInvalidateSignWasmCache() {
+    _signWasmCacheDefault = null;
+}
+
 function loadLocalSignWasmFile() {
     for (const filePath of LOCAL_SIGN_WASM_CANDIDATES) {
         try {
@@ -232,5 +237,6 @@ module.exports = {
     bbDuCookie,
     bbBootstrap,
     bbHealth,
+    bbInvalidateSignWasmCache,
     SDK_VERSION,
 };

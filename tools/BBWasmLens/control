@@ -1,9 +1,9 @@
 Package: com.xavier.bbwasmlens
 Name: BBWasmLens
-Version: 0.0.1
+Version: 0.0.2
 Architecture: iphoneos-arm64
 Description: TraceLens hooks plus Bangcle wasm capture for moutai mall.
 Maintainer: Xavier
 Author: Xavier
 Section: Tweaks
-Depends: mobilesubstrate (>= 0.9.5000)
+Depends: ellekit

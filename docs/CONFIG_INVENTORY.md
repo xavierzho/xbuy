@@ -41,6 +41,11 @@
 | 本地 OCR 地址 | `MT_YIDUN_LOCAL_OCR_URL` | `http://127.0.0.1:8000/slide_match` 或空 | ddddocr FastAPI |
 | 本地易盾脚本路径 | `MT_YIDUN_LOCAL_SCRIPT` | `local_yidun/service/app_api.js` | 自定义服务脚本 |
 | 本地 OCR 目录 | `MT_YIDUN_TUNED_OCR_DIR` | `local_yidun/ddddocr-fastapi` | 自定义 OCR 服务目录 |
+| BB 自动更新 | `MT_BB_AUTO_UPDATE` | `1`（`start.py`/WebUI） | 定时跑 `update.cjs`（见 `MT_BB_UPDATE_MODE`） |
+| BB 更新模式 | `MT_BB_UPDATE_MODE` | `sync` | `sync`=每次拉最新并写入；`auto`=有变更才 apply |
+| BB 自动更新间隔秒 | `MT_BB_AUTO_UPDATE_INTERVAL_SEC` | `21600`（6h） | 两次自动检查最小 1800 |
+| BB 启动即检查 | `MT_BB_AUTO_UPDATE_ON_START` | `1` | WebUI 绑定后是否立即跑一次 `--auto` |
+| BB sign 下载回退 | `MT_BB_UPDATE_SIGN_FALLBACK` | `1` | Bangcle 带 `id` 失败时是否用本地 `sign_wasm.bin` |
 
 ## 抢购链路与性能开关
 
@@ -55,7 +60,9 @@
 | `MT_NODE_BATCH_OUTER_TIMEOUT` | 空 | 强制 batch 外层超时秒数 |
 | `MT_NODE_BATCH_OUTER_TIMEOUT_MAX` | `7200` | 自动估算超时上限 |
 | `MT_RUSH_JITTER_MS_MAX` | `100` | 每枪随机抖动上限毫秒 |
-| `MT_RUSH_SOFT429_RETRY` | `1` | soft 429 重试 |
+| `MT_RUSH_SOFT429_RETRY` | `auto` | soft 429 额外 hop；`auto` 按代理池规模（万级池最多 +12 hop） |
+| `MT_RUSH_SOFT429_ROTATE` | `1` | Go 遇 HTTP 429 且 body 为 `1`/`2` 时，池≥50 条则换 IP 再试 |
+| `MT_RUSH_SOFT429_ROTATE_MIN_POOL` | `50` | 上项生效所需最小代理池条数 |
 | `MT_COMPOSE_USE_RUSH_PIN` | `1` | 组单/下单沿用抢购成功出口 |
 | `MT_PAY_ORDER_USE_RUSH_PROXY` | `1` | 支付请求沿用抢购成功出口 |
 | `MT_PAY_LINK_USE_RUSH_SUCCESS` | `1` | 转支付链接沿用抢购成功出口 |

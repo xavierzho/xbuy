@@ -100,6 +100,43 @@ journalctl --user -u rushbuy-webui.service -f
 loginctl enable-linger "$USER"
 ```
 
+## 无真机 / 纯本机模拟（推荐服务器）
+
+完整说明（资源从哪来、自动更新 sign_wasm、踩坑）：[HEADLESS_RESOURCES.md](./HEADLESS_RESOURCES.md)
+
+日常抢购、登录、组单**不需要**接 Android adb 或越狱 iPhone。本仓库默认就是在 PC 上**软件模拟** i茅台 Android WebView + 浩天 BS-DVID + go_bridge 发包：
+
+| 能力 | 是否需要真机 |
+| --- | --- |
+| 发码 / 登录 / 抢购 / 组单 | 否（要**手机号收短信**；HTTP 全在本机） |
+| 浩天 BS-DVID | 否（`bs_dvid_node` + Node，发码前自动跑） |
+| 代理池 | 否（`local_proxy_pool.txt`） |
+| BB `update.cjs` | 否（`--transport local`；sign wasm 走 Bangcle `/api/v1/1/1` **无 id** 拉最新，勿手填 `?id=`） |
+| 全局手机发 / 分布式节点 App | **是**（可选；不用即可） |
+建议环境：
+
+```bash
+# 服务部署（无 Qt）
+MT_HTTP_BACKEND=node MT_RUSH_HTTP_NODE=1 MT_BATCH_RUSH_NODE=1
+MT_HAOTIAN_BEFORE_VCODE=1          # 发码前浩天（本机 Node）
+# 不要开：全局手机发、distributedRushEnabled（除非你真有多台 worker）
+
+# BB 资源：零真机直接拉最新（推荐）
+bash scripts/bb_fetch_latest.sh
+# 或 curl -X POST http://127.0.0.1:8989/api/bb/update/sync
+
+# 仅检查、有变再 apply
+node node_bridge/bb/update.cjs --check --transport local
+node node_bridge/bb/update.cjs --apply --transport local
+
+详见 [HEADLESS_RESOURCES.md](./HEADLESS_RESOURCES.md)。
+
+WebUI 默认 `MT_BB_AUTO_UPDATE=1`、`MT_BB_UPDATE_MODE=sync`：启动 + 每 6h 拉线上最新 wasm。
+关闭自动：`MT_BB_AUTO_UPDATE=0`。
+```
+
+若本机无法直连茅台 CDN，用**代理池**或 HTTP 代理环境变量给 Node/Python 即可，仍无需真机。
+
 ## 分布式 worker
 
 主控机启动 WebUI 后，worker 节点执行：

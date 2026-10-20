@@ -321,7 +321,7 @@ async function main() {
     }
 
     if ((!input.bbState?.__bbWasmFetched || input.forceWasm) && !flags.localWasm) {
-        const wasmResp = await axios.get(buildBangcleWasmDownloadUrl(session, { version: LIVE_BB_WASM_VERSION }), {
+        const wasmResp = await axios.get(buildBangcleWasmDownloadUrl(session, { latest: true }), {
             headers: { ...headers, ...buildBangcleBootstrapHeaders(session, { now: Date.now() }) },
             timeout,
             validateStatus: () => true,
@@ -329,8 +329,8 @@ async function main() {
         });
         if (wasmResp.status >= 200 && wasmResp.status < 300) {
             const wasmInfo = extractBangcleWasmDownloadPayload(wasmResp.data);
-            if (wasmInfo.ok && wasmInfo.version === LIVE_BB_WASM_VERSION) {
-                session.signWasmVersion = LIVE_BB_WASM_VERSION;
+            if (wasmInfo.ok && wasmInfo.codeBytes?.length) {
+                session.signWasmVersion = wasmInfo.version || LIVE_BB_WASM_VERSION;
                 session.signWasmBytes = wasmInfo.codeBytes;
                 session.signWasmBase64 = wasmInfo.codeBase64;
                 session.signWasmOk = true;

@@ -1,6 +1,6 @@
 Package: com.xavier.tracelens
 Name: TraceLens
-Version: 0.0.39
+Version: 0.0.46
 Architecture: iphoneos-arm64
 Description: An awesome MobileSubstrate tweak!
 Maintainer: Xavier

@@ -500,6 +500,36 @@ def _resolve_account_proxy_for_session(current: str) -> str:
     return ""
 
 
+def _maybe_lock_account_proxy_for_login(entry: "AccountEntry", *, persist: bool = True) -> None:
+    """
+    发码/登录/浩天：代理池可用且账号未指定出口时，按手机号稳定映射一条池内 IP 并写入账号。
+    与远程上号 send_code 行为一致；批量发码、主控发码均走 POOL.send_code 时也会生效。
+    """
+    if global_force_local_ip():
+        return
+    cur = (entry.proxy or "").strip()
+    if cur and not _is_direct_marker(cur):
+        return
+    try:
+        import proxy_pool as _pp
+
+        if not _pp.pool_is_configured():
+            return
+        locked = _pp.pick_proxy_url_for_key(entry.phone)
+        if not locked:
+            return
+        entry.proxy = locked
+        if not persist:
+            return
+        if _hot_path_active():
+            _mark_hot_dirty()
+        else:
+            with _lock:
+                _save_raw([POOL._map[p].to_dict() for p in POOL._phones])
+    except Exception:
+        pass
+
+
 # ──────────────────────────────────────────────
 #  持久化
 # ──────────────────────────────────────────────
@@ -2082,6 +2112,7 @@ class AccountPool:
                             f"（加重试可设环境变量 MT_VCODE_MIN_INTERVAL=0 关闭）"
                         ),
                     }
+        _maybe_lock_account_proxy_for_login(e)
         self._maybe_haotian_before_vcode(phone)
         s = e.ensure_session()
         res = s.send_code(phone)
@@ -2104,6 +2135,7 @@ class AccountPool:
         e = self._map.get(phone)
         if not e:
             return {"ok": False, "message": "账号不存在"}
+        _maybe_lock_account_proxy_for_login(e)
         s = e.ensure_session()
         res = s.login(phone, code)
         if res.get("code") == 2000:

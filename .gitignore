@@ -6,6 +6,7 @@ accounts_*.txt
 ui_state.json
 remote_tunnel_url.txt
 debug_last_api.json
+debug-*.log
 pay_link_phones_addresses.txt
 state_backups/
 
@@ -36,7 +37,9 @@ logs/
 *.dll
 *.bin
 *.wasm
+*.apk
 *.spec
+downloads/
 
 # BB 实时运行时及版本归档属于可复现算法资产，需要随版本保存。
 !node_bridge/bb/*.bin
@@ -52,6 +55,11 @@ tools/**/dumps
 tools/**/extracted
 tools/audit/h5_bundles/
 tools/audit/ios_app_security/
+tools/rea_work/
+tools/TraceLens/*.ips
+tools/moutai-zygisk/
+tools/moutai-native-hook/
+tools/moutai-hook/build/
 local_yidun/ddddocr-fastapi/.venv-ocr
 
 reverse-lab

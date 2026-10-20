@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "1.9.10",
+  "versionCode": 10910,
+  "sdkVersion": "V3.5.0_20260721.2_imaotai",
+  "signWasmVersion": "v1.1.3.2",
+  "legacySignWasmVersions": [
+    "v1.0.6",
+    "v1.0.8"
+  ],
+  "runtime": {
+    "file": "runtime.wasm",
+    "upstreamName": "stub.114.wasm",
+    "sha256": "ca6b9999b4a1d424e46376bb0d5ebb274f90c38e4b08db95a48179af8fcc6c31"
+  },
+  "signModule": {
+    "file": "sign_wasm.bin",
+    "size": 16631,
+    "sha256": "8d3b1b060d7b768c1a84a137a1d3ae51e673474f913009ea2624ec6fade16afa"
+  },
+  "update": {
+    "script": "update.cjs",
+    "automatic": true,
+    "autoCommand": "node node_bridge/bb/update.cjs --auto --transport local",
+    "checkCommand": "node node_bridge/bb/update.cjs --check --transport local",
+    "applyCommand": "node node_bridge/bb/update.cjs --apply --transport local",
+    "iosCheckCommand": "node node_bridge/bb/update.cjs --check --transport ios",
+    "iosApplyCommand": "node node_bridge/bb/update.cjs --apply --transport ios"
+  }
+}

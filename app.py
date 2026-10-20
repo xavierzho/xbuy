@@ -1152,31 +1152,6 @@ def go_bridge_prewarm_http_dispatch(
         raise RuntimeError(f"go_bridge /prewarm 非 JSON: {raw[:300]!r}") from e
     if not j.get("ok"):
         raise RuntimeError("go_bridge /prewarm: " + str(j.get("error") or "?"))
-    # #region agent log
-    try:
-        (_ROOT / "debug-eb180b.log").open("a", encoding="utf-8").write(
-            json.dumps(
-                {
-                    "sessionId": "eb180b",
-                    "timestamp": int(time.time() * 1000),
-                    "location": "app.py:go_bridge_prewarm_http_dispatch",
-                    "message": "go_bridge_prewarm_response",
-                    "hypothesisId": "H3",
-                    "data": {
-                        "bridge_port": int(_go_bridge_port()),
-                        "n_targets": len(targets),
-                        "ok_count": int(j.get("okCount") or 0),
-                        "total": int(j.get("total") or len(targets)),
-                    },
-                    "runId": "prewarm-debug",
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
-    except Exception:
-        pass
-    # #endregion
     return j if isinstance(j, dict) else {"ok": True, "results": []}
 
 
@@ -1590,6 +1565,29 @@ API_HOST = "https://app.moutai519.com.cn"
 H5_HOST = "https://h5.moutai519.com.cn"
 PAY_HOST = "https://payapi.moutai519.com.cn"
 CODE_SALT = "2af72f100c356273d46284f6fd1dfc08"
+
+# 实名 verifyStatus 语义以正确资料下的 user/info 为准；2026-10-19 TraceLens 会话因测试填错姓名/身份证，
+# 该次 0→2→3 等状态仅作现象，不得当作「错资料仍成功」的验收依据（见 agent store moutai-realname-trace-2026-10-19.md）。
+
+
+def verify_status_realname_complete(vs) -> bool:
+    """已实名完成：历史 verifyStatus=1；1.9.x App 常见完成态 3（须用正确身份信息实测确认）。"""
+    try:
+        return int(vs) in (1, 3)
+    except (TypeError, ValueError):
+        return False
+
+
+def verify_status_realname_in_progress(vs) -> bool:
+    try:
+        return int(vs) == 2
+    except (TypeError, ValueError):
+        return False
+
+
+def realname_field_encrypt(plaintext: str) -> str:
+    """与 App actParam 相同 AES-CBC（shield.param_encrypt），用于 idCard*Encrypt。"""
+    return param_encrypt(str(plaintext or ""))
 
 # 支付相关
 _PAY_APPID = "MT519ANDROID"
@@ -2342,24 +2340,7 @@ def _mt_build_msp_json_for_sdk(sdk_str: str) -> str:
 def _agent_debug_pay_resolve_ndjson(
     hypothesis_id: str, message: str, data: dict, *, location: str = "app.py:mt_resolve_pay_url_from_sdk"
 ) -> None:
-    # #region agent log
-    try:
-        line = json.dumps(
-            {
-                "sessionId": "eb180b",
-                "hypothesisId": hypothesis_id,
-                "location": location,
-                "message": message,
-                "data": data,
-                "timestamp": int(time.time() * 1000),
-            },
-            ensure_ascii=False,
-        )
-        with open(_ROOT / "debug-eb180b.log", "a", encoding="utf-8") as f:
-            f.write(line + "\n")
-    except Exception:
-        pass
-    # #endregion
+    return
 
 
 def _pay_sdk_diag(s: str) -> dict:
@@ -2792,6 +2773,13 @@ def _rush_row_stop_rush(row: object) -> bool:
     if cs == "4030":
         return bool(_RUSH_STOP_MSG_RE.search(msg))
     return False
+
+
+def _rush_row_success(row: object) -> bool:
+    """业务 code=2000（含 priorityRecordId）：各模式应停枪并进入组单链路。"""
+    if not isinstance(row, dict):
+        return False
+    return _api_ok(row.get("code"))
 
 
 def _http_response_has_json_business_code(resp: object) -> bool:
@@ -4587,58 +4575,7 @@ class Session:
 
     # ---- 实名 ----
 
-    def realname_query(self) -> dict:
-        """
-        查询实名状态（对齐 mt：仅使用登录缓存 verifyStatus）。
-        不发任何远端请求，避免 404/429/代理波动干扰。
-        """
-        try:
-            vs = getattr(self, "_verify_status", None)
-            # #region agent log
-            try:
-                _payload = {
-                    "sessionId": "eb180b",
-                    "hypothesisId": "H3",
-                    "location": "app.py:realname_query",
-                    "message": "cached verifyStatus",
-                    "data": {"vs": vs},
-                    "timestamp": int(time.time() * 1000),
-                }
-                with open(_ROOT / "debug-eb180b.log", "a", encoding="utf-8") as _af:
-                    _af.write(json.dumps(_payload, ensure_ascii=False) + "\n")
-            except Exception:
-                pass
-            # #endregion
-            if vs is not None:
-                return {
-                    "code": 2000,
-                    "message": "ok(cached_login_verify_status)",
-                    "data": {"verifyStatus": int(vs)},
-                    "verifyStatus": int(vs),
-                    "cached": True,
-                    "source": "login_data.verifyStatus",
-                }
-        except Exception:
-            pass
-        return {"code": -1, "message": "实名查询失败：当前账号无登录缓存 verifyStatus，请重新登录后再查"}
-
-    def realname_submit(self, name: str, id_code: str) -> dict:
-        """
-        提交实名认证（姓名 + 身份证号）。
-        对齐 mt1.9.6：仅调用 app 域名 /xhr/front/user/realNameAuth。
-        """
-        nm = str(name or "").strip()
-        ic = str(id_code or "").strip().upper()
-        if not nm:
-            return {"code": -1, "message": "姓名不能为空"}
-        if len(ic) != 18:
-            return {"code": -1, "message": "身份证号应为18位"}
-        body = {
-            "cardType": 0,
-            "idCardName": nm,
-            "idCardNo": ic,
-        }
-        # 头部按 mt test-full-flow.js realNameAuth 对齐
+    def _realname_app_headers(self) -> dict:
         h = {
             "MT-Token": self._token,
             "User-Agent": self._ua,
@@ -4651,8 +4588,7 @@ class Session:
             "MT-USER-TAG": "0",
             "MT-SN": self._cert,
             "MT-DTIME": format_d_time_mt_order_header(),
-            "MT-RS": "1440*3088",
-            "BS-DVID": getattr(self, "_bsid", "") or "",
+            "MT-RS": self._scr or "1440*3088",
             "MT-DOUBLE": "0",
             "MT-SIM": "0",
             "MT-ACBE": "0",
@@ -4663,63 +4599,168 @@ class Session:
             "Connection": "Keep-Alive",
             "Accept-Encoding": "gzip",
         }
+        _bs = (getattr(self, "_bsid", "") or "").strip()
+        if _bs:
+            h["BS-DVID"] = _bs
+        return h
+
+    def _realname_app_post(self, path: str, body: dict | None = None) -> tuple[int, dict | None, str]:
+        """POST App 域实名相关接口，返回 (http_status, json|None, err_text)。"""
+        payload = body if body is not None else {}
         pkw = self._proxy_kw()
         try:
             r = _go_bridge_http_dispatch(
                 "POST",
-                f"{API_HOST}/xhr/front/user/realNameAuth",
-                headers=h,
-                json=body,
-                timeout=10,
+                f"{API_HOST}{path}",
+                headers=self._realname_app_headers(),
+                json=payload,
+                timeout=12,
                 tls_impersonate=TLS_PROFILE,
                 proxies=pkw.get("proxies"),
                 proxy_auth=pkw.get("proxy_auth"),
             )
         except Exception as ex:
-            return {"code": -1, "message": f"实名认证提交失败: {humanize_requests_error(ex)}"}
+            return -1, None, humanize_requests_error(ex)
         if r.status_code == 429:
             self._tls_bump_after_429()
         if r.status_code != 200:
-            return {
-                "code": -1,
-                "message": f"实名认证提交失败: HTTP {r.status_code} {(r.text or '')[:200]}",
-            }
+            return r.status_code, None, (r.text or "")[:240]
         try:
             j = r.json()
         except Exception:
-            return {"code": -1, "message": f"实名认证提交失败: 非 JSON {(r.text or '')[:200]}"}
+            return r.status_code, None, (r.text or "")[:240]
         if not isinstance(j, dict):
-            return {"code": -1, "message": f"实名认证提交失败: 返回非对象 {str(j)[:120]}"}
+            return r.status_code, None, str(j)[:120]
+        return r.status_code, j, ""
+
+    def _realname_preflight(self) -> dict:
+        """对齐 1.9.14 App：提交前先 getRealNameAuthInfo + authConfig。"""
+        steps = {}
+        for path in (
+            "/xhr/front/user/getRealNameAuthInfo",
+            "/xhr/front/user/authConfig",
+        ):
+            st, j, err = self._realname_app_post(path, {})
+            steps[path] = {
+                "http": st,
+                "code": (j or {}).get("code"),
+                "data": (j or {}).get("data"),
+                "error": err or None,
+            }
+        return steps
+
+    def _realname_pull_user_info(self) -> dict | None:
+        try:
+            resp = self._req_get(
+                f"{API_HOST}/xhr/front/user/info",
+                headers=self._base_hdr(),
+                timeout=12,
+            )
+        except Exception:
+            return None
+        if resp.status_code != 200:
+            return None
+        try:
+            j = resp.json()
+        except Exception:
+            return None
+        if not isinstance(j, dict) or int(j.get("code", -1)) != 2000:
+            return None
+        data = j.get("data")
+        if not isinstance(data, dict):
+            return None
+        vs = data.get("verifyStatus")
+        if vs is not None and str(vs) != "":
+            try:
+                self._verify_status = int(vs)
+            except Exception:
+                pass
+        return data
+
+    def realname_query(self, *, force_remote: bool = True) -> dict:
+        """
+        查询实名状态。默认 GET /xhr/front/user/info（1.9.14 App 路径）。
+        远端失败时回退登录缓存 verifyStatus。
+        """
+        remote_data = None
+        if force_remote:
+            remote_data = self._realname_pull_user_info()
+        if isinstance(remote_data, dict):
+            vs = getattr(self, "_verify_status", None)
+            payload = {
+                "verifyStatus": vs,
+                "userName": remote_data.get("userName"),
+                "idCode": remote_data.get("idCode"),
+                "mobile": remote_data.get("mobile"),
+            }
+            return {
+                "code": 2000,
+                "message": "ok",
+                "data": payload,
+                "verifyStatus": vs,
+                "cached": False,
+                "source": "GET /xhr/front/user/info",
+            }
+        try:
+            vs = getattr(self, "_verify_status", None)
+            if vs is not None:
+                return {
+                    "code": 2000,
+                    "message": "ok(cached_login_verify_status)",
+                    "data": {"verifyStatus": int(vs)},
+                    "verifyStatus": int(vs),
+                    "cached": True,
+                    "source": "login_data.verifyStatus",
+                }
+        except Exception:
+            pass
+        return {"code": -1, "message": "实名查询失败：无法拉取 user/info 且无登录缓存 verifyStatus，请重新登录后再查"}
+
+    def realname_submit(self, name: str, id_code: str, *, preflight: bool = True) -> dict:
+        """
+        提交实名认证（姓名 + 身份证号）。
+        对齐 1.9.14：preflight → POST realNameAuth（idCard*Encrypt = shield.param_encrypt）。
+        """
+        nm = str(name or "").strip()
+        ic = str(id_code or "").strip().upper()
+        if not nm:
+            return {"code": -1, "message": "姓名不能为空"}
+        if len(ic) != 18:
+            return {"code": -1, "message": "身份证号应为18位"}
+        pre = self._realname_preflight() if preflight else {}
+        body = {
+            "cardType": 0,
+            "idCardNameEncrypt": realname_field_encrypt(nm),
+            "idCardNoEncrypt": realname_field_encrypt(ic),
+        }
+        st, j, err = self._realname_app_post("/xhr/front/user/realNameAuth", body)
+        if st == -1:
+            return {"code": -1, "message": f"实名认证提交失败: {err}"}
+        if st != 200:
+            return {
+                "code": -1,
+                "message": f"实名认证提交失败: HTTP {st} {err}",
+            }
+        if not isinstance(j, dict):
+            return {"code": -1, "message": f"实名认证提交失败: 返回非对象 {err}"}
         out = dict(j)
         out.setdefault("endpoint", "/xhr/front/user/realNameAuth")
+        if pre:
+            out["preflight"] = pre
         try:
             c = int(out.get("code", -1))
             if c in (2000, 200):
-                self._verify_status = 1
+                self._realname_pull_user_info()
+                if getattr(self, "_verify_status", None) is None:
+                    self._verify_status = 2
         except Exception:
             pass
-        # #region agent log
-        try:
-            _dc = out.get("data") if isinstance(out.get("data"), dict) else None
-            _payload = {
-                "sessionId": "eb180b",
-                "hypothesisId": "H2",
-                "location": "app.py:realname_submit",
-                "message": "submit MT response summary",
-                "data": {
-                    "top_code": out.get("code"),
-                    "top_code_type": type(out.get("code")).__name__,
-                    "nested_data_code": (_dc.get("code") if _dc else None),
-                    "session_verify_after": getattr(self, "_verify_status", None),
-                    "out_keys": list(out.keys())[:24],
-                },
-                "timestamp": int(time.time() * 1000),
-            }
-            with open(_ROOT / "debug-eb180b.log", "a", encoding="utf-8") as _af:
-                _af.write(json.dumps(_payload, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
-        # #endregion
+        vs_out = getattr(self, "_verify_status", None)
+        if vs_out is not None:
+            try:
+                out["verifyStatus"] = int(vs_out)
+            except Exception:
+                out["verifyStatus"] = vs_out
         return out
 
     def cancel_account(self) -> dict:
@@ -5273,31 +5314,6 @@ class Session:
                 }
             ],
         }
-        # region agent log
-        try:
-            import json as _dbg_json
-            import time as _dbg_time
-            with open(_ROOT / "debug-eb180b.log", "a", encoding="utf-8") as _dbg_f:
-                _dbg_f.write(_dbg_json.dumps({
-                    "sessionId": "eb180b",
-                    "runId": "ops-update-v1",
-                    "hypothesisId": "H5",
-                    "location": "app.py:order_ops_update_h5:payload",
-                    "message": "payload_built",
-                    "data": {
-                        "path": "/xhr/front/trade/order/ops/update",
-                        "hasAddressInfo": isinstance(body.get("addressInfo"), dict),
-                        "hasShipAddressId": bool(body.get("addressInfo", {}).get("shipAddressId")),
-                        "deliverMethod": body.get("deliverMethod"),
-                        "orderLevelType": type(body.get("orderLevel")).__name__,
-                        "itemListLen": len(body.get("itemList") or []),
-                        "itemKeys": sorted(list((body.get("itemList") or [{}])[0].keys())),
-                    },
-                    "timestamp": int(_dbg_time.time() * 1000),
-                }, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
-        # endregion
         ref = (referer or "").strip() or f"{H5_HOST}/"
         h = self._h5_hdr(body, ref=ref, rush=False)
         h["Host"] = "h5.moutai519.com.cn"
@@ -5332,28 +5348,6 @@ class Session:
                 out["message"] = j.get("message")
         except Exception:
             out["jsonParseError"] = True
-        # region agent log
-        try:
-            import json as _dbg_json
-            import time as _dbg_time
-            with open(_ROOT / "debug-eb180b.log", "a", encoding="utf-8") as _dbg_f:
-                _dbg_f.write(_dbg_json.dumps({
-                    "sessionId": "eb180b",
-                    "runId": "ops-update-v1",
-                    "hypothesisId": "H5",
-                    "location": "app.py:order_ops_update_h5:response",
-                    "message": "response_got",
-                    "data": {
-                        "httpStatus": out.get("httpStatus"),
-                        "ok": out.get("ok"),
-                        "code": out.get("code"),
-                        "hasJson": bool(out.get("json")),
-                    },
-                    "timestamp": int(_dbg_time.time() * 1000),
-                }, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
-        # endregion
         return out
 
     def order_ops_cancel_h5(
@@ -5806,7 +5800,9 @@ class Session:
                 with lock:
                     rows[index] = row
                     results[index] = last_one if isinstance(last_one, dict) else {"code": -1, "message": "invalid result"}
-                    if isinstance(last_one, dict) and _rush_row_stop_rush(last_one):
+                    if isinstance(last_one, dict) and (
+                        _rush_row_stop_rush(last_one) or _rush_row_success(last_one)
+                    ):
                         stop_event.set()
                 if shot_callback:
                     try:
@@ -5914,11 +5910,38 @@ class Session:
                 return False
         return False
 
-    def _rush_max_attempts(self) -> int:
+    def _rush_soft429_retry_budget(self) -> int:
+        """
+        未在 WebUI 指定 rush_loop_attempts 时的额外 hop 预算。
+        MT_RUSH_SOFT429_RETRY=auto（默认）时按代理池规模放大；显式数字则原样使用。
+        """
+        raw = (os.environ.get("MT_RUSH_SOFT429_RETRY") or "auto").strip().lower()
+        if raw in ("0", "off", "false", "no"):
+            return 0
+        if raw != "auto":
+            try:
+                return max(0, min(50, int(raw)))
+            except (TypeError, ValueError):
+                pass
+        pool_n = 0
         try:
-            soft_retry = max(0, int(os.environ.get("MT_RUSH_SOFT429_RETRY", "1") or 1))
-        except (TypeError, ValueError):
-            soft_retry = 1
+            from proxy_pool import active_urls
+
+            pool_n = len(active_urls())
+        except Exception:
+            pool_n = 0
+        if pool_n >= 10000:
+            return 12
+        if pool_n >= 5000:
+            return 8
+        if pool_n >= 1000:
+            return 5
+        if pool_n >= 200:
+            return 3
+        return 2
+
+    def _rush_max_attempts(self) -> int:
+        soft_retry = self._rush_soft429_retry_budget()
         can_rotate = self._rush_soft429_multi_hop_allowed()
         return 1 + (soft_retry if can_rotate else 0)
 
@@ -6227,7 +6250,9 @@ class Session:
                     f"{row.get('message')}",
                     flush=True,
                 )
-                if isinstance(last, dict) and _rush_row_stop_rush(last):
+                if isinstance(last, dict) and (
+                    _rush_row_stop_rush(last) or _rush_row_success(last)
+                ):
                     break
                 if i < total_try - 1:
                     wait_ms = gap_ms
@@ -6386,6 +6411,12 @@ class Session:
             if isinstance(last, dict) and _rush_row_stop_rush(last):
                 print(
                     f"[抢购] 检测到限购/停抢类提示，不再发射后续枪（已发 {i + 1}/{max_try}）",
+                    flush=True,
+                )
+                break
+            if isinstance(last, dict) and _rush_row_success(last):
+                print(
+                    f"[抢购] 业务成功(code=2000)，停枪并保留结果（已发 {i + 1}/{max_try}）",
                     flush=True,
                 )
                 break
