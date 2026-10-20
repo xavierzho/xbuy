@@ -417,30 +417,31 @@ def json_serialize(value: Any, depth: int = 0) -> Any:
     if isinstance(value, (list, tuple)):
         if next_depth > 10:
             return "[]"
-        items = [json_serialize_1_9_6(item, next_depth) for item in value]
+        items = [json_serialize(item, next_depth) for item in value]
         return json.dumps([item for item in items if item != "|-|-|"], ensure_ascii=False, separators=(",", ":"))
     if next_depth > 10:
         return ""
     if isinstance(value, dict):
         output = ""
         for key in sorted(value.keys(), key=str):
-            entry = json_serialize_1_9_6(value[key], next_depth)
+            entry = json_serialize(value[key], next_depth)
             if entry != "|-|-|":
                 output += f"{key}={_js_string(entry)};"
         return output
     return str(value)
 
 
-def object_to_array_1_9_6(obj: dict[str, Any]) -> list[Any]:
+def object_to_array(obj: dict[str, Any]) -> list[Any]:
+    """与 nodejs/bb/bb_sdk.js ``objectToArray`` 一致（与 App 版本号无关）。"""
     result: list[Any] = []
     for key in sorted(obj.keys(), key=str):
         if key == "$1":
             continue
         value = obj[key]
         if isinstance(value, dict):
-            result.append(object_to_array_1_9_6(value))
+            result.append(object_to_array(value))
         elif isinstance(value, list):
-            result.append([object_to_array_1_9_6(item) if isinstance(item, dict) else item for item in value])
+            result.append([object_to_array(item) if isinstance(item, dict) else item for item in value])
         else:
             result.append(value)
     return result
@@ -884,7 +885,7 @@ def build_bb_headers_py(
     sign_wasm_bytes: bytes | None = None,
 ) -> dict[str, Any]:
     now = int(now_ms if now_ms is not None else time.time() * 1000)
-    canonical = json_serialize_1_9_6(body)
+    canonical = json_serialize(body)
     nonce = random_id or node_random_id(now)
     sign = fingerprint_hash(canonical, seed=27, cap=4096, tail=nonce)
     active_wasm = sign_wasm_bytes
@@ -911,7 +912,7 @@ def build_bb_headers_py(
         "140": str(wasm_version or ""),
         "141": sign_wac or "",
     }
-    payload_array = object_to_array_1_9_6(payload)
+    payload_array = object_to_array(payload)
     plain = json.dumps(payload_array, ensure_ascii=False, separators=(",", ":"))
     encrypt_method = "sm4"
     encrypt_error = ""
@@ -992,7 +993,7 @@ def build_du_cookie_py(
         "111": str(hp or ""),
         "113": now,
     }
-    payload_array = object_to_array_1_9_6(payload)
+    payload_array = object_to_array(payload)
     smk = node_random_id(now)
     key = sm4_key(smk)
     iv = xor_hex_with_one(smk)
@@ -1006,13 +1007,13 @@ def bb_du_cookie(**kwargs) -> str:
 
 # ============================================================
 # 梆梆暖场上报（POST /bbprbdata/upload）
-# 与 maotai-seckill-share2 2/maotai-seckill.js warmupBangcleRiskFlow_1_9_6 对齐
-# 上报走 SM4-CBC（不走 wasm.en），body 即 processData_1_9_6(payload) 的输出
+# 与 nodejs/bb/bb_sdk.js buildBangcleUploadInfoPayload / processData 对齐
+# 上报走 SM4-CBC（不走 wasm.en），body 即 processData(objectToArray(payload)) 的输出
 # ============================================================
 
 WARMUP_UPLOAD_URL = "https://fk1.moutai519.com.cn/bangcle/bbprbdata/upload"
 
-# 来自 maotai-seckill.js:245-295 LIVE_BB_DEVICE_INFO_TEMPLATE_1_9_6
+# 设备指纹模板（自 H5 / 对标脚本整理，非 App 1.9.6 专属）
 # 真机 dump 出的浏览器/显示/环境/数学函数指纹
 _DEVICE_INFO_TEMPLATE_BROWSER: list[Any] = [
     "f799d6fa", "", "", 8, 8,
@@ -1062,7 +1063,7 @@ def build_device_info_for_account(
 ) -> dict:
     """按账号 seed 派生稳定 deviceInfo（每账号一份，固化后不变）。
 
-    与 maotai-seckill.js:2532 buildBangcleDeviceInfo_1_9_6 结构一致。
+    与 bb_sdk buildBangcleDeviceInfo 结构一致。
     100=browser, 200=display, 300=env, 400=math, 500=cookies, 600=pageUrl, 700=jsid, 800=uaid
 
     UA 自洽：调用方传入 user_agent / gpu / screen_resolution，函数把这些值塞进对应位置；
@@ -1148,7 +1149,7 @@ def build_device_info_for_account(
         key = f"0{index}" if index < 10 else str(index)
         math_section[key] = value
 
-    # 去掉 page_url 的 query/hash（与 JS stripQueryAndHash_1_9_6 一致）
+    # 去掉 page_url 的 query/hash（与 bb_sdk stripQueryAndHash 一致）
     page_clean = str(page_url or "https://h5.moutai519.com.cn/")
     for sep in ("#", "?"):
         if sep in page_clean:
@@ -1185,7 +1186,7 @@ def build_upload_info_payload_py(
 ) -> tuple[str, dict]:
     """构造 bbprbdata/upload 的加密 body。
 
-    对应 maotai-seckill.js buildBangcleUploadInfoPayloadObject_1_9_6 + processData_1_9_6。
+    对应 bb_sdk buildBangcleUploadInfoPayloadObject + processData。
     返回 (encrypted_body_str, debug_dict)。
 
     payload 顶层 12 个字段（按 key 字符串排序后 → object_to_array → SM4 加密）：
@@ -1211,7 +1212,7 @@ def build_upload_info_payload_py(
         "101": device_info if isinstance(device_info, dict) else {},
         "102": [],
     }
-    payload_array = object_to_array_1_9_6(payload_obj)
+    payload_array = object_to_array(payload_obj)
     plain = json.dumps(payload_array, ensure_ascii=False, separators=(",", ":"))
 
     outer_smk = smk or node_random_id(now)
@@ -1241,10 +1242,10 @@ __all__ = [
     "build_device_info_for_account",
     "build_upload_info_payload_py",
     "fingerprint_hash",
-    "json_serialize_1_9_6",
+    "json_serialize",
     "load_sign_wasm_bytes",
     "node_random_id",
-    "object_to_array_1_9_6",
+    "object_to_array",
     "run_wac",
     "sm4_decrypt_cbc_hex",
     "sm4_encrypt_cbc_hex",

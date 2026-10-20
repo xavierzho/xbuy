@@ -17,7 +17,7 @@ from bangcle.constants import (
     WASM_SIGN_VERSION_KEY,
 )
 from bangcle.crypto_bb import process_data, sm4_decrypt_json_value, sm4_encrypt_json_value
-from bangcle.sdk import object_to_array_1_9_6
+from bangcle.sdk import object_to_array
 
 DEFAULT_STORAGE_TTL_MS = 86_400_000
 PERSISTENT_STORAGE_TTL_MS = 259_200_000_000
@@ -63,7 +63,7 @@ def build_du_cookie_value(ctx: dict, *, now_ms: int, user_agent: str, page_domai
         "111": ctx.get("hp") or "",
         "113": now_ms,
     }
-    return process_data(ctx, object_to_array_1_9_6(payload))
+    return process_data(ctx, object_to_array(payload))
 
 
 def build_wrapped_state(ctx: dict, *, now_ms: int, page_domain: str, user_agent: str, h_c: str = "1") -> dict:

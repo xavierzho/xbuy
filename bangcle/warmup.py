@@ -335,9 +335,9 @@ def run_bangcle_warmup(input_data: dict | None = None, *, timeout: float = 20.0)
         "101": dev_info if isinstance(dev_info, dict) else None,
         "102": [],
     }
-    from bangcle.sdk import object_to_array_1_9_6
+    from bangcle.sdk import object_to_array
 
-    upload_body = process_data(session, object_to_array_1_9_6(upload_payload))
+    upload_body = process_data(session, object_to_array(upload_payload))
     upload_url = _upload_url(session)
     upload_resp = requests.post(
         upload_url,

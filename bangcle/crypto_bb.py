@@ -5,7 +5,6 @@ from typing import Any
 
 from bangcle.sdk import (
     node_random_id,
-    object_to_array_1_9_6,
     sm4_decrypt_cbc_hex,
     sm4_encrypt_cbc_hex,
     sm4_key,

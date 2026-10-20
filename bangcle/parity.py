@@ -16,7 +16,7 @@ from bangcle.constants import (
 )
 from bangcle.context import apply_remote_strategy, create_bb_context, strip_query_and_hash
 from bangcle.crypto_bb import process_data
-from bangcle.sdk import SDK_VERSION, load_sign_wasm_bytes, object_to_array_1_9_6
+from bangcle.sdk import SDK_VERSION, load_sign_wasm_bytes, object_to_array
 from bangcle.wrapped_state import build_wrapped_state
 from parity.context import parity_context_from_fixture
 from project_versions import BB_SIGN_WASM
@@ -224,7 +224,7 @@ def build_bangcle_warmup_parity_artifacts(fixture: dict | None = None) -> dict:
         "101": dev_info if isinstance(dev_info, dict) else None,
         "102": [],
     }
-    upload_body = process_data(session, object_to_array_1_9_6(upload_payload))
+    upload_body = process_data(session, object_to_array(upload_payload))
     upload_url = _upload_url(session)
     upload_status = int(fixture.get("uploadStatus") or 200)
     if 200 <= upload_status < 300:
