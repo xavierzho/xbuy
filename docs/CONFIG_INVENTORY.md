@@ -64,6 +64,10 @@
 | `MT_RUSH_SOFT429_ROTATE` | `1` | Go 遇 HTTP 429 且 body 为 `1`/`2` 时，池≥50 条则换 IP 再试 |
 | `MT_RUSH_SOFT429_ROTATE_MIN_POOL` | `50` | 上项生效所需最小代理池条数 |
 | `MT_COMPOSE_USE_RUSH_PIN` | `1` | 组单/下单沿用抢购成功出口 |
+| `MT_COMPOSE_TWO_STEP` | `1` | 优先购 compose 先 `deliverMethod=-1` 无地址，再带地址组单（对齐 App grad 链路） |
+| `MT_RUSH_ALLOW_BRANCH_MISMATCH` | 空 | 设为 `1` 时允许手动 branch 与商品库不一致（默认阻断，减少 branch/one 误打 4293） |
+| `MT_RUSH_ALLOW_ACT_MISMATCH` | 空 | 设为 `1` 时允许手动 actId 与 purchaseInfoV2 不一致 |
+| `MT_PAY_CHANNEL_ALIPAY` | `71` | `requestPay` 的 `PAY_CHANNEL`（WebUI `/api/pay`、`/api/gateway`、`/api/accounts/pay_link` 默认；Android 可设 `70`） |
 | `MT_PAY_ORDER_USE_RUSH_PROXY` | `1` | 支付请求沿用抢购成功出口 |
 | `MT_PAY_LINK_USE_RUSH_SUCCESS` | `1` | 转支付链接沿用抢购成功出口 |
 | `MT_PROXY_POOL_NO_DIRECT` | 空 | 代理池失败后是否禁止直连兜底 |

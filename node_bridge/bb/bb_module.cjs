@@ -18,9 +18,6 @@ const STATE_TEMPLATE_PATH = path.join(__dirname, 'live_bangcle_state.json');
 const DEFAULT_SIGN_WASM_VERSION = VERSION.signWasmVersion;
 const LOCAL_SIGN_WASM_CANDIDATES = [
     path.join(__dirname, 'sign_wasm.bin'),
-    path.join(__dirname, 'ext.bin'),
-    path.join(__dirname, '..', '..', 'sign_wasm.bin'),
-    path.join(__dirname, '..', '..', 'ext.bin'),
 ];
 
 const SDK_VERSION = VERSION.sdkVersion;

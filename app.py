@@ -68,6 +68,7 @@ _YIDUN_CAPTCHA_ID_BY_DETAIL_KIND = {
     "smsp-detail": "1e1ea52963a94c21b0babc42b2b5b910",
     "jpmt-detail": "22912abb4c484691b71f6efaf778c252",
     "1000ml-detail": "3fde6da0bf4d41c39ef99de8ba977d50",
+    "grad-detail": "3fde6da0bf4d41c39ef99de8ba977d50",
     "mm-485-detail-group": "c2657d2cc1f248a78c5a06980923dba5",
     "mm-zx-271-detail": "c2657d2cc1f248a78c5a06980923dba5",
     "hxx-detail": "c2657d2cc1f248a78c5a06980923dba5",
@@ -78,6 +79,8 @@ _YIDUN_CAPTCHA_ID_BY_ITEM_CODE = {
     "1741": "22912abb4c484691b71f6efaf778c252",
     "483": "3fde6da0bf4d41c39ef99de8ba977d50",
     "IMTP1000229": "3fde6da0bf4d41c39ef99de8ba977d50",
+    "5": "3fde6da0bf4d41c39ef99de8ba977d50",
+    "IMTP1000265": "3fde6da0bf4d41c39ef99de8ba977d50",
     "11942": "c2657d2cc1f248a78c5a06980923dba5",
     "11945": "c2657d2cc1f248a78c5a06980923dba5",
     "11947": "c2657d2cc1f248a78c5a06980923dba5",
@@ -90,6 +93,8 @@ _YIDUN_REFERER_BY_ITEM_CODE = {
     "1741": "https://h5.moutai519.com.cn/mt/item/jpmt-detail?appConfig=2_1_2",
     "483": "https://h5.moutai519.com.cn/mt/item/1000ml-detail?appConfig=2_1_2",
     "IMTP1000229": "https://h5.moutai519.com.cn/mt/item/1000ml-detail?appConfig=2_1_2",
+    "5": "https://h5.moutai519.com.cn/mt/item/grad-detail?gt=ft_200&appConfig=2_1_2",
+    "IMTP1000265": "https://h5.moutai519.com.cn/mt/item/grad-detail?gt=ft_200&appConfig=2_1_2",
     "11942": "https://h5.moutai519.com.cn/mt/item/mm-485-detail-group?appConfig=2_1_2",
     "11945": "https://h5.moutai519.com.cn/mt/item/mm-zx-271-detail?appConfig=2_1_2",
     "11947": "https://h5.moutai519.com.cn/mt/item/mm-485-detail-group?appConfig=2_1_2",
@@ -1863,18 +1868,13 @@ def _yidun_captcha_id_for_context(
     item_code: str = "",
 ) -> str:
     explicit = str(captcha_id or "").strip()
+    if explicit:
+        return explicit
     code = str(item_code or "").strip()
     by_item = _YIDUN_CAPTCHA_ID_BY_ITEM_CODE.get(code)
     kind = _yidun_detail_kind_from_referer(referer)
     by_kind = _YIDUN_CAPTCHA_ID_BY_DETAIL_KIND.get(kind)
-    resolved = by_item or by_kind or explicit or _TTOCR_CAPTCHA_ID
-    if explicit and explicit != resolved:
-        print(
-            f"[验证] 修正易盾 captchaId {explicit[:8]}... -> {resolved[:8]}... "
-            f"(item={code or '-'} refererKind={kind or '-'})",
-            flush=True,
-        )
-    return resolved
+    return by_item or by_kind or _TTOCR_CAPTCHA_ID
 
 
 def _yidun_referer_for_context(referer: str = "", item_code: str = "") -> str:
@@ -3271,6 +3271,24 @@ class Session:
         last["rushProxyHost"] = th
         if ts is not None:
             last["rushProxySlot"] = ts
+        path = str(getattr(self, "_last_rush_path", "") or "").strip()
+        if path:
+            last.setdefault("rushPath", path)
+        data = last.get("data") if isinstance(last.get("data"), dict) else {}
+        dbg = {
+            "rushPath": path or last.get("rushPath"),
+            "userVerifyStatus": data.get("userVerifyStatus"),
+            "captchaId": data.get("captchaId"),
+            "priorityRecordId": data.get("priorityRecordId"),
+        }
+        if isinstance(last.get("verifyResult"), dict):
+            vr = last["verifyResult"]
+            dbg["verifyCode"] = vr.get("code")
+            for row in reversed(last.get("rushLoopTrace") or []):
+                if isinstance(row, dict) and row.get("ms") and "易盾" in str(row.get("message") or ""):
+                    dbg["verifyMs"] = row.get("ms")
+                    break
+        last["_rushDebug"] = {k: v for k, v in dbg.items() if v is not None and v != ""}
 
     def _proxy_rotation_len(self) -> int:
         if getattr(self, "_proxy_per_account_chain", False) and self._proxy_rotation_chain:
@@ -4173,7 +4191,7 @@ class Session:
         return dict(pairs)
 
     def _ensure_bb_state(self) -> None:
-        """兼容旧调用；抢购 BB 固定由 shield.py 加载 runtime.wasm/ext.bin。"""
+        """兼容旧调用；抢购 BB 固定由 shield.py 加载 node_bridge/bb/runtime.wasm 与 sign_wasm.bin。"""
         return None
 
     def _notify_bb_warmup_updated(self) -> None:
@@ -4456,6 +4474,7 @@ class Session:
             path = f"/xhr/front/trade/priority/rushPurchase/hot/branch/{br}"
         else:
             path = "/xhr/front/trade/priority/rushPurchase"
+        self._last_rush_path = path
         url = f"{H5_HOST}{path}"
         print(f"[抢购] {item} x{amount} path={path}")
         return url, body, ref
@@ -6888,26 +6907,44 @@ class Session:
         except (TypeError, ValueError):
             return {"code": -1, "message": f"priorityRecordId 无效: {rec_id!r}"}
         ship_id = addr.get("shipAddressId", 0)
-        act_param_obj = {
-            "deliverMethod": int(dm),
-            "itemList": [{"storeId": str(store), "spuId": str(spu), "count": int(cnt)}],
-            "addressInfo": {"shipAddressId": ship_id},
-            "userPriorityInfo": {
-                "priorityRecordId": prid,
-                "shopId": "",
-                "inventorySource": int(inv),
-            },
-            "selfLatitude": "",
-            "selfLongitude": "",
-        }
-        act_param = self._act_param_aes(act_param_obj)
-        request_body_obj = {
-            "deliverMethod": int(dm),
-            "addressInfo": {"shipAddressId": ship_id},
-            "itemList": [{"storeId": str(store), "spuId": str(spu), "count": int(cnt)}],
-            "actParam": act_param,
-        }
-        body_str = _json_min(request_body_obj)
+        two_step = (os.environ.get("MT_COMPOSE_TWO_STEP", "1") or "1").strip().lower() not in (
+            "0",
+            "false",
+            "no",
+            "off",
+        )
+
+        def _build_compose_body(deliver_method: int, *, with_address: bool) -> str:
+            act_obj = {
+                "deliverMethod": int(deliver_method),
+                "itemList": [{"storeId": str(store), "spuId": str(spu), "count": int(cnt)}],
+                "userPriorityInfo": {
+                    "priorityRecordId": prid,
+                    "shopId": "",
+                    "inventorySource": int(inv),
+                },
+                "selfLatitude": 0 if deliver_method == -1 else "",
+                "selfLongitude": 0 if deliver_method == -1 else "",
+            }
+            if with_address and ship_id:
+                act_obj["addressInfo"] = {"shipAddressId": ship_id}
+            act_param = self._act_param_aes(act_obj)
+            req: dict = {
+                "deliverMethod": int(deliver_method),
+                "itemList": [{"storeId": str(store), "spuId": str(spu), "count": int(cnt)}],
+                "actParam": act_param,
+                "userPriorityInfo": {
+                    "priorityRecordId": prid,
+                    "inventorySource": int(inv),
+                },
+                "selfLatitude": 0 if deliver_method == -1 else "",
+                "selfLongitude": 0 if deliver_method == -1 else "",
+            }
+            if with_address and ship_id:
+                req["addressInfo"] = {"shipAddressId": ship_id}
+            return _json_min(req)
+
+        body_str = _build_compose_body(int(dm), with_address=bool(ship_id))
         if use_rush_pin is None:
             use_rush_pin = (os.environ.get("MT_COMPOSE_USE_RUSH_PIN", "1") or "1").strip().lower() not in (
                 "0",
@@ -6959,6 +6996,13 @@ class Session:
         last_out: dict | None = None
         url_c = f"{API_HOST}/xhr/front/trade/order/standard/compose/v2"
         attempts_done = 0
+
+        pending_compose_step2 = False
+        if two_step and ship_id:
+            _clog("两步组单：先 deliverMethod=-1（无地址），再带地址 deliverMethod=1")
+            body_str = _build_compose_body(-1, with_address=False)
+            pending_compose_step2 = True
+            dm = 1
 
         for i in range(attempt_limit):
             direct = bool(getattr(self, "_force_order_chain_direct", False))
@@ -7024,6 +7068,11 @@ class Session:
                 _clog(line)
                 if biz_code == 2000 and isinstance(res_obj.get("data"), dict):
                     self._last_rush_compose_data = res_obj["data"]
+                if biz_code == 2000 and pending_compose_step2:
+                    pending_compose_step2 = False
+                    body_str = _build_compose_body(1, with_address=True)
+                    _clog("两步组单：首轮成功，继续带地址组单")
+                    continue
                 out = dict(res_obj)
                 out["_composeTrace"] = trace
                 _clog(f"结束 共尝试 {attempts_done} 次 最终业务 code={out.get('code')}")
@@ -7106,10 +7155,18 @@ class Session:
         prom_id_list: list = []
         source_from_compose = ""
 
+        priority_shop_id = ""
+        item_store_id = "0"
         if isinstance(cdata, dict) and cdata:
             up = cdata.get("userPriorityComposeResult") or {}
             ps = (up.get("priorityStoreInfo") or {})
             compose_store_id = ps.get("storeId")
+            priority_shop_id = str(
+                ps.get("shopId") or compose_store_id or ""
+            ).strip()
+            cs = str(compose_store_id or "").strip()
+            if cs and not cs.startswith("MAOTAI"):
+                item_store_id = cs
             transaction_id = cdata.get("transactionId")
             deliver_method_list = cdata.get("deliverMethodList") or deliver_method_list
             prom_id_list = cdata.get("promIdList") or []
@@ -7117,8 +7174,8 @@ class Session:
 
         # 对齐 mt1.9.5/mt：无 transactionId 时生成 1_xxx_ms_xxx_uid
         shop_fb = (shop or "").strip()
-        if not compose_store_id and shop_fb:
-            compose_store_id = shop_fb
+        if not priority_shop_id and shop_fb:
+            priority_shop_id = shop_fb
         if not transaction_id:
             rnd9 = random.randint(100000000, 999999999)
             rnd3 = random.randint(100, 999)
@@ -7126,12 +7183,12 @@ class Session:
             uid_s = str(self._uid or "0").strip() or "0"
             transaction_id = f"1_{rnd9}_{ms}_{rnd3}_{uid_s}"
 
-        if not compose_store_id:
+        if not priority_shop_id:
             return {
                 "code": -1,
                 "message": (
-                    "缺少门店 storeId：请先组单成功并传入 composeData，"
-                    "或在无组单下单时提供 composeShopId（与 compose 返回的 priorityStoreInfo.storeId 一致）"
+                    "缺少门店信息：请先组单成功并传入 composeData，"
+                    "或在无组单下单时提供 composeShopId（与 compose 返回的 priorityStoreInfo 一致）"
                 ),
                 "debug": (
                     {"keys": list(cdata.keys())[:20]}
@@ -7172,13 +7229,13 @@ class Session:
             "transactionId": transaction_id,
             "deliverMethod": 1,
             "itemList": [
-                {"storeId": compose_store_id, "spuId": str(spu), "count": int(cnt)}
+                {"storeId": item_store_id, "spuId": str(spu), "count": int(cnt)}
             ],
             "addressInfo": address_info,
             "payChannel": 0,
             "userPriorityInfo": {
                 "priorityRecordId": prid,
-                "shopId": compose_store_id,
+                "shopId": priority_shop_id,
                 "inventorySource": 0,
             },
             "deliverMethodList": deliver_method_list,
@@ -7192,7 +7249,7 @@ class Session:
             "transactionId": transaction_id,
             "deliverMethod": 1,
             "itemList": [
-                {"storeId": compose_store_id, "spuId": str(spu), "count": int(cnt)}
+                {"storeId": item_store_id, "spuId": str(spu), "count": int(cnt)}
             ],
             "actParam": act_param,
             "addressInfo": address_info,
@@ -7200,6 +7257,11 @@ class Session:
             "source": "",
             "sourceId": source_id,
             "ignorePromInconsistent": False,
+            "userPriorityInfo": {
+                "priorityRecordId": prid,
+                "shopId": priority_shop_id,
+                "inventorySource": 0,
+            },
         }
         body_str = _json_min(request_body_obj)
         if use_rush_pin is None:
@@ -7239,15 +7301,19 @@ class Session:
     def pay(self, oid, method=0, channel="70"):
         if getattr(self, "_force_order_chain_direct", False):
             self.force_order_chain_direct()
-        # 支付通道与 requestPay 保持一致：按传入 channel 取 TN，避免「TN 来源通道」与 requestPay 的 PAY_CHANNEL 不一致。
+        # App：/order/pay 仅 orderId + payChannel:0；requestPay 的 PAY_CHANNEL 由 gateway(channel=…) 单独指定。
         oid_s = str(oid)
         m = int(method)
         ch = str(channel or "70").strip() or "70"
         attempts = [
-            ("channel+method", {"orderId": oid_s, "payChannel": ch, "payMethod": m}),
-            ("channel", {"orderId": oid_s, "payChannel": ch}),
-            ("method", {"orderId": oid_s, "payMethod": m}),
+            ("payChannel-0", {"orderId": oid_s, "payChannel": 0}),
         ]
+        if m:
+            attempts.append(("payMethod", {"orderId": oid_s, "payMethod": m, "payChannel": 0}))
+        if ch not in ("0", "70", "71"):
+            attempts.append(
+                ("legacy-channel", {"orderId": oid_s, "payChannel": ch, "payMethod": m})
+            )
         self._order_pay_egress_for_gateway = None
         last = None
         for i, (tag, body) in enumerate(attempts):

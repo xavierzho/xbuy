@@ -43,21 +43,23 @@ fi
 "${VENV_PY}" -m pip install --upgrade pip
 "${VENV_PY}" -m pip install -r requirements.txt
 
-install_node_deps() {
-  local dir="$1"
-  if [[ -f "${dir}/package.json" ]]; then
-    if command -v npm >/dev/null 2>&1; then
+if [[ -f "${ROOT_DIR}/package.json" ]] && command -v npm >/dev/null 2>&1; then
+  echo "[bootstrap] npm install (workspaces: node_bridge, bs_dvid_node, local_yidun/service)"
+  (cd "${ROOT_DIR}" && npm install)
+elif command -v npm >/dev/null 2>&1; then
+  install_node_deps() {
+    local dir="$1"
+    if [[ -f "${dir}/package.json" ]]; then
       echo "[bootstrap] npm install ${dir}"
       (cd "${dir}" && npm install)
-    else
-      echo "[bootstrap] skip ${dir}: npm not found" >&2
     fi
-  fi
-}
-
-install_node_deps "node_bridge"
-install_node_deps "bs_dvid_node"
-install_node_deps "local_yidun/service"
+  }
+  install_node_deps "node_bridge"
+  install_node_deps "bs_dvid_node"
+  install_node_deps "local_yidun/service"
+else
+  echo "[bootstrap] skip node deps: npm not found" >&2
+fi
 
 if [[ -d "go_bridge" ]]; then
   if command -v go >/dev/null 2>&1; then

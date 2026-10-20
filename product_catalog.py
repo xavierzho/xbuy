@@ -94,6 +94,15 @@ _BUILTIN_MT_ITEM_LIST: list[dict] = [
         "referer": "https://h5.moutai519.com.cn/mt/item/jpmt-detail?appConfig=2_1_2",
         "branch": "three",
     },
+    {
+        "code": "5",
+        "name": "飞天53%vol 200ml贵州茅台酒",
+        "spuId": "IMTP1000265",
+        "itemPriorityActId": 0,
+        "amount": 2,
+        "referer": "https://h5.moutai519.com.cn/mt/item/grad-detail?gt=ft_200&appConfig=2_1_2",
+        "branch": "",
+    },
 ]
 
 DETAIL_KIND_BRANCH_MAP = {

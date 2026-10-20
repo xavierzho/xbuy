@@ -5,7 +5,8 @@
 初始化依赖：
 
 ```bash
-bash scripts/bootstrap.sh
+bash scripts/bootstrap.sh   # Python venv + 根目录 npm install (workspaces) + go_bridge
+# 仅 Node 依赖：npm install
 ```
 
 启动主控 WebUI：

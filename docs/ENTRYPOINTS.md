@@ -31,6 +31,9 @@
 | `node_bridge/server.cjs` | Node bridge，BB SDK、curl worker 等兼容能力 | `19090` 起 |
 | `public_gate.py` | cloudflared 公开页白名单代理，只暴露上号/查单相关页面 | `18089` 或配置值 |
 | `local_yidun/service/app_api.js` | 本地易盾服务 | `8887` |
+| 根目录 `package.json` | **npm workspaces**：一次 `npm install` 安装上述 Node 依赖 | — |
+
+Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
 | `local_yidun/ddddocr-fastapi/app/main.py` | 本地 OCR FastAPI | `8000` |
 
 ## 前端页面
@@ -83,7 +86,7 @@
 
 | 目录 | 用途 |
 | --- | --- |
-| `tools/TraceLens/` | TraceLens 日志抓取、参数审计 |
+| `tools/TraceLens/` | TraceLens 日志抓取、参数审计；排查 rush/验码/组单/支付请用 `scripts/capture_tracelens_log.sh --full`（`--api` 看不到 H5 `purchaseInfoV2` / `rushPurchase`） |
 | `node_bridge/reverse/` | BB 资源历史归档（`update.cjs` 自动写入） |
 | `frp_mt_ws/` | FRP 主控/worker 公网映射脚本 |
 

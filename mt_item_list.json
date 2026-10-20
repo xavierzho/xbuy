@@ -1,5 +1,5 @@
 {
-  "_comment": "与 mt1.9.10/mt/test-full-flow.js ITEM_LIST 逐项一致；抢购/商品管理默认只展示本列表（8 条）。",
+  "_comment": "与 mt1.9.10/mt/test-full-flow.js ITEM_LIST 逐项一致；抢购/商品管理默认展示本列表。",
   "items": [
     {
       "code": "11942",
@@ -75,6 +75,15 @@
       "amount": 6,
       "referer": "https://h5.moutai519.com.cn/mt/item/jpmt-detail?appConfig=2_1_2",
       "branch": "three"
+    },
+    {
+      "code": "5",
+      "name": "飞天53%vol 200ml贵州茅台酒",
+      "spuId": "IMTP1000265",
+      "itemPriorityActId": 0,
+      "amount": 2,
+      "referer": "https://h5.moutai519.com.cn/mt/item/grad-detail?gt=ft_200&appConfig=2_1_2",
+      "branch": ""
     }
   ]
 }

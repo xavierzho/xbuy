@@ -55,9 +55,6 @@ from app import (
     _NodeHttpResponse,
     _batch_rush_parallel_cap,
     _ensure_go_bridge_running,
-    _ensure_node_bridge_running,
-    _node_bridge_port,
-    _node_bridge_ports,
     _go_bridge_should_run,
     _go_bridge_port,
     _kill_node_on_port,
@@ -3778,7 +3775,7 @@ def _normalize_priority_record_id_payload(res: object, trace: object = None) -> 
 _VERIFY_CACHE: dict[str, dict] = {}
 _VERIFY_CACHE_TS: dict[str, float] = {}
 _VERIFY_CACHE_LOCK = threading.Lock()
-_VERIFY_CACHE_TTL = 55
+_VERIFY_CACHE_TTL = 50
 
 
 def _verify_code_business_ok(vr: dict | None) -> bool:
@@ -4362,6 +4359,7 @@ MT_H5_REFERER_BY_ITEM_CODE = {
     "11652": "https://h5.moutai519.com.cn/mt/item/hxx-detail?appConfig=2_1_2&sourceId=IMTP1000260",
     "11945": "https://h5.moutai519.com.cn/mt/item/mm-zx-271-detail?appConfig=2_1_2",
     "2181": "https://h5.moutai519.com.cn/mt/item/detailV2?appConfig=2_1_2&id=IMTP1000002",
+    "5": "https://h5.moutai519.com.cn/mt/item/grad-detail?gt=ft_200&appConfig=2_1_2",
 }
 
 # 与 ui.html MT_DETAIL_KIND_BRANCH 一致：详情 path -> 抢购分支（空=走默认 rushPurchase）
@@ -4388,6 +4386,48 @@ _MT_ITEM_CODE_TO_BRANCH = {
     "11945": "two",
     "11894": "three",
 }
+
+
+def _default_alipay_pay_channel() -> str:
+    """requestPay PAY_CHANNEL；iOS 1.9.14 日志为 71，Android 常见 70。"""
+    return str(os.environ.get("MT_PAY_CHANNEL_ALIPAY", "71") or "71").strip() or "71"
+
+
+def _truthy_env(name: str) -> bool:
+    return (os.environ.get(name) or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _rush_branch_mismatch_error(item: str, referer: str, user_branch: str) -> str | None:
+    """用户手动填的分支与商品库不一致时默认阻断抢购（易打 branch/one 导致 4293）。"""
+    if _truthy_env("MT_RUSH_ALLOW_BRANCH_MISMATCH"):
+        return None
+    ub = str(user_branch or "").strip().lower()
+    if not ub:
+        return None
+    route = _resolve_mt_item_route(str(item or "").strip(), referer or "")
+    if not route.get("ok"):
+        return None
+    rec = str(route.get("branch") or "").strip().lower()
+    if ub == rec:
+        return None
+    rec_disp = rec if rec else "(默认 /rushPurchase，无 branch/one)"
+    return (
+        f"抢购分支「{ub}」与商品库推荐「{rec_disp}」不一致，已阻断。"
+        "请改分支或清空后由商品库自动填充；设 MT_RUSH_ALLOW_BRANCH_MISMATCH=1 可跳过。"
+    )
+
+
+def _rush_act_id_mismatch_error(payload_act_id: str, fetched_act_id: str) -> str | None:
+    if _truthy_env("MT_RUSH_ALLOW_ACT_MISMATCH"):
+        return None
+    pa = str(payload_act_id or "").strip()
+    fa = str(fetched_act_id or "").strip()
+    if not pa or not fa or pa == fa:
+        return None
+    return (
+        f"手动活动 ID「{pa}」与 purchaseInfoV2 当前「{fa}」不一致，已阻断。"
+        "请清空 actId 让系统自动拉取，或设 MT_RUSH_ALLOW_ACT_MISMATCH=1 跳过。"
+    )
 
 
 def _imtp_from_referer_query(ref: str) -> str:
@@ -4573,6 +4613,22 @@ def _rush_prepare_act(
     act_id = (act_id or "").strip()
     spu_imtp = (spu_imtp or "").strip()
     referer = (referer or "").strip()
+    payload_act_id = act_id
+    if act_id and spu_imtp:
+        fetched_id, pinfo_chk = s.fetch_priority_act_id(
+            spu_imtp, hot=bool(hot), referer=referer
+        )
+        err_act = _rush_act_id_mismatch_error(payload_act_id, fetched_id or "")
+        if err_act:
+            return {"ok": False, "error": err_act, "detail": pinfo_chk}
+        return {
+            "ok": True,
+            "act_id": act_id,
+            "spu_imtp": spu_imtp,
+            "referer": referer,
+            "route_info": None,
+            "pinfo": pinfo_chk,
+        }
     if act_id:
         return {
             "ok": True,
@@ -4716,9 +4772,11 @@ def _verify_rush_product_params(
         }
         rec_branch = str(route.get("branch") or "").strip().lower()
         if branch and rec_branch and branch != rec_branch:
-            warnings.append(
-                f"分支「{branch}」与商品库推荐「{rec_branch}」不一致"
-            )
+            msg = f"分支「{branch}」与商品库推荐「{rec_branch or '(默认 rushPurchase)'}」不一致"
+            if _truthy_env("MT_RUSH_ALLOW_BRANCH_MISMATCH"):
+                warnings.append(msg)
+            else:
+                issues.append(msg + "（开抢将被阻断）")
         rec_spu = str(route.get("spuId") or "").strip()
         if spu and rec_spu and spu != rec_spu:
             warnings.append(f"编号 {spu} 与库推荐 {rec_spu} 不一致")
@@ -5451,12 +5509,16 @@ def _batch_rush_prepare_one(payload: dict) -> dict:
     referer = str(payload.get("referer", "")).strip()
     amount = str(payload.get("amount", "1")).strip() or "1"
     source = str(payload.get("sourceId", "")).strip()
-    branch = str(payload.get("branch", "")).strip().lower()
+    user_branch = str(payload.get("branch", "")).strip().lower()
+    branch = user_branch
     need_code = bool(payload.get("needCode", False))
     if not phone:
         return {"ok": False, "phone": phone, "error": "phone 不能为空"}
     if not item:
         return {"ok": False, "phone": phone, "error": "商品 ID（itemCode）不能为空"}
+    br_err = _rush_branch_mismatch_error(item, referer, user_branch)
+    if br_err:
+        return {"ok": False, "phone": phone, "error": br_err}
     e = POOL.get(phone)
     if not e:
         return {"ok": False, "phone": phone, "error": "账号不存在"}
@@ -5482,6 +5544,9 @@ def _batch_rush_prepare_one(payload: dict) -> dict:
         referer = prep["referer"]
         route_info = prep.get("route_info")
         pinfo = prep.get("pinfo")
+        br_err2 = _rush_branch_mismatch_error(item, referer, user_branch)
+        if br_err2:
+            return {"ok": False, "phone": phone, "error": br_err2}
         if route_info:
             if not branch:
                 branch = str(route_info.get("branch", "") or "").strip().lower()
@@ -5587,13 +5652,17 @@ def _batch_rush_prepare_live_context(payload: dict) -> dict:
     referer = str(payload.get("referer", "")).strip()
     amount = str(payload.get("amount", "1")).strip() or "1"
     source = str(payload.get("sourceId", "")).strip()
-    branch = str(payload.get("branch", "")).strip().lower()
+    user_branch = str(payload.get("branch", "")).strip().lower()
+    branch = user_branch
     need_code = bool(payload.get("needCode", False))
     prep_breakdown = {"actSource": "payload" if act_id_from_payload else "auto"}
     if not phone:
         return {"ok": False, "phone": phone, "error": "phone 不能为空"}
     if not item:
         return {"ok": False, "phone": phone, "error": "商品 ID（itemCode）不能为空"}
+    br_err = _rush_branch_mismatch_error(item, referer, user_branch)
+    if br_err:
+        return {"ok": False, "phone": phone, "error": br_err, "prepBreakdown": prep_breakdown}
     step_t0 = time.perf_counter()
     e = POOL.get(phone)
     prep_breakdown["poolMs"] = int((time.perf_counter() - step_t0) * 1000)
@@ -5629,6 +5698,14 @@ def _batch_rush_prepare_live_context(payload: dict) -> dict:
         referer = prep["referer"]
         route_info = prep.get("route_info")
         pinfo = prep.get("pinfo")
+        br_err2 = _rush_branch_mismatch_error(item, referer, user_branch)
+        if br_err2:
+            return {
+                "ok": False,
+                "phone": phone,
+                "error": br_err2,
+                "prepBreakdown": prep_breakdown,
+            }
         if route_info:
             if not branch:
                 branch = str(route_info.get("branch", "") or "").strip().lower()
@@ -5752,7 +5829,9 @@ def _batch_rush_one_blocking(payload: dict, shot_emit=None) -> dict:
         )
         rush_only = _distributed_rush_only_mode()
         if not rush_only:
-            res = _handle_verify_if_needed(s, res, referer=referer)
+            res = _handle_verify_if_needed(
+                s, res, referer=referer, item_code=item
+            )
         pay = _batch_rush_pay_payload(phone, e, s, payload, prep, res, rush_only=rush_only)
         return {"ok": True, "phone": phone, "pay": pay}
     except Exception as ex:
@@ -5843,7 +5922,12 @@ def _batch_rush_one_mt_realtime(payload: dict, emit=None, task_index: int | None
         return {"ok": False, "phone": phone, "message": msg, "detail": em}
 
 
-def _handle_verify_if_needed(s, rush_res: dict, referer: str = "") -> dict:
+def _handle_verify_if_needed(
+    s,
+    rush_res: dict,
+    referer: str = "",
+    item_code: str = "",
+) -> dict:
     """
     When rushPurchase returns userVerifyStatus=1, run Yidun OCR + /verify/code
     immediately, then cache the successful verification for the later compose step.
@@ -5863,31 +5947,55 @@ def _handle_verify_if_needed(s, rush_res: dict, referer: str = "") -> dict:
     except (TypeError, ValueError):
         return rush_res
 
-    verify_ref = (referer or "").strip() or str(rush_res.get("_rushReferer") or "").strip()
-    print(f"[验证] rushPurchase 触发滑块验证 (priorityRecordId={prid})", flush=True)
+    verify_ref = _referer_for_verify_context(referer, item_code) or (
+        (referer or "").strip() or str(rush_res.get("_rushReferer") or "").strip()
+    )
+    captcha_id = str(data.get("captchaId") or "").strip()
+    sku = str(item_code or data.get("itemCode") or "").strip()
+    print(
+        f"[验证] rushPurchase 触发滑块验证 priorityRecordId={prid} "
+        f"captchaId={captcha_id[:8] + '…' if len(captcha_id) > 8 else captcha_id or '-'} "
+        f"item={sku or '-'}",
+        flush=True,
+    )
     s.force_order_chain_direct()
-    verify_res = s.verify_captcha(priority_record_id=prid, referer=verify_ref)
+    t0 = time.perf_counter()
+    verify_res = s.verify_captcha(
+        priority_record_id=prid,
+        captcha_id=captcha_id,
+        referer=verify_ref,
+        item_code=sku,
+    )
+    verify_ms = int((time.perf_counter() - t0) * 1000)
     rush_res = dict(rush_res)
     rush_res["verifyResult"] = verify_res
 
     verify_ok = _verify_code_business_ok(verify_res)
     verify_msg = (
-        "易盾滑块验证通过"
+        f"易盾滑块验证通过 ({verify_ms}ms)"
         if verify_ok
-        else f"易盾滑块验证失败: {(verify_res or {}).get('message') or '未知'}"
+        else f"易盾滑块验证失败 ({verify_ms}ms): {(verify_res or {}).get('message') or '未知'}"
     )
     verify_trace_row = {
         "attempt": 0,
         "httpStatus": 200 if verify_ok else 0,
         "code": verify_res.get("code") if isinstance(verify_res, dict) else -1,
         "message": verify_msg,
-        "ms": 0,
+        "ms": verify_ms,
     }
     existing_trace = rush_res.get("rushLoopTrace")
     if isinstance(existing_trace, list):
         rush_res["rushLoopTrace"] = list(existing_trace) + [verify_trace_row]
     else:
         rush_res["rushLoopTrace"] = [verify_trace_row]
+
+    rush_res["_rushDebug"] = {
+        **(rush_res.get("_rushDebug") if isinstance(rush_res.get("_rushDebug"), dict) else {}),
+        "userVerifyStatus": 2 if verify_ok else data.get("userVerifyStatus"),
+        "captchaId": captcha_id or data.get("captchaId"),
+        "verifyMs": verify_ms,
+        "verifyCode": verify_res.get("code") if isinstance(verify_res, dict) else None,
+    }
 
     if verify_ok:
         rush_res["data"] = dict(data)
@@ -5905,8 +6013,17 @@ def _batch_rush_finalize_verify_pay_payload(p: dict, nr: object) -> tuple[bool, 
     ctx = p["ctx"]
     prep = ctx["prep"]
     rush_only = _distributed_rush_only_mode()
+    ctx = p.get("ctx") or {}
     if not rush_only:
-        res = _handle_verify_if_needed(p["s"], res, referer=str(prep.get("referer") or ""))
+        res = _handle_verify_if_needed(
+            p["s"],
+            res,
+            referer=str(prep.get("referer") or ctx.get("referer") or ""),
+            item_code=str(ctx.get("item") or p["payload"].get("itemCode") or ""),
+        )
+    elif isinstance(res, dict):
+        res = dict(res)
+        res["_verifyDeferredToCompose"] = True
     pay = _batch_rush_pay_payload(
         p["phone"], p["e"], p["s"], p["payload"], prep, res, rush_only=rush_only,
     )
@@ -6795,7 +6912,12 @@ def _run_one_mt_realtime_lanes(payload: dict, emit=None, task_index: int | None 
         return {"ok": False, "phone": phone, "message": "Go MT 实时逐枪无返回", "prepMs": prep_ms}
     last = _mt_result_from_realtime_shot(nr_final, tr_final)
     if not rush_only:
-        last = _handle_verify_if_needed(s, last, referer=str(prep.get("referer") or ""))
+        last = _handle_verify_if_needed(
+            s,
+            last,
+            referer=str(prep.get("referer") or ctx.get("referer") or ""),
+            item_code=str(ctx.get("item") or p["payload"].get("itemCode") or ""),
+        )
     if isinstance(last, dict):
         try:
             s._rush_attach_proxy_meta(last, final_attempts)
@@ -8892,7 +9014,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._send_json(json_err("访问口令无效或缺失"), 403)
                 phone = _norm_phone(payload.get("phone"))
                 order_id = str(payload.get("orderId") or payload.get("order_id") or "").strip()
-                channel = str(payload.get("channel") or "70").strip() or "70"
+                channel = str(payload.get("channel") or _default_alipay_pay_channel()).strip()
                 if not phone or not order_id:
                     return self._send_json(json_err("phone 和 orderId 不能为空"), 400)
                 notice, matched_by = _mobile_find_pay_notice(phone, order_id, allow_phone_fallback=False)
@@ -9733,7 +9855,7 @@ class Handler(BaseHTTPRequestHandler):
                 s = STATE.ensure_session()
                 order_id = str(payload.get("orderId", "")).strip()
                 pay_method = int(payload.get("payMethod", 0) or 0)
-                channel = str(payload.get("channel", "70")).strip() or "70"
+                channel = str(payload.get("channel") or _default_alipay_pay_channel()).strip()
                 if not order_id:
                     return self._send_json(json_err("orderId 不能为空"), 400)
                 s.force_order_chain_direct()
@@ -9744,7 +9866,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/gateway":
                 s = STATE.ensure_session()
                 tn = str(payload.get("tn", "")).strip()
-                ch = str(payload.get("channel", "70")).strip() or "70"
+                ch = str(payload.get("channel") or _default_alipay_pay_channel()).strip()
                 if not tn:
                     return self._send_json(json_err("tn 不能为空"), 400)
                 s.force_order_chain_direct()
@@ -11632,7 +11754,17 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         log_line(f"[验证] 开始易盾验证 priorityRecordId={rec_id}")
                         try:
-                            vr = s.verify_captcha(priority_record_id=rid_i, referer=verify_ref, item_code=sku)
+                            rush_captcha = str(
+                                payload.get("captchaId")
+                                or payload.get("rushCaptchaId")
+                                or ""
+                            ).strip()
+                            vr = s.verify_captcha(
+                                priority_record_id=rid_i,
+                                captcha_id=rush_captcha,
+                                referer=verify_ref,
+                                item_code=sku,
+                            )
                             vr_code = vr.get("code") if isinstance(vr, dict) else -1
                             vr_ok = _verify_code_business_ok(vr)
                             line = (
@@ -11762,7 +11894,17 @@ class Handler(BaseHTTPRequestHandler):
                     print(f"[组单] 易盾验证缓存命中 priorityRecordId={rec_id}，跳过重复验证", flush=True)
                 else:
                     try:
-                        vr = s.verify_captcha(priority_record_id=rid_i, referer=verify_ref, item_code=sku)
+                        rush_captcha = str(
+                            payload.get("captchaId")
+                            or payload.get("rushCaptchaId")
+                            or ""
+                        ).strip()
+                        vr = s.verify_captcha(
+                            priority_record_id=rid_i,
+                            captcha_id=rush_captcha,
+                            referer=verify_ref,
+                            item_code=sku,
+                        )
                         vr_code = vr.get("code") if isinstance(vr, dict) else -1
                         vr_ok = _verify_code_business_ok(vr)
                         verify_trace.append(
@@ -11828,7 +11970,13 @@ class Handler(BaseHTTPRequestHandler):
                         )
                     s = e.ensure_session()
                     s.force_order_chain_direct()
-                    vr = s.verify_captcha(priority_record_id=rid_i, referer=verify_ref, item_code=verify_item_code)
+                    rush_captcha = str(payload.get("captchaId") or "").strip()
+                    vr = s.verify_captcha(
+                        priority_record_id=rid_i,
+                        captcha_id=rush_captcha,
+                        referer=verify_ref,
+                        item_code=verify_item_code,
+                    )
                     if _verify_code_business_ok(vr):
                         _verify_cache_set(rid_i, vr)
                     return self._send_json(json_ok({"phone": phone, "verifyResult": vr, "cached": False}))
@@ -11913,7 +12061,7 @@ class Handler(BaseHTTPRequestHandler):
                 phone = str(payload.get("phone", "")).strip()
                 order_id = str(payload.get("orderId", "")).strip()
                 pay_method = int(payload.get("payMethod", 0) or 0)
-                channel = str(payload.get("channel", "70")).strip() or "70"
+                channel = str(payload.get("channel") or _default_alipay_pay_channel()).strip()
                 # #region agent log
                 try:
                     _dbg_p = Path(__file__).resolve().parent / "debug-67b662.log"
@@ -11973,7 +12121,9 @@ class Handler(BaseHTTPRequestHandler):
                         "tn": f"MOCKTN{order_id[-10:]}{channel}",
                         "payUrl": mock_url,
                         "payUrlHttps": mock_url,
-                        "alipayH5PayUrl": mock_url if channel == "70" else "",
+                        "alipayH5PayUrl": mock_url
+                        if channel in ("70", "71", _default_alipay_pay_channel())
+                        else "",
                         "_mockAutoChain": True,
                         "_payLinkProxyDiag": {
                             "preferPoolRotate": bool(prefer_pool_rotate),

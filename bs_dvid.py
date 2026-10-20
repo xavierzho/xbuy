@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 调用 bs_dvid_node/cli.js（浩天百度 BS-DVID 完整 7 步流程，与 mt1.9.6 同源）。
-需安装 Node.js，并在 bs_dvid_node 目录执行: npm install
+需安装 Node.js；在仓库根目录执行 npm install（workspaces，含 bs_dvid_node）
 """
 
 from __future__ import annotations

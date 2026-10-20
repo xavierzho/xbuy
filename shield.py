@@ -17,7 +17,13 @@ import uuid as _uuid
 from typing import Dict, Any, List, Tuple, Optional, Union
 
 from net_time import adjusted_unix, adjusted_unix_ms, format_mt_dtime_gmt08
-from project_versions import APP_VERSION, BB_SDK_VERSION, BB_SIGN_WASM_VERSION
+from project_versions import (
+    APP_VERSION,
+    BB_RUNTIME_WASM,
+    BB_SDK_VERSION,
+    BB_SIGN_WASM,
+    BB_SIGN_WASM_VERSION,
+)
 
 
 # ====================== 运行时常量与抓包基线 ======================
@@ -440,13 +446,9 @@ try:
 except ImportError:
     _WT_OK = False
 
-_DIR = (
-    os.path.dirname(sys.executable)
-    if getattr(sys, "frozen", False)
-    else os.path.dirname(os.path.abspath(__file__))
-)
-_WASM_BIN = os.path.join(_DIR, "runtime.wasm")
-_SIGN_BIN = os.path.join(_DIR, "ext.bin")
+# 与 update.cjs / py_bb_new 共用 node_bridge/bb/ 下制品，勿再维护仓库根目录 runtime.wasm/ext.bin。
+_WASM_BIN = str(BB_RUNTIME_WASM)
+_SIGN_BIN = str(BB_SIGN_WASM)
 
 _wasm_tls = threading.local()
 _wasm_engine = None

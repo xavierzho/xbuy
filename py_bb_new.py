@@ -9,16 +9,19 @@ import threading
 import time
 from typing import Any
 
-from project_versions import BB_SDK_VERSION, BB_SIGN_WASM_VERSION
+from project_versions import (
+    BB_RUNTIME_WASM,
+    BB_SDK_VERSION,
+    BB_SIGN_WASM,
+    BB_SIGN_WASM_VERSION,
+)
 
 SDK_VERSION = BB_SDK_VERSION
 DEFAULT_APPID = "10001"
 DEFAULT_SIGN_WASM_VERSION = BB_SIGN_WASM_VERSION
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-_BB_DIR = os.path.join(_BASE_DIR, "node_bridge", "bb")
-_RUNTIME_WASM_PATH = os.path.join(_BB_DIR, "runtime.wasm")
-_SIGN_WASM_PATH = os.path.join(_BB_DIR, "sign_wasm.bin")
+_RUNTIME_WASM_PATH = str(BB_RUNTIME_WASM)
+_SIGN_WASM_PATH = str(BB_SIGN_WASM)
 
 
 def _add64(a: list[int], b: list[int]) -> list[int]:

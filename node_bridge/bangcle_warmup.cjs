@@ -30,14 +30,8 @@ const {
 
 const H5_ORIGIN = 'https://h5.moutai519.com.cn';
 const LIVE_BB_WASM_VERSION = 'v1.1.3.2';
-const PY_RUNTIME_WASM_PATH = path.resolve(__dirname, 'bb/runtime.wasm');
-const PY_SIGN_WASM_PATH = path.resolve(__dirname, '../ext.bin');
-const BB_STUB_WASM_PATH = fs.existsSync(PY_RUNTIME_WASM_PATH)
-    ? PY_RUNTIME_WASM_PATH
-    : path.join(__dirname, 'bb/runtime.wasm');
-const BB_SIGN_WASM_PATH = fs.existsSync(PY_SIGN_WASM_PATH)
-    ? PY_SIGN_WASM_PATH
-    : path.join(__dirname, 'bb/sign_wasm.bin');
+const BB_STUB_WASM_PATH = path.join(__dirname, 'bb/runtime.wasm');
+const BB_SIGN_WASM_PATH = path.join(__dirname, 'bb/sign_wasm.bin');
 const LIVE_BB_STRATEGY_VERSION = 6;
 const LIVE_BB_REMOTE_TASK = [
     1,
