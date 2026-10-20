@@ -10,7 +10,7 @@
 ## 依赖要求
 
 - Python 3.12。项目只保留 `.venv` 一个虚拟环境，bootstrap 会拒绝非 3.12 环境。
-- Node.js + npm，用于 `node_bridge/`、`bs_dvid_node/`、`local_yidun/service/`。
+- Node.js + npm，仓库根 `npm install`（workspaces：`nodejs/*`）。
 - Go，用于编译 `go_bridge/rush_bridge`。
 - `curl`，用于健康检查。
 
@@ -109,7 +109,7 @@ loginctl enable-linger "$USER"
 | 能力 | 是否需要真机 |
 | --- | --- |
 | 发码 / 登录 / 抢购 / 组单 | 否（要**手机号收短信**；HTTP 全在本机） |
-| 浩天 BS-DVID | 否（`bs_dvid_node` + Node，发码前自动跑） |
+| 浩天 BS-DVID | 否（`nodejs/bs-dvid` + Node，发码前自动跑） |
 | 代理池 | 否（`local_proxy_pool.txt`） |
 | BB `update.cjs` | 否（`--transport local`；sign wasm 走 Bangcle `/api/v1/1/1` **无 id** 拉最新，勿手填 `?id=`） |
 | 全局手机发 / 分布式节点 App | **是**（可选；不用即可） |
@@ -126,12 +126,12 @@ bash scripts/bb_fetch_latest.sh
 # 或 curl -X POST http://127.0.0.1:8989/api/bb/update/sync
 
 # 仅检查、有变再 apply
-node node_bridge/bb/update.cjs --check --transport local
-node node_bridge/bb/update.cjs --apply --transport local
+node nodejs/bb/update.cjs --check --transport local
+node nodejs/bb/update.cjs --apply --transport local
 
 详见 [HEADLESS_RESOURCES.md](./HEADLESS_RESOURCES.md)。
 
-WebUI 默认 `MT_BB_AUTO_UPDATE=1`、`MT_BB_UPDATE_MODE=sync`：启动 + 每 6h 拉线上最新 wasm。
+WebUI 默认 `MT_BB_AUTO_UPDATE=1`、`MT_BB_UPDATE_MODE=sync`：启动 + 每 6h 拉线上最新 wasm 到 `runtime/`。
 关闭自动：`MT_BB_AUTO_UPDATE=0`。
 ```
 

@@ -31,8 +31,10 @@ from app import (
 from net_time import risk_log_timestamp
 from shield import raw_id_from_mt_jwt
 
-ACCOUNTS_FILE = Path(__file__).resolve().parent / "accounts.json"
-_GLOBAL_FORCE_LOCAL_FILE = Path(__file__).resolve().parent / "mt_global_force_local.json"
+from settings.paths import PATHS
+
+ACCOUNTS_FILE = PATHS.accounts_json
+_GLOBAL_FORCE_LOCAL_FILE = PATHS.mt_global_force_local_json
 
 
 def _norm_phone(phone: object) -> str:
@@ -2192,7 +2194,7 @@ class AccountPool:
         """
         调用 mt 同款浩天（百度 SDK）7 步流程（Node bs-dvid.js），写入本账号 bsid 并持久化。
         bsid 会出现在 H5 请求头 BS-DVID 与 WebView User-Agent 中，用于设备/风控侧标识。
-        需安装 Node.js，并在 py_out/bs_dvid_node 执行过 npm install。
+        需安装 Node.js，并在仓库根目录执行过 npm install（nodejs/bs-dvid）。
         """
         from bs_dvid import (
             app_ua_triple_from_haotian_result,
@@ -2257,7 +2259,7 @@ class AccountPool:
                     "code": -1,
                     "message": (
                         f"浩天多次未返回有效结果（已重试 {max_try} 次）；"
-                        "请检查 bs_dvid_node、网络或 DEVICE_CONFIGS。"
+                        "请检查 nodejs/bs-dvid、网络或 DEVICE_CONFIGS。"
                     ),
                     "haotian": last_res,
                 }

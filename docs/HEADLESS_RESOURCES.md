@@ -11,12 +11,12 @@ bash scripts/bb_fetch_latest.sh
 等价：
 
 ```bash
-MT_BB_UPDATE_SIGN_FALLBACK=0 node node_bridge/bb/update.cjs --sync
+MT_BB_UPDATE_SIGN_FALLBACK=0 node nodejs/bb/update.cjs --sync
 ```
 
-流程：H5 商品页 → `bs_h5.min.js` → `stub.*.wasm`；Bangcle `GET /api/v1/1/1`（**无 `?id=`**）→ sign wasm；`run_wac` 校验 → 写入 `node_bridge/bb/`。
+流程：H5 商品页 → `bs_h5.min.js` → `stub.*.wasm`；Bangcle `GET /api/v1/1/1`（**无 `?id=`**）→ sign wasm；`run_wac` 校验 → 写入仓库根 `runtime/`。
 
-**唯一制品目录**：`shield.py`（抢购 BB）、`py_bb_new`、Node `bb_module` / 暖场脚本均只读 `node_bridge/bb/runtime.wasm` 与 `sign_wasm.bin`；版本号见同目录 `version.json`（`project_versions.py`）。勿再在仓库根目录维护 `runtime.wasm` / `ext.bin` 副本。
+**唯一制品目录**：`runtime/runtime.wasm`、`runtime/sign_wasm.bin`、`runtime/version.json`（Python `settings.paths` / `project_versions.py`；Node `nodejs/shared/paths.cjs`）。SDK 与 update 脚本在 `nodejs/bb/`。
 
 ## 其他模式
 

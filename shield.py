@@ -446,7 +446,7 @@ try:
 except ImportError:
     _WT_OK = False
 
-# 与 update.cjs / py_bb_new 共用 node_bridge/bb/ 下制品，勿再维护仓库根目录 runtime.wasm/ext.bin。
+# 与 update.cjs / bangcle.sdk 共用仓库根 runtime/ 下制品（settings.paths）。
 _WASM_BIN = str(BB_RUNTIME_WASM)
 _SIGN_BIN = str(BB_SIGN_WASM)
 

@@ -19,7 +19,7 @@
 - `shield.RELEASE_VER` drives `MT-APP-Version`, app UA `moutaiapp/x`, and MT signing inputs.
 - `shield.WASM_TAG` and `node_bridge/bb/bb_module.cjs` `DEFAULT_SIGN_WASM_VERSION` drive BB payload field `140` and `Content-Web-Bb` consistency.
 - `SHIELD_VER` / `_sdk_v_` / `Sdk-Ver-Bb` must stay aligned with Bangcle SDK.
-- `captchaId` mappings in `app.py` and `local_yidun/service/app_api.js` must match the current H5 page and item code.
+- `captchaId` mappings in `app.py` and `nodejs/yidun-local/app_api.js` must match the current H5 page and item code.
 - H5 `appConfig` and referer paths affect captcha, BB warmup, and priority verify flow.
 
 ## Evidence

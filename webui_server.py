@@ -121,19 +121,21 @@ os.environ.setdefault("MT_RUSH_SOFT429_RETRY", "auto")
 # 一账号一监听端口（8989、8990…），前端按手机号选不同源，突破浏览器对同源 HTTP/1.1 并发连接约 6 条的限制。关闭：MT_WEBUI_ONE_PORT_PER_ACCOUNT=0
 os.environ.setdefault("MT_WEBUI_ONE_PORT_PER_ACCOUNT", "1")
 
-ROOT = Path(__file__).resolve().parent
+from settings.paths import PATHS, VERSION_JSON
+
+ROOT = PATHS.repo_root
 _go_bridge_boot_banner_printed = False
 _rush_global_abort_flag = False
 _rush_global_abort_event = threading.Event()
 # 支付通知「导出」落盘目录（与 ui.html 导出一致）
-PAY_RECORD_EXPORT_DIR = ROOT / "抢购记录"
+PAY_RECORD_EXPORT_DIR = PATHS.pay_record_export_dir
 # 账号勾选导出落盘目录（账号列表工具栏「导出勾选手机号」）
-ACCOUNT_RECORD_EXPORT_DIR = ROOT / "账号记录"
-WEB_DIR = ROOT / "web"
+ACCOUNT_RECORD_EXPORT_DIR = PATHS.account_record_export_dir
+WEB_DIR = PATHS.web_dir
 UI_FILE = WEB_DIR / "ui.html"
 REMOTE_LOGIN_FILE = WEB_DIR / "remote_login.html"
 MOBILE_ORDER_FILE = WEB_DIR / "mobile_order.html"
-GO_BRIDGE_TLS_MODE_FILE = ROOT / "go_bridge_tls_mode.json"
+GO_BRIDGE_TLS_MODE_FILE = PATHS.go_bridge_tls_mode_json
 # 监听地址：默认 0.0.0.0＝任意网卡、任意来源 IP 均可连（对方须能路由到你这台机；防火墙放行端口）。
 # 若只想本机访问：MT_WEBUI_BIND=127.0.0.1
 LISTEN_HOST = (os.environ.get("MT_WEBUI_BIND") or "0.0.0.0").strip() or "0.0.0.0"
@@ -183,7 +185,7 @@ _dist_loop: asyncio.AbstractEventLoop | None = None
 _dist_server_started = False
 _dist_nodes: dict[str, dict] = {}
 _dist_jobs: dict[str, "_DistJob"] = {}
-DIST_NODE_CONFIG_FILE = ROOT / "dist_node_config.json"
+DIST_NODE_CONFIG_FILE = PATHS.dist_node_config_json
 _dist_node_config_cache: dict | None = None
 
 
@@ -458,7 +460,7 @@ class _PublicPageTunnelManager:
         if not _truthy(os.environ.get("MT_CLOUDFLARED_PUBLIC_PAGES") or "1"):
             print("[cloudflared] 已禁用公开页穿透（MT_CLOUDFLARED_PUBLIC_PAGES=0）。", flush=True)
             return
-        gate_script = ROOT / "public_gate.py"
+        gate_script = PATHS.public_gate_py
         if not gate_script.exists():
             print(f"[public-gate] 缺少 {gate_script.name}，跳过公开页穿透。", flush=True)
             return
@@ -591,7 +593,7 @@ class _PublicPageTunnelManager:
                 lines.append(f"查单页={self.urls['order']}")
             if "console" in self.urls:
                 lines.append(f"控制台={self.urls['console']}")
-            (ROOT / "remote_tunnel_url.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+            PATHS.remote_tunnel_url_txt.write_text("\n".join(lines) + "\n", encoding="utf-8")
         except OSError:
             pass
 
@@ -1211,7 +1213,7 @@ def ensure_go_bridge_if_configured() -> None:
             print(
                 f"[go_bridge] 随 WebUI 自动启动失败: {ex}\n"
                 f"  请检查 go_bridge 目录、go_bridge/bridge.log；需本机 Go 时可重编 rush_bridge.exe。"
-                f"（与 py_out/node_bridge 下 node server.cjs 的「旧 Node 桥 19090」不是同一进程。）",
+                f"（与 nodejs/http-bridge 的 Node HTTP 桥 19090 不是同一进程。）",
                 file=sys.stderr,
                 flush=True,
             )
@@ -1326,8 +1328,8 @@ def bb_auto_update_snapshot() -> dict:
 
 
 def read_bb_resources_snapshot() -> dict:
-    """Current node_bridge/bb/version.json + auto-update scheduler state (no device)."""
-    path = ROOT / "node_bridge" / "bb" / "version.json"
+    """Current runtime/version.json + auto-update scheduler state (no device)."""
+    path = VERSION_JSON
     out: dict = {"autoUpdate": bb_auto_update_snapshot()}
     try:
         raw = path.read_text(encoding="utf-8")
@@ -1359,7 +1361,7 @@ def _bb_update_cli_mode() -> str:
 
 
 def _run_bb_update_script(mode: str) -> dict:
-    script = ROOT / "node_bridge" / "bb" / "update.cjs"
+    script = PATHS.node.bb_update
     node_bin = _nodejs_executable()
     started = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
     with _bb_auto_update_lock:
@@ -1665,7 +1667,7 @@ CONTROL_CONSOLE_IP_ALLOWLIST, CONTROL_CONSOLE_IP_ALLOW_ALL = _parse_ip_allowlist
     CONTROL_CONSOLE_IP_ALLOWLIST_RAW
 )
 # 最近一次 rush/compose/submit 的茅台原始 JSON，便于排查（覆盖写入）
-DEBUG_LAST_API = ROOT / "debug_last_api.json"
+DEBUG_LAST_API = PATHS.debug_last_api_json
 DEBUG_LAST_API_MIN_INTERVAL_MS = max(
     0,
     int(float(os.environ.get("MT_DEBUG_LAST_API_MIN_INTERVAL_MS", "1200") or 1200)),
@@ -1683,8 +1685,8 @@ try:
         )
 except Exception as _addr_db_ex:
     print(f"[address_db] 初始化跳过: {_addr_db_ex}", flush=True)
-PROXY_POOL_FILE = ROOT / "local_proxy_pool.txt"
-PROXY_POOL_IMPORT_LOG = ROOT / "logs" / "proxy_api_import.jsonl"
+PROXY_POOL_FILE = PATHS.proxy_pool_txt
+PROXY_POOL_IMPORT_LOG = PATHS.proxy_pool_import_log
 _PROXY_POOL_FILE_LOCK = threading.RLock()
 _PROXY_FILL_LOCK = threading.RLock()
 _PROXY_FILL_STOP = threading.Event()
@@ -4211,7 +4213,7 @@ def _resolve_pay_url_for_notify(
     out_url = _prefer_https_pay_url(merged)
     # #region agent log
     try:
-        _dbg_p = Path(__file__).resolve().parent / "debug-67b662.log"
+        _dbg_p = ROOT / "debug-67b662.log"
         _dbg_p.open("a", encoding="utf-8").write(
             json.dumps(
                 {
@@ -5393,7 +5395,7 @@ def _prewarm_target_timeout_ms() -> int:
 def _agent_dbg_prewarm(hypothesis_id: str, location: str, message: str, data: dict) -> None:
     # #region agent log
     try:
-        lp = Path(__file__).resolve().parent / "debug-eb180b.log"
+        lp = ROOT / "debug-eb180b.log"
         lp.open("a", encoding="utf-8").write(
             json.dumps(
                 {
@@ -8431,7 +8433,7 @@ def _mobile_row_from_pay_notice(phone: str, notice: dict) -> dict:
 # 省市区全国库：供 ui.html 同源拉取（避免内嵌 WebView 直连 GitHub 失败）
 _PCAS_BYTES_CACHE: bytes | None = None
 _PCAS_BYTES_LOCK = threading.Lock()
-_PCAS_LOCAL_FILE = ROOT / "pcas-code.json"
+_PCAS_LOCAL_FILE = PATHS.pcas_code_json
 _PCAS_REMOTE_URLS = (
     "https://cdn.jsdelivr.net/gh/modood/Administrative-divisions-of-China@master/dist/pcas-code.json",
     "https://fastly.jsdelivr.net/gh/modood/Administrative-divisions-of-China@master/dist/pcas-code.json",
@@ -8734,7 +8736,7 @@ class Handler(BaseHTTPRequestHandler):
             # #region agent log
             try:
                 _snap = POOL.snapshot()
-                _log_path = Path(__file__).resolve().parent / "debug-3de74e.log"
+                _log_path = ROOT / "debug-3de74e.log"
                 with open(_log_path, "a", encoding="utf-8") as _lf:
                     _lf.write(
                         json.dumps(
@@ -11165,7 +11167,7 @@ class Handler(BaseHTTPRequestHandler):
                             },
                             "timestamp": int(time.time() * 1000),
                         }
-                        with open(Path(__file__).resolve().parent / "debug-eb180b.log", "a", encoding="utf-8") as _af:
+                        with open(ROOT / "debug-eb180b.log", "a", encoding="utf-8") as _af:
                             _af.write(json.dumps(_payload, ensure_ascii=False) + "\n")
                     except Exception:
                         pass
@@ -12064,7 +12066,7 @@ class Handler(BaseHTTPRequestHandler):
                 channel = str(payload.get("channel") or _default_alipay_pay_channel()).strip()
                 # #region agent log
                 try:
-                    _dbg_p = Path(__file__).resolve().parent / "debug-67b662.log"
+                    _dbg_p = ROOT / "debug-67b662.log"
                     _dbg_p.open("a", encoding="utf-8").write(
                         json.dumps(
                             {
@@ -12215,7 +12217,7 @@ class Handler(BaseHTTPRequestHandler):
                             out["gateway"] = gw
                             # #region agent log
                             try:
-                                _dbg_p = Path(__file__).resolve().parent / "debug-67b662.log"
+                                _dbg_p = ROOT / "debug-67b662.log"
                                 _dbg_p.open("a", encoding="utf-8").write(
                                     json.dumps(
                                         {
@@ -12296,7 +12298,7 @@ class Handler(BaseHTTPRequestHandler):
                                         out["wechatNotifyError"] = str(wx_ex)
                                 # #region agent log
                                 try:
-                                    _dbg_p = Path(__file__).resolve().parent / "debug-67b662.log"
+                                    _dbg_p = ROOT / "debug-67b662.log"
                                     _dbg_p.open("a", encoding="utf-8").write(
                                         json.dumps(
                                             {

@@ -181,7 +181,7 @@ def latest_hit(hits: list[Hit], value: str) -> Hit | None:
 
 def local_baseline() -> dict[str, str]:
     app = read_text(ROOT / "app.py")
-    local_yidun = read_text(ROOT / "local_yidun" / "service" / "app_api.js")
+    local_yidun = read_text(ROOT / "nodejs" / "yidun-local" / "app_api.js")
     try:
         version = json.loads(read_text(ROOT / "node_bridge" / "bb" / "version.json"))
     except (OSError, ValueError):
@@ -270,7 +270,7 @@ def build_report() -> str:
             "- `shield.RELEASE_VER` drives `MT-APP-Version`, app UA `moutaiapp/x`, and MT signing inputs.",
             "- `shield.WASM_TAG` and `node_bridge/bb/bb_module.cjs` `DEFAULT_SIGN_WASM_VERSION` drive BB payload field `140` and `Content-Web-Bb` consistency.",
             "- `SHIELD_VER` / `_sdk_v_` / `Sdk-Ver-Bb` must stay aligned with Bangcle SDK.",
-            "- `captchaId` mappings in `app.py` and `local_yidun/service/app_api.js` must match the current H5 page and item code.",
+            "- `captchaId` mappings in `app.py` and `nodejs/yidun-local/app_api.js` must match the current H5 page and item code.",
             "- H5 `appConfig` and referer paths affect captcha, BB warmup, and priority verify flow.",
             "",
             "## Evidence",

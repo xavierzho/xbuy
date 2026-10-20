@@ -20,9 +20,10 @@ from typing import Any
 
 from accounts import _norm_phone
 
-ROOT = Path(__file__).resolve().parent
-DB_PATH = ROOT / "account_addresses.sqlite3"
-UI_STATE_PATH = ROOT / "ui_state.json"
+from settings.paths import PATHS
+
+DB_PATH = PATHS.account_addresses_sqlite
+UI_STATE_PATH = PATHS.ui_state_json
 
 _lock = threading.Lock()
 _schema_ok = False

@@ -28,13 +28,13 @@
 | --- | --- | --- |
 | `webui_server.py` | WebUI HTTP 服务、主控 API、分布式 master WS | `8989` / `8765` |
 | `go_bridge/rush_bridge` | Go 发包桥，抢购 `/rush_loop`、批量 `/batch`、预热 `/prewarm` | `19091` |
-| `node_bridge/server.cjs` | Node bridge，BB SDK、curl worker 等兼容能力 | `19090` 起 |
+| `nodejs/http-bridge/server.cjs` | Node HTTP 桥，BB SDK、curl worker | `19090` 起 |
 | `public_gate.py` | cloudflared 公开页白名单代理，只暴露上号/查单相关页面 | `18089` 或配置值 |
-| `local_yidun/service/app_api.js` | 本地易盾服务 | `8887` |
+| `nodejs/yidun-local/app_api.js` | 本地易盾服务 | `8887` |
 | 根目录 `package.json` | **npm workspaces**：一次 `npm install` 安装上述 Node 依赖 | — |
 
 Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
-| `local_yidun/ddddocr-fastapi/app/main.py` | 本地 OCR FastAPI | `8000` |
+| `services/ddddocr/main.py`（`rushbuy-ddddocr` / uvicorn） | 本地 OCR FastAPI | `8000` |
 
 ## 前端页面
 
@@ -54,9 +54,10 @@ Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
 | `accounts.py` | 账号池、登录态、设备信息、地址状态管理 |
 | `shield.py` | 当前稳定 BB/sign 生成链路 |
 | `shield_legacy.py` | 旧版本 BB/sign 兼容保留 |
-| `bb_client.py` | Python 侧调用 node/go BB 能力的客户端封装 |
+| `bangcle/bridge_client.py`（`bb_client.py` 兼容） | **已废弃** — Node `/bb/*` HTTP 对照；抢购 BB 用 `shield.py` |
 | `proxy_pool.py` | 代理池读取、轮换和探测 |
 | `product_catalog.py` | 商品和路由匹配 |
+| `settings/` | 路径、版本号、常用 env 默认值（`paths.py` / `versions.py`） |
 | `net_time.py` | 北京时间/服务端时间偏移 |
 | `address_db.py` | 地址缓存数据库 |
 
@@ -66,9 +67,9 @@ Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
 
 | 文件 | 用途 |
 | --- | --- |
-| `node_bridge/bb/update.cjs --sync` | **零真机**拉最新 H5 runtime + Bangcle sign wasm |
+| `nodejs/bb/update.cjs --sync` | **零真机**拉最新 H5 runtime + Bangcle sign wasm → `runtime/` |
 | `scripts/bb_fetch_latest.sh` | 同上（`MT_BB_UPDATE_SIGN_FALLBACK=0`） |
-| `node_bridge/bangcle_warmup.cjs` | 手动拉取/预热 Bangcle wasm 状态 |
+| `bangcle/`（默认） / `nodejs/bangcle/bangcle_warmup.cjs`（`MT_BANGCLE_BACKEND=node`） | 手动拉取/预热 Bangcle wasm 状态 |
 | `tools/audit/compare_py_node_bb.py` | 对比 Python 与 Node 的 BB 输出 |
 | `tools/audit/bb_risk_audit.py` | BB 风险字段审计 |
 | `tools/audit/runtime_header_audit.py` | 运行时请求头审计 |
@@ -87,7 +88,7 @@ Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
 | 目录 | 用途 |
 | --- | --- |
 | `tools/TraceLens/` | TraceLens 日志抓取、参数审计；排查 rush/验码/组单/支付请用 `scripts/capture_tracelens_log.sh --full`（`--api` 看不到 H5 `purchaseInfoV2` / `rushPurchase`） |
-| `node_bridge/reverse/` | BB 资源历史归档（`update.cjs` 自动写入） |
+| `nodejs/bb/reverse/` | BB 资源历史归档（`update.cjs` 自动写入） |
 | `frp_mt_ws/` | FRP 主控/worker 公网映射脚本 |
 
 ## 本地数据和生成物

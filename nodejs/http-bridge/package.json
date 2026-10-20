@@ -1,0 +1,17 @@
+{
+  "name": "moutai-http-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "description": "本地 Node HTTP 桥（BB SDK + curl_cffi worker 调度）",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs"
+  },
+  "dependencies": {
+    "@rushbuy/bb": "*",
+    "axios": "^1.7.9",
+    "https-proxy-agent": "^7.0.6",
+    "sm-crypto": "^0.3.14",
+    "socks-proxy-agent": "^8.0.5"
+  }
+}

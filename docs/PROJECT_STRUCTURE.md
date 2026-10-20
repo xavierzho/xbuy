@@ -23,18 +23,20 @@
 
 - `accounts.py`, `address_db.py`, `state_file_backup.py`: 账号、地址和状态持久化。
 - `proxy_pool.py`, `local_proxy.env.example`: 代理配置和代理池。
-- `bb_client.py`, `shield.py`, `py_bb_new.py`, `bs_dvid.py`: 请求、设备和签名相关运行模块。
+- `shield.py`, `bs_dvid/`, `bangcle/`: 请求、设备和签名。`bangcle/` 含 `sdk`（原 py_bb_new）、暖场、`bridge_client`（原 bb_client）、`env`/`constants`；根目录 `py_bb_new.py` / `bb_client.py` 仅为兼容 re-export。
 - `grab_bot_ops.py`, `distributed_worker.py`, `mobile_relay.py`, `mobile_relay_client.py`: 批量、分布式和移动端桥接能力。
 - `product_catalog.py`, `net_time.py`, `public_gate.py`: 商品、时间和公开网关工具。
+- `settings/`: 仓库路径、BB 版本、常用 env 默认值（`project_versions.py` 为兼容 re-export）。
 
 ## UI 和桥接组件
 
 - `web/ui.html`, `web/mobile_order.html`, `web/remote_login.html`: 浏览器页面。
 - `desktop_ui.py`: 桌面 UI 辅助代码。
-- `node_bridge/`: Node HTTP/TLS 桥。
-- `bs_dvid_node/`: BS-DVID Node 实现。
-- `go_bridge/`: Go bridge、runtime 和测试。
-- `local_yidun/`: 本地服务组件。
+- `runtime/`: BB `runtime.wasm`、`sign_wasm.bin`、`version.json`（唯一制品目录）。
+- `nodejs/`: Node workspaces（bb / gdx / bangcle / http-bridge / bs-dvid / yidun-local）。
+- `go_bridge/`: Go bridge 与测试。
+- `services/ddddocr/`: 内置滑块 OCR FastAPI 模块（可选依赖 `[ddddocr]`，根目录 `pyproject.toml`）。
+- `pyproject.toml` / `requirements.txt`: Python 构建与 editable 安装（`pip install -e ".[ddddocr]"`）。
 - `frp_mt_ws/`, `cloudflared.exe`: 远程访问和隧道相关工具。
 - `scripts/`, `deploy/`: 自动化部署脚本和 systemd 模板。
 

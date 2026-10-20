@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rushbuy"
+version = "0.1.0"
+description = "Rushbuy 抢购与风控自动化（Bangcle / BS-DVID / 易盾等）"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+dependencies = [
+  "curl_cffi>=0.7.0",
+  "PyQt6>=6.6.0",
+  "PyQt6-WebEngine>=6.6.0",
+  "requests>=2.28.0",
+  "PySocks>=1.7.1",
+  "pyinstaller>=6.3.0",
+  "gmssl>=3.2.1",
+  "pycryptodome>=3.20.0",
+  "wasmtime>=24.0.0",
+  "wecom-aibot-python-sdk",
+]
+
+[project.optional-dependencies]
+ddddocr = [
+  "fastapi==0.68.0",
+  "uvicorn==0.15.0",
+  "ddddocr==1.5.5",
+  "python-multipart==0.0.5",
+  "opencv-python-headless",
+  "numpy",
+  "Pillow",
+]
+dev = [
+  "pytest>=7.0",
+]
+
+[project.scripts]
+rushbuy-ddddocr = "services.ddddocr.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bangcle*", "bs_dvid*", "settings*", "services*", "parity*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

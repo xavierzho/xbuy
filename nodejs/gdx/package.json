@@ -1,0 +1,13 @@
+{
+  "name": "@rushbuy/gdx",
+  "private": true,
+  "version": "1.0.0",
+  "description": "易盾 GDX cookie 生成（stdin JSON → stdout JSON）",
+  "exports": {
+    "./gdx_cookie.cjs": "./gdx_cookie.cjs",
+    "./yidun_gdx_sdk.js": "./yidun_gdx_sdk.js"
+  },
+  "scripts": {
+    "cookie": "node gdx_cookie.cjs"
+  }
+}

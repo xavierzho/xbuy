@@ -8,7 +8,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import app
-import py_bb_new
+from bangcle import sdk as py_bb_new
 
 ROOT=str(ROOT)
 

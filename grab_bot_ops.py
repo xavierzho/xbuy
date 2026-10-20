@@ -20,8 +20,9 @@ from accounts import STATUS_OK, _norm_phone
 
 import address_db
 
-ROOT = Path(__file__).resolve().parent
-UI_STATE_FILE = ROOT / "ui_state.json"
+from settings.paths import PATHS
+
+UI_STATE_FILE = PATHS.ui_state_json
 
 # 默认串行刷新收货地址间隔（毫秒）；略大以降低 ship/query 429（与 webui 默认一致）
 DEFAULT_ADDRESS_REFRESH_GAP_MS = 3000

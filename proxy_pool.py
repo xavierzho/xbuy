@@ -32,8 +32,9 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote, unquote, urlparse
 
-_ROOT = Path(__file__).resolve().parent
-POOL_FILE = _ROOT / "local_proxy_pool.txt"
+from settings.paths import PATHS
+
+POOL_FILE = PATHS.proxy_pool_txt
 
 # 误写 host:18081:18081 时 urlparse().port 会抛 ValueError；仅折叠末尾「相同端口重复」一段。
 _DUP_TRAIL_PORT = re.compile(r"^(.+):(?P<p>\d{1,5}):(?P=p)$")

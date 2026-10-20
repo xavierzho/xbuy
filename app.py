@@ -26,10 +26,17 @@ from pathlib import Path
 
 # 抢购 BB 固定使用 shield.py 的 py 稳定版链路，不再读取老/新 BB 环境开关。
 
-_ROOT = Path(__file__).resolve().parent
+from settings.paths import PATHS
+
+_ROOT = PATHS.repo_root
 sys.path.insert(0, str(_ROOT))
 
 from net_time import adjusted_unix_ms, format_mt_dtime_gmt08
+
+from bangcle.constants import WARMUP_MIN_INTERVAL_MS as _BANGCLE_WARMUP_MIN_INTERVAL_MS
+from bangcle.constants import WARMUP_PORTABLE_STATE_KEYS as _BB_WARMUP_PORTABLE_KEYS
+from bangcle.env import warmup_on_rush as _bangcle_warmup_on_rush
+from bangcle.env import warmup_timeout_ms as _bangcle_warmup_timeout_ms
 
 _go_bridge_lock = threading.Lock()
 _go_bridge_boot_attempted = False
@@ -44,20 +51,9 @@ def _reset_go_bridge_boot_state() -> None:
         _go_bridge_started = False
 
 
-_YIDUN_GDX_SCRIPT = str(_ROOT / "node_bridge" / "gdx_cookie.cjs")
-_BANGCLE_WARMUP_SCRIPT = str(_ROOT / "node_bridge" / "bangcle_warmup.cjs")
+_YIDUN_GDX_SCRIPT = str(PATHS.node.gdx_cookie)
 _GDX_COOKIE_KEY = "gdxidpyhxdE"
 _GDX_REFRESH_MIN_REMAINING_MS = 60_000
-_BANGCLE_WARMUP_MIN_INTERVAL_MS = 60_000
-_BB_WARMUP_PORTABLE_KEYS = (
-    "bbSignWasmBase64",
-    "bbSignWasmVersion",
-    "bbSignWasmOk",
-    "bbSdkVersion",
-    "__bbWasmFetched",
-    "__bbWasmFetchedAt",
-    "__bbWasmUnavailableReason",
-)
 _TTOCR_APPKEY = os.environ.get("TTOCR_APPKEY", "22954d79c73a33975c039fd1048da34d")
 _TTOCR_CAPTCHA_ID = os.environ.get(
     "MT_YIDUN_CAPTCHA_ID",
@@ -102,9 +98,9 @@ _YIDUN_REFERER_BY_ITEM_CODE = {
     "11654": "https://h5.moutai519.com.cn/mt/item/hxx-detail?appConfig=2_1_2&sourceId=IMTP1000260",
     "11894": "https://h5.moutai519.com.cn/mt/item/gyft-8392-detail?appConfig=2_1_2",
 }
-_YIDUN_BUNDLED_DIR = _ROOT / "local_yidun" / "service"
+_YIDUN_BUNDLED_DIR = PATHS.node.yidun_local_api.parent
 _YIDUN_EXTERNAL_DIR = Path(r"C:\Users\Administrator\Desktop\ok (5)\dist\2026年5月10日更新(2)")
-_YIDUN_BUNDLED_OCR_DIR = _ROOT / "local_yidun" / "ddddocr-fastapi"
+_YIDUN_BUNDLED_OCR_DIR = PATHS.ddddocr_service_dir
 _YIDUN_EXTERNAL_OCR_DIR = Path(r"C:\Users\Administrator\Desktop\ok (5)\bin\ddddocr-fastapi")
 
 
@@ -122,7 +118,7 @@ def _pick_existing_path(env_name: str, bundled: Path, external: Path) -> Path:
 
 _YIDUN_LEGACY_DIR = _pick_existing_path("MT_YIDUN_LEGACY_DIR", _YIDUN_BUNDLED_DIR, _YIDUN_EXTERNAL_DIR)
 _YIDUN_LOCAL_SCRIPT = Path(
-    os.environ.get("MT_YIDUN_LOCAL_SCRIPT") or (_YIDUN_LEGACY_DIR / "app_api.js")
+    os.environ.get("MT_YIDUN_LOCAL_SCRIPT") or str(PATHS.node.yidun_local_api)
 )
 _YIDUN_TUNED_OCR_DIR = _pick_existing_path("MT_YIDUN_TUNED_OCR_DIR", _YIDUN_BUNDLED_OCR_DIR, _YIDUN_EXTERNAL_OCR_DIR)
 
@@ -454,9 +450,7 @@ def _find_go_binary() -> str | None:
 
 def _go_bridge_exe_path() -> Path:
     """预编译 exe 的路径（go_bridge/rush_bridge.exe 或 rush_bridge）。"""
-    go_src = _ROOT / "go_bridge"
-    name = "rush_bridge.exe" if os.name == "nt" else "rush_bridge"
-    return go_src / name
+    return PATHS.go_bridge_exe
 
 
 def _ensure_go_bridge_compiled() -> str:
@@ -466,7 +460,7 @@ def _ensure_go_bridge_compiled() -> str:
     - 否则用 go build 编译（首次约 30-60s，之后增量编译很快）。
     返回 exe 路径字符串。
     """
-    go_src = _ROOT / "go_bridge"
+    go_src = PATHS.go_bridge_dir
     exe = _go_bridge_exe_path()
     go_files = list(go_src.glob("*.go"))
 
@@ -589,7 +583,7 @@ def _ensure_go_bridge_running() -> None:
             # 另一个线程已触发 go run，退出锁后一起等就绪
 
         else:
-            go_src = str(_ROOT / "go_bridge")
+            go_src = str(PATHS.go_bridge_dir)
             if not Path(go_src).is_dir():
                 raise RuntimeError(f"缺少 Go 桥源码目录: {go_src}")
 
@@ -602,7 +596,7 @@ def _ensure_go_bridge_running() -> None:
             env.setdefault("MT_GO_TLS_CLIENT", "1")
             env.setdefault("MT_GO_TLS_CLIENT_PROFILE", "chrome_138")
             env.setdefault("MT_TLS_ENGINE", "reqrio")
-            log_path = _ROOT / "go_bridge" / "bridge.log"
+            log_path = PATHS.go_bridge_log
             try:
                 log_f = open(log_path, "a", encoding="utf-8")
             except OSError:
@@ -1146,7 +1140,7 @@ def go_bridge_prewarm_http_dispatch(
         if int(e.code or 0) == 404:
             hint404 = (
                 f" 当前 127.0.0.1:{port} 上 go_bridge（rush_bridge）无 /prewarm 或返回 404。"
-                f"请升级/重编 go_bridge，或检查 go_bridge/bridge.log；勿与 node_bridge(19090) 混淆。"
+                f"请升级/重编 go_bridge，或检查 go_bridge/bridge.log；勿与 HTTP 桥(19090) 混淆。"
             )
         raise RuntimeError(f"go_bridge /prewarm 不可达: {e}.{hint404}") from e
     except urllib.error.URLError as e:
@@ -1235,7 +1229,7 @@ def _publish_node_bridge_ports_env(ports: list[int]) -> None:
 
 
 def _node_bridge_bb_health_ok(port: int, timeout: float = 1.5) -> bool:
-    """探测 node_bridge 是否带 BB SDK：GET /bb/health 返回 wasmReady=True 才算就绪。"""
+    """探测 HTTP 桥是否带 BB SDK：GET /bb/health 返回 wasmReady=True 才算就绪。"""
     try:
         import urllib.request as _ur
         with _ur.urlopen(f"http://127.0.0.1:{port}/bb/health", timeout=timeout) as r:
@@ -1247,7 +1241,7 @@ def _node_bridge_bb_health_ok(port: int, timeout: float = 1.5) -> bool:
 
 
 def _wait_for_node_bridge_ready(port: int, max_wait: float = 30.0) -> None:
-    """等待 node_bridge BB SDK 就绪（启动 + WASM 加载约 1-3s）。"""
+    """等待 HTTP 桥 BB SDK 就绪（启动 + WASM 加载约 1-3s）。"""
     deadline = time.time() + max_wait
     while time.time() < deadline:
         if _node_bridge_bb_health_ok(port):
@@ -1296,12 +1290,10 @@ def _spawn_node_bridge_port_locked(port: int, *, force: bool = False) -> None:
         raise RuntimeError(
             "未找到 node.exe。请安装 Node.js (https://nodejs.org/) 或设 MT_NODE_EXE 指向 node.exe。"
         )
-    node_src = _ROOT / "node_bridge"
-    if not node_src.is_dir():
-        raise RuntimeError(f"缺少 node_bridge 目录: {node_src}")
-    server_cjs = node_src / "server.cjs"
+    server_cjs = PATHS.node.http_bridge_server
+    node_src = server_cjs.parent
     if not server_cjs.is_file():
-        raise RuntimeError(f"缺少 node_bridge/server.cjs: {server_cjs}")
+        raise RuntimeError(f"缺少 HTTP 桥 server.cjs: {server_cjs}")
     if (not force) and port in _node_bridge_boot_attempted_ports and _node_bridge_bb_health_ok(port):
         _node_bridge_started_ports.add(port)
         return
@@ -1333,7 +1325,9 @@ def _spawn_node_bridge_port_locked(port: int, *, force: bool = False) -> None:
         detached = getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
         popen_kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW | detached
     try:
-        _node_bridge_procs[port] = subprocess.Popen([node_exe, "server.cjs"], **popen_kwargs)
+        _node_bridge_procs[port] = subprocess.Popen(
+            [node_exe, str(server_cjs.name)], **popen_kwargs
+        )
         print(
             f"[node_bridge] 子进程已启动 port={port}，等待 http://127.0.0.1:{port}/bb/health 探测成功…",
             flush=True,
@@ -1770,49 +1764,6 @@ def _build_gdx_cookie_via_node(payload_obj: dict, timeout: float = 5.0) -> dict:
         return {"success": False, "message": f"node gdx failed: {ex}"}
 
 
-def _bangcle_warmup_via_node(payload_obj: dict, timeout: float = 20.0) -> dict:
-    node_exe = _resolve_node_executable()
-    if not node_exe:
-        return {"success": False, "message": "node executable not found"}
-    if not os.path.exists(_BANGCLE_WARMUP_SCRIPT):
-        return {"success": False, "message": f"missing {_BANGCLE_WARMUP_SCRIPT}"}
-    payload = json.dumps(payload_obj or {}, ensure_ascii=False).encode("utf-8")
-    try:
-        proc = subprocess.run(
-            [node_exe, _BANGCLE_WARMUP_SCRIPT],
-            input=payload,
-            capture_output=True,
-            timeout=timeout,
-            cwd=os.path.dirname(_BANGCLE_WARMUP_SCRIPT),
-        )
-        stdout = proc.stdout.decode("utf-8", errors="replace").strip()
-        if not stdout:
-            stderr = proc.stderr.decode("utf-8", errors="replace").strip()
-            return {"success": False, "message": f"node bangcle warmup no output; stderr={stderr[:300]}"}
-        data = json.loads(stdout)
-        if not isinstance(data, dict):
-            return {"success": False, "message": "node bangcle warmup returned non-object"}
-        return data
-    except subprocess.TimeoutExpired:
-        return {"success": False, "message": f"node bangcle warmup timeout ({timeout}s)"}
-    except Exception as ex:
-        return {"success": False, "message": f"node bangcle warmup failed: {ex}"}
-
-
-def _bangcle_warmup_timeout_ms() -> int:
-    raw = os.environ.get("MT_BANGCLE_WARMUP_TIMEOUT_MS") or "3000"
-    try:
-        n = int(str(raw).strip())
-    except (TypeError, ValueError):
-        n = 3000
-    return max(500, min(30_000, n))
-
-
-def _bangcle_warmup_on_rush() -> bool:
-    v = (os.environ.get("MT_BANGCLE_WARMUP_ON_RUSH") or "0").strip().lower()
-    return v not in ("0", "false", "no", "off")
-
-
 def _yidun_local_attempts() -> int:
     raw = os.environ.get("MT_YIDUN_LOCAL_ATTEMPTS", "1")
     try:
@@ -2055,8 +2006,17 @@ def _ensure_yidun_tuned_ocr_service_for_auto() -> tuple[bool, str]:
             return True, ""
         try:
             _yidun_tuned_ocr_proc = subprocess.Popen(
-                [*python_cmd, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"],
-                cwd=str(_YIDUN_TUNED_OCR_DIR),
+                [
+                    *python_cmd,
+                    "-m",
+                    "uvicorn",
+                    "services.ddddocr.main:app",
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    "8000",
+                ],
+                cwd=str(PATHS.repo_root),
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
@@ -4191,7 +4151,7 @@ class Session:
         return dict(pairs)
 
     def _ensure_bb_state(self) -> None:
-        """兼容旧调用；抢购 BB 固定由 shield.py 加载 node_bridge/bb/runtime.wasm 与 sign_wasm.bin。"""
+        """兼容旧调用；抢购 BB 固定由 shield.py 加载 runtime/ 下 wasm 制品。"""
         return None
 
     def _notify_bb_warmup_updated(self) -> None:
@@ -4259,7 +4219,9 @@ class Session:
                     f"[Bangcle] warmup proxy={_proxy_hostport_for_log(payload.get('proxyUrl') or '')}",
                     flush=True,
                 )
-            result = _bangcle_warmup_via_node(payload, timeout=max(1.0, warm_timeout_ms / 1000.0 + 1.0))
+            from bangcle import bangcle_warmup
+
+            result = bangcle_warmup(payload, timeout=max(1.0, warm_timeout_ms / 1000.0 + 1.0))
             if result.get("success") and isinstance(result.get("state"), dict):
                 self._bb_state = dict(result["state"])
                 self._bb_warmup_at = int(self._bb_state.get("__bbWarmupAt") or now_ms)
@@ -7532,7 +7494,7 @@ class Session:
                     "invalidTime": data.get("invalidTime") if isinstance(data, dict) else None,
                     "userVerifyInvalidTime": data.get("userVerifyInvalidTime") if isinstance(data, dict) else None,
                 }
-                log_dir = _ROOT / "logs"
+                log_dir = PATHS.logs_dir
                 log_dir.mkdir(parents=True, exist_ok=True)
                 with open(log_dir / "verify_code_full.jsonl", "a", encoding="utf-8") as f:
                     f.write(json.dumps(verify_log, ensure_ascii=False, separators=(",", ":")) + "\n")

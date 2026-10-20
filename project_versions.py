@@ -1,21 +1,18 @@
-"""项目实时版本的唯一 Python 数据源。"""
+"""项目实时版本的唯一 Python 数据源（兼容层 → settings）。"""
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
-_ROOT = Path(__file__).resolve().parent
-BB_DIR = _ROOT / "node_bridge" / "bb"
-BB_RUNTIME_WASM = BB_DIR / "runtime.wasm"
-BB_SIGN_WASM = BB_DIR / "sign_wasm.bin"
-_VERSION_FILE = BB_DIR / "version.json"
-_VERSION = json.loads(_VERSION_FILE.read_text(encoding="utf-8"))
-
-APP_VERSION = str(_VERSION["appVersion"])
-APP_VERSION_CODE = int(_VERSION["versionCode"])
-BB_SDK_VERSION = str(_VERSION["sdkVersion"])
-BB_SIGN_WASM_VERSION = str(_VERSION["signWasmVersion"])
-LEGACY_BB_SIGN_WASM_VERSIONS = frozenset(
-    str(value) for value in _VERSION.get("legacySignWasmVersions", [])
+from settings.paths import RUNTIME_DIR, RUNTIME_WASM, SIGN_WASM, VERSION_JSON
+from settings.versions import (
+    APP_VERSION,
+    APP_VERSION_CODE,
+    BB_SDK_VERSION,
+    BB_SIGN_WASM_VERSION,
+    LEGACY_BB_SIGN_WASM_VERSIONS,
 )
+
+# 历史名称：制品目录现为仓库根 runtime/
+BB_DIR = RUNTIME_DIR
+BB_RUNTIME_WASM = RUNTIME_WASM
+BB_SIGN_WASM = SIGN_WASM
+_VERSION_FILE = VERSION_JSON

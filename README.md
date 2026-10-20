@@ -5,7 +5,8 @@
 初始化依赖：
 
 ```bash
-bash scripts/bootstrap.sh   # Python venv + 根目录 npm install (workspaces) + go_bridge
+bash scripts/bootstrap.sh   # .venv + pip install -e ".[ddddocr,dev]" + npm workspaces + go_bridge
+# 或手动：python3.12 -m venv .venv && .venv/bin/pip install -e ".[ddddocr]"
 # 仅 Node 依赖：npm install
 ```
 
@@ -27,6 +28,14 @@ MT_TLS_ENGINE=ja3_client scripts/run_worker.sh ws://127.0.0.1:8765
 bash scripts/healthcheck.sh
 ```
 
+离线 Py/Node 对照（固定 fixture，需本机 `node` 与 `runtime/sign_wasm.bin` 等制品）：
+
+```bash
+.venv/bin/pytest tests/test_parity_bs_dvid.py tests/test_parity_bangcle.py -q
+python scripts/compare_bs_dvid_backends.py
+python scripts/compare_bangcle_backends.py
+```
+
 ## 文档
 
 - [入口清单](docs/ENTRYPOINTS.md)
@@ -39,4 +48,4 @@ bash scripts/healthcheck.sh
 - 项目只使用 `.venv`，Python 版本固定为 3.12。
 - macOS/Linux 默认使用 `MT_TLS_ENGINE=ja3_client`。
 - `reqrio` 只适用于 Windows 的 `reqrio.dll` 链路。
-- 根目录 Python 文件之间存在直接 import，未完成包化前不要随意搬目录。
+- 可安装包：`bangcle`、`bs_dvid`、`settings`、`services.*`（见 `pyproject.toml`）；根目录 `app.py` / `shield.py` 等仍为脚本入口。

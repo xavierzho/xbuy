@@ -346,16 +346,16 @@ build_go_bridge() {
 }
 
 install_node_bridge_deps() {
-  cd "${PROJECT_DIR}/node_bridge"
+  cd "${PROJECT_DIR}"
   if [[ -d "node_modules" ]]; then
-    log "node_bridge node_modules exists"
+    log "repo root node_modules exists (npm workspaces)"
     return 0
   fi
   local ok=0
   for reg in \
     "https://registry.npmmirror.com" \
     "https://registry.npmjs.org"; do
-    log "npm install node_bridge deps from ${reg}"
+    log "npm install (nodejs workspaces) from ${reg}"
     npm config set registry "${reg}" || true
     if npm install; then
       ok=1

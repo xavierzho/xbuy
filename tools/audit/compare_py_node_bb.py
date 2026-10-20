@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-import py_bb_new
+from bangcle import sdk as py_bb_new
 
 
 ACCOUNTS_PATH = os.path.join(str(BASE_DIR), "accounts.json")

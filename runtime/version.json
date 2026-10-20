@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "appVersion": "1.9.14",
+  "versionCode": 10910,
+  "sdkVersion": "V3.5.0_20260928.1_imaotai",
+  "signWasmVersion": "v1.1.7.4",
+  "legacySignWasmVersions": [
+    "v1.0.6",
+    "v1.0.8"
+  ],
+  "runtime": {
+    "file": "runtime.wasm",
+    "upstreamName": "stub.117.wasm",
+    "sourceUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/stub.117.wasm",
+    "size": 197235,
+    "sha256": "8953f26210b96796d69c69affcb2dd3fecb867ee63aaa3136d1e2885dc891646"
+  },
+  "signModule": {
+    "file": "sign_wasm.bin",
+    "sourceUrl": "https://fk1.moutai519.com.cn/bangcle/api/v1/1/1",
+    "versions": [
+      "v1.1.7.4"
+    ],
+    "size": 27311,
+    "sha256": "ae6e85432aa1e4da68fbb8ef39866201705556565c4beece64d49038e4e8d457"
+  },
+  "update": {
+    "script": "update.cjs",
+    "automatic": true,
+    "syncCommand": "node nodejs/bb/update.cjs --sync",
+    "autoCommand": "node nodejs/bb/update.cjs --auto",
+    "checkCommand": "node nodejs/bb/update.cjs --check",
+    "applyCommand": "node nodejs/bb/update.cjs --apply"
+  },
+  "checkedAt": "2026-10-18T05:20:12.388Z"
+}

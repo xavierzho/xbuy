@@ -1,0 +1,14 @@
+{
+  "name": "@rushbuy/bs-dvid",
+  "private": true,
+  "version": "1.0.0",
+  "description": "浩天 BS-DVID 获取（与 mt1.9.10 bs-dvid.js 同源）",
+  "main": "cli.js",
+  "scripts": {
+    "start": "node cli.js"
+  },
+  "dependencies": {
+    "https-proxy-agent": "^7.0.6",
+    "socks-proxy-agent": "^8.0.4"
+  }
+}

@@ -20,7 +20,7 @@ __pycache__/
 .venv/
 node_modules/
 package-lock.json
-
+*.egg-info/
 # Runtime logs and scratch output
 *.log
 *.err
@@ -42,10 +42,10 @@ logs/
 downloads/
 
 # BB 实时运行时及版本归档属于可复现算法资产，需要随版本保存。
-!node_bridge/bb/*.bin
-!node_bridge/bb/*.wasm
-!node_bridge/reverse/**/*.bin
-!node_bridge/reverse/**/*.wasm
+!runtime/*.bin
+!runtime/*.wasm
+!nodejs/bb/reverse/**/*.bin
+!nodejs/bb/reverse/**/*.wasm
 
 # Reverse-engineering generated artifacts and large dumps
 tools/**/.theos/
@@ -60,6 +60,5 @@ tools/TraceLens/*.ips
 tools/moutai-zygisk/
 tools/moutai-native-hook/
 tools/moutai-hook/build/
-local_yidun/ddddocr-fastapi/.venv-ocr
 
 reverse-lab

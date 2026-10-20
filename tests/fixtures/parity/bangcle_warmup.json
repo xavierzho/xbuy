@@ -1,0 +1,27 @@
+{
+  "deterministicSeed": 9001,
+  "nowMs": 1700000000123,
+  "now": 1700000000123,
+  "uid": "1196233237",
+  "bbDid": "habcdef0123456789abcdef012345678",
+  "bbStartId": "loyw3v28_4fzzzxjylrx_4",
+  "bbRk": "0123456789abcdef0123456789abcdef",
+  "bbDeviceCookie": "bid-3210000000000-6789-abcd",
+  "userAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+  "referer": "https://h5.moutai519.com.cn/mt/item/hxxxxx",
+  "pageDomain": "https://h5.moutai519.com.cn/mt/item/hxxxxx",
+  "randomSource": 0.123456789,
+  "strategyResponse": [
+    [1, 1, [], 3600, 0, 0, 10, 20, 3, [0, "", "", "", "", "", "", "", ""]],
+    1700000000500,
+    6
+  ],
+  "skipWasmDownload": true,
+  "clockOffsetsMs": {
+    "strategyStarted": 0,
+    "versionInfo": 100,
+    "wasmDownload": 200,
+    "upload": 300,
+    "strategyResponse": 50
+  }
+}

@@ -40,11 +40,11 @@ if [[ ! -x "${VENV_PY}" ]]; then
   exit 1
 fi
 
-"${VENV_PY}" -m pip install --upgrade pip
-"${VENV_PY}" -m pip install -r requirements.txt
+"${VENV_PY}" -m pip install --upgrade pip setuptools wheel
+"${VENV_PY}" -m pip install -e ".[ddddocr,dev]"
 
 if [[ -f "${ROOT_DIR}/package.json" ]] && command -v npm >/dev/null 2>&1; then
-  echo "[bootstrap] npm install (workspaces: node_bridge, bs_dvid_node, local_yidun/service)"
+  echo "[bootstrap] npm install (workspaces: nodejs/*)"
   (cd "${ROOT_DIR}" && npm install)
 elif command -v npm >/dev/null 2>&1; then
   install_node_deps() {
@@ -54,9 +54,9 @@ elif command -v npm >/dev/null 2>&1; then
       (cd "${dir}" && npm install)
     fi
   }
-  install_node_deps "node_bridge"
-  install_node_deps "bs_dvid_node"
-  install_node_deps "local_yidun/service"
+  install_node_deps "nodejs/http-bridge"
+  install_node_deps "nodejs/bs-dvid"
+  install_node_deps "nodejs/yidun-local"
 else
   echo "[bootstrap] skip node deps: npm not found" >&2
 fi

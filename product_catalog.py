@@ -14,8 +14,9 @@ import re
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
-ROOT = Path(__file__).resolve().parent
-MT_ITEM_LIST_FILE = ROOT / "mt_item_list.json"
+from settings.paths import PATHS
+
+MT_ITEM_LIST_FILE = PATHS.mt_item_list_json
 
 # 打包/迁移环境兜底：当 mt_item_list.json 缺失或损坏时，仍返回基础 8 条，避免 UI 商品库全空。
 _BUILTIN_MT_ITEM_LIST: list[dict] = [
@@ -164,7 +165,7 @@ def _item_list_order_codes() -> list[str]:
 
 def _product_list_spu_map() -> dict[str, dict]:
     """spuId -> {itemCode, itemName, outPrice, jumpUrlV2, pictureUrl}"""
-    p = ROOT / "product_list.json"
+    p = PATHS.product_list_json
     if not p.is_file():
         return {}
     try:
@@ -239,7 +240,7 @@ def _row_from_item_list_entry(entry: dict, pl_by_spu: dict[str, dict]) -> dict:
 
 def _flatten_product_list_rows() -> list[dict]:
     """纯 product_list.json 扁平行（与旧逻辑一致），用于 full 模式附加与路由兜底。"""
-    p = ROOT / "product_list.json"
+    p = PATHS.product_list_json
     if not p.is_file():
         return []
     try:

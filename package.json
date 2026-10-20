@@ -2,21 +2,25 @@
   "name": "rushbuy",
   "private": true,
   "version": "1.0.0",
-  "description": "Rushbuy monorepo — 所有 Node 子项目通过 workspaces 一次 npm install",
+  "description": "Rushbuy monorepo — Node 按领域划分在 nodejs/，一次 npm install",
   "workspaces": [
-    "node_bridge",
-    "bs_dvid_node",
-    "local_yidun/service"
+    "nodejs/shared",
+    "nodejs/bb",
+    "nodejs/gdx",
+    "nodejs/bangcle",
+    "nodejs/http-bridge",
+    "nodejs/bs-dvid",
+    "nodejs/yidun-local"
   ],
   "scripts": {
     "bridge:start": "npm run start -w moutai-http-bridge",
-    "bb:check": "node node_bridge/bb/update.cjs --check",
-    "bb:sync": "node node_bridge/bb/update.cjs --sync",
-    "bb:auto": "node node_bridge/bb/update.cjs --auto",
-    "gdx:cookie": "node node_bridge/gdx_cookie.cjs",
-    "bangcle:warmup": "node node_bridge/bangcle_warmup.cjs",
-    "bs-dvid": "node bs_dvid_node/cli.js",
-    "yidun:local": "node local_yidun/service/app_api.js"
+    "bb:check": "node nodejs/bb/update.cjs --check",
+    "bb:sync": "node nodejs/bb/update.cjs --sync",
+    "bb:auto": "node nodejs/bb/update.cjs --auto",
+    "gdx:cookie": "node nodejs/gdx/gdx_cookie.cjs",
+    "bangcle:warmup": "node nodejs/bangcle/bangcle_warmup.cjs",
+    "bs-dvid": "node nodejs/bs-dvid/cli.js",
+    "yidun:local": "node nodejs/yidun-local/app_api.js"
   },
   "engines": {
     "node": ">=18"

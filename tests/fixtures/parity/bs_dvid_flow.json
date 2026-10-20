@@ -1,0 +1,13 @@
+{
+  "deterministicSeed": 424242,
+  "deviceId": "353456789012345",
+  "appVersion": "1.9.10",
+  "deviceConfigIndex": 0,
+  "requestTimestampBase": 1700000000,
+  "gatewayIp": "192.168.1.1",
+  "fingerprintOverrides": {
+    "battery_level": "77%",
+    "sensor_count": "3",
+    "ime_service": "com.android.phone"
+  }
+}

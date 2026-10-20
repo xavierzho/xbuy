@@ -1,0 +1,7 @@
+{
+  "name": "@rushbuy/shared",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Rushbuy monorepo 路径与 runtime 版本解析",
+  "main": "paths.cjs"
+}

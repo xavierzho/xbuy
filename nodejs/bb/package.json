@@ -1,0 +1,20 @@
+{
+  "name": "@rushbuy/bb",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Bangcle BB SDK（WASM 制品在仓库根 runtime/）",
+  "type": "commonjs",
+  "exports": {
+    "./bb_sdk": "./bb_sdk.js",
+    "./bb_module.cjs": "./bb_module.cjs",
+    "./update.cjs": "./update.cjs"
+  },
+  "scripts": {
+    "check": "node update.cjs --check",
+    "sync": "node update.cjs --sync",
+    "auto": "node update.cjs --auto"
+  },
+  "dependencies": {
+    "sm-crypto": "^0.3.14"
+  }
+}

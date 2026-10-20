@@ -23,6 +23,8 @@ import threading
 import time
 from pathlib import Path
 import urllib.error
+
+from settings.paths import PATHS
 import urllib.request
 import urllib.parse
 
@@ -52,7 +54,7 @@ os.environ.setdefault("MT_BATCH_RUSH_NODE", "1")
 os.environ.setdefault("MT_RUSH_SOFT429_ROTATE", "1")
 os.environ.setdefault("MT_RUSH_SOFT429_RETRY", "auto")
 os.environ.setdefault("MT_HTTP_BACKEND", "node")
-# 写死：TLS worker 侧恒走 Python curl_cffi_worker（与 node_bridge/server.cjs 无混名关系）；环境变量仅作兼容。
+# 写死：TLS worker 侧恒走 Python curl_cffi_worker（与 nodejs/http-bridge 无混名关系）；环境变量仅作兼容。
 os.environ["MT_NODE_USE_CURL_CFFI_TLS"] = "1"
 os.environ["MT_NODE_TLS_FALLBACK_AXIOS"] = "0"
 os.environ["MT_PREWARM_USE_CURL_CFFI"] = "1"
@@ -68,7 +70,7 @@ os.environ.setdefault("MT_WEBUI_ONE_PORT_PER_ACCOUNT", "1")
 # 与 mt test-full-flow 一致：发验证码前先跑浩天，把 BS-DVID + deviceConfig（sdk/厂商/机型）写入账号再发码。
 # 关闭：MT_HAOTIAN_BEFORE_VCODE=0
 os.environ.setdefault("MT_HAOTIAN_BEFORE_VCODE", "1")
-# WebUI 启动后定时跑 node_bridge/bb/update.cjs --auto（App Store 版本 + sign_wasm/runtime）
+# WebUI 启动后定时跑 nodejs/bb/update.cjs --auto（App Store 版本 + sign_wasm/runtime）
 os.environ.setdefault("MT_BB_AUTO_UPDATE", "1")
 os.environ.setdefault("MT_BB_UPDATE_MODE", "sync")
 os.environ.setdefault("MT_BB_AUTO_UPDATE_INTERVAL_SEC", "21600")
@@ -184,7 +186,7 @@ class _LegacyCloudflaredTunnel:
                         full = f"{base}/remote_login.html{tail}"
                         print(f"[cloudflared] 公网入口: {full}", flush=True)
                         try:
-                            p = Path(__file__).resolve().parent / "remote_tunnel_url.txt"
+                            p = PATHS.remote_tunnel_url_txt
                             p.write_text(
                                 f"{full}\n"
                                 f"# 说明：trycloudflare 为临时域名，软件重启或 cloudflared 退出后失效；"
@@ -230,7 +232,7 @@ class _CloudflaredTunnel:
             print("[cloudflared] 已禁用公开页穿透（MT_CLOUDFLARED_PUBLIC_PAGES=0）。", flush=True)
             return
 
-        gate_script = Path(__file__).resolve().parent / "public_gate.py"
+        gate_script = PATHS.public_gate_py
         if not gate_script.exists():
             print(f"[public-gate] 缺少 {gate_script.name}，跳过公开页穿透。", flush=True)
             return
@@ -377,7 +379,7 @@ class _CloudflaredTunnel:
 
     def _write_url_file(self) -> None:
         try:
-            p = Path(__file__).resolve().parent / "remote_tunnel_url.txt"
+            p = PATHS.remote_tunnel_url_txt
             lines = [
                 "# trycloudflare 为临时域名，软件重启或 cloudflared 退出后会失效。",
                 "# 7979=上号白名单端口；6969=查单白名单端口；外网以 cloudflared 打印的 URL 为准。",

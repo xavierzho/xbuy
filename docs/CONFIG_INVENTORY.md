@@ -33,19 +33,24 @@
 | 分布式 WS 监听地址 | `MT_DIST_WS_BIND` | `0.0.0.0` | 主控 WebSocket 绑定地址 |
 | 分布式 WS 端口 | `MT_DIST_WS_PORT` | `8765` | worker 连接主控 |
 | Go bridge 端口 | `MT_GO_BRIDGE_PORT` | `19091` | `go_bridge/rush_bridge` HTTP 入口 |
-| node_bridge 起始端口 | `MT_NODE_HTTP_BRIDGE_PORT` | `19090` | BB/node HTTP bridge 起始端口 |
-| node_bridge 数量 | `MT_NODE_BRIDGE_COUNT` | `2` | 启动多少个 node bridge |
-| node_bridge 端口列表 | `MT_BB_NODE_PORTS` / `MT_NODE_BRIDGE_PORTS` | 自动推导 | 显式指定 BB bridge 端口 |
-| 本地易盾服务 | `MT_YIDUN_LOCAL_URL` | `http://127.0.0.1:8887` | `local_yidun/service/app_api.js` |
+| HTTP 桥起始端口 | `MT_NODE_HTTP_BRIDGE_PORT` | `19090` | `nodejs/http-bridge` 起始端口 |
+| HTTP 桥数量 | `MT_NODE_BRIDGE_COUNT` | `2` | 启动多少个 HTTP 桥实例 |
+| HTTP 桥端口列表 | `MT_BB_NODE_PORTS` / `MT_NODE_BRIDGE_PORTS` | 自动推导 | 显式指定 BB bridge 端口 |
+| 本地易盾服务 | `MT_YIDUN_LOCAL_URL` | `http://127.0.0.1:8887` | 默认 `nodejs/yidun-local/app_api.js` |
 | 本地易盾 API key | `MT_YIDUN_LOCAL_API_KEY` | `default-key` | 本地易盾服务鉴权字段 |
 | 本地 OCR 地址 | `MT_YIDUN_LOCAL_OCR_URL` | `http://127.0.0.1:8000/slide_match` 或空 | ddddocr FastAPI |
-| 本地易盾脚本路径 | `MT_YIDUN_LOCAL_SCRIPT` | `local_yidun/service/app_api.js` | 自定义服务脚本 |
-| 本地 OCR 目录 | `MT_YIDUN_TUNED_OCR_DIR` | `local_yidun/ddddocr-fastapi` | 自定义 OCR 服务目录 |
+| 本地易盾脚本路径 | `MT_YIDUN_LOCAL_SCRIPT` | `nodejs/yidun-local/app_api.js` | 自定义服务脚本 |
+| 本地 OCR 目录 | `MT_YIDUN_TUNED_OCR_DIR` | `services/ddddocr/` | 自定义 OCR 模块目录（兼容旧独立目录） |
 | BB 自动更新 | `MT_BB_AUTO_UPDATE` | `1`（`start.py`/WebUI） | 定时跑 `update.cjs`（见 `MT_BB_UPDATE_MODE`） |
 | BB 更新模式 | `MT_BB_UPDATE_MODE` | `sync` | `sync`=每次拉最新并写入；`auto`=有变更才 apply |
 | BB 自动更新间隔秒 | `MT_BB_AUTO_UPDATE_INTERVAL_SEC` | `21600`（6h） | 两次自动检查最小 1800 |
 | BB 启动即检查 | `MT_BB_AUTO_UPDATE_ON_START` | `1` | WebUI 绑定后是否立即跑一次 `--auto` |
-| BB sign 下载回退 | `MT_BB_UPDATE_SIGN_FALLBACK` | `1` | Bangcle 带 `id` 失败时是否用本地 `sign_wasm.bin` |
+| BB sign 下载回退 | `MT_BB_UPDATE_SIGN_FALLBACK` | `1` | Bangcle 带 `id` 失败时是否用本地 `runtime/sign_wasm.bin` |
+| Runtime 制品目录 | `RUSHBUY_RUNTIME_DIR` | 仓库根 `runtime/` | 覆盖 wasm/version.json 位置（Node/Python 一致） |
+| BS-DVID 后端 | `MT_BS_DVID_BACKEND` | `python` | `python`=包 `bs_dvid/`；`node`=`nodejs/bs-dvid/cli.js`（对照） |
+| Bangcle 暖场后端 | `MT_BANGCLE_BACKEND` | `python` | `python`=包 `bangcle/`；`node`=`nodejs/bangcle/bangcle_warmup.cjs`（对照） |
+| Py/Node 离线对照 | `MT_PARITY_MODE` | 未设 | 设为 `1` 时部分路径启用确定性 PRNG；**CI/本地应用 `pytest tests/test_parity_*.py`**（固定 fixture，无 Bangcle/浩天外网） |
+| 浩天常量同步 | `scripts/sync_haotian_constants.sh` | — | 改 JS 设备池后刷新 `bs_dvid/constants.py` 内联块 |
 
 ## 抢购链路与性能开关
 
