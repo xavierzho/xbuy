@@ -41,8 +41,11 @@ MT_BB_UPDATE_SIGN_FALLBACK=0 node nodejs/bb/update.cjs --sync
 
 | 字段 | 来源 |
 | --- | --- |
+| `appVersion` / `versionCode` | 默认跟 **iOS** [iTunes lookup](https://itunes.apple.com/cn/lookup?bundleId=com.moutai.mall) 的 `results[0].version`（`com.moutai.mall`，与安卓无关）；`versionCode` 按 `1.9.14→10914` 推导。关闭：`MT_BB_ITUNES_APP_VERSION=0` |
 | runtime.wasm | `resource.moutai519.com.cn` … `stub.*.wasm` |
 | sign_wasm.bin | `fk1.moutai519.com.cn/bangcle/api/v1/1/1` |
+
+若 CDN 的 `stub.*.wasm` 含 legacy exception（Node 可跑、Python wasmtime 不能编译），`--auto`/`--sync` 会**保留本地** `runtime.wasm`，在 `version.json` 记 `pendingUpstream`，并继续更新 sign / App 版本。强制拒绝：`MT_BB_UPDATE_REQUIRE_WASMTIME=1`。
 | sdkVersion | `bs_h5.min.js` |
 | appVersion | App Store lookup `com.moutai.mall` |
 

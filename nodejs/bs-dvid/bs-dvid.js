@@ -2165,7 +2165,7 @@ function buildParityArtifacts(fixture = {}) {
     add(
         'step7_token',
         '/c/11/z/210',
-        buildTokenRequestBody(localId, baseMs + 400, appVersion),
+        buildTokenRequestBody(localId, baseMs + 400, null),
         {
             'User-Agent': `haotian_x6/${APP_KEY}/${appVersion}/4.4.3.4.3`,
             'x-client-src': 'jar',

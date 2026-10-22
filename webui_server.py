@@ -1400,9 +1400,14 @@ def _run_bb_update_script(mode: str) -> dict:
             _bb_auto_update_state["lastReport"] = report
             _bb_auto_update_state["lastError"] = err
         if ok and isinstance(report, dict) and report.get("applied"):
+            nxt = report.get("next") if isinstance(report.get("next"), dict) else {}
+            store = report.get("store") if isinstance(report.get("store"), dict) else {}
+            ar = report.get("appVersionResolve") if isinstance(report.get("appVersionResolve"), dict) else {}
+            itunes = store.get("appVersion") or ar.get("storeLookupVersion") or "—"
+            src = nxt.get("appVersionSource") or ar.get("appVersionSource") or "—"
             print(
-                f"[bb-update] 自动已应用 app={report.get('next', {}).get('appVersion')} "
-                f"sign={report.get('next', {}).get('signWasmVersion')}",
+                f"[bb-update] 自动已应用 sign={nxt.get('signWasmVersion')} "
+                f"app={nxt.get('appVersion')} (来源={src}; iTunes lookup={itunes})",
                 flush=True,
             )
         elif ok:
@@ -8627,6 +8632,20 @@ class Handler(BaseHTTPRequestHandler):
             if not UI_FILE.exists():
                 return self._send_html("<h1>ui.html 不存在</h1>", 404)
             return self._send_html(UI_FILE.read_text(encoding="utf-8"))
+        if path in ("/ui-theme.css", "/ui-shell.css"):
+            css_name = "ui-theme.css" if path == "/ui-theme.css" else "ui-shell.css"
+            css_path = WEB_DIR / css_name
+            if not css_path.is_file():
+                return self._send_html("/* missing */", 404)
+            body = css_path.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/css; charset=utf-8")
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.send_header("Content-Length", str(len(body)))
+            _send_cors_headers(self)
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if path in ("/mobile_order", "/mobile_order.html"):
             if not _remote_login_page_authorized(self):
                 return self._send_html(

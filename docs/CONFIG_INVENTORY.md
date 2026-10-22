@@ -46,6 +46,8 @@
 | BB 自动更新间隔秒 | `MT_BB_AUTO_UPDATE_INTERVAL_SEC` | `21600`（6h） | 两次自动检查最小 1800 |
 | BB 启动即检查 | `MT_BB_AUTO_UPDATE_ON_START` | `1` | WebUI 绑定后是否立即跑一次 `--auto` |
 | BB sign 下载回退 | `MT_BB_UPDATE_SIGN_FALLBACK` | `1` | Bangcle 带 `id` 失败时是否用本地 `runtime/sign_wasm.bin` |
+| BB 跟 iTunes App 版本 | `MT_BB_ITUNES_APP_VERSION` | `1` | `1` 时 `appVersion` 与 lookup `version` 对齐（可升可降）；`0` 不动 |
+| 固定 App 版本名 | `MT_APP_VERSION` | 空 | 设后优先于 iTunes（一般留空） |
 | Runtime 制品目录 | `RUSHBUY_RUNTIME_DIR` | 仓库根 `runtime/` | 覆盖 wasm/version.json 位置（Node/Python 一致） |
 | BS-DVID 后端 | `MT_BS_DVID_BACKEND` | `python` | `python`=包 `bs_dvid/`；`node`=`nodejs/bs-dvid/cli.js`（对照） |
 | Bangcle 暖场后端 | `MT_BANGCLE_BACKEND` | `python` | `python`=包 `bangcle/`；`node`=`nodejs/bangcle/bangcle_warmup.cjs`（对照） |

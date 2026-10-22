@@ -118,13 +118,15 @@ def send_encrypted_request(
             proxy_config.get("port"),
         )
 
+    proxies = _proxy_dict(proxy_config)
     resp = requests.post(
         url,
         data=body_encrypted,
         headers=req_headers,
         timeout=timeout,
-        proxies=_proxy_dict(proxy_config),
-        verify=False,
+        proxies=proxies,
+        # bs-dvid.js：直连走 https 默认校验证书；仅代理 agent 设 rejectUnauthorized: false
+        verify=proxies is None,
     )
     resp.raise_for_status()
 

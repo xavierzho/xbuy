@@ -20,6 +20,7 @@ bash scripts/healthcheck.sh
 | `run_worker.sh` | 启动分布式 worker 的稳定入口 |
 | `start_distributed_worker.sh` | worker 底层启动脚本，由 `run_worker.sh` 调用 |
 | `healthcheck.sh` | 检查 WebUI 和 Go bridge |
+| `validate_ui_css.py` | 检查 WebUI CSS；`--format` / `--format-all`；`--strict-shell` 禁 shell 旧金色 |
 | `install_systemd_user.sh` | 安装 systemd 用户服务 |
 
 业务源码不要放到这个目录。

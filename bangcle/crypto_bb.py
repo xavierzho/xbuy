@@ -26,8 +26,6 @@ def ensure_process_session(ctx: dict, now_ms: int | None = None) -> None:
 def process_data(ctx: dict, data: Any) -> str:
     task = ctx["sdkConfig"]["task"]
     if not task[3]:
-        if isinstance(data, str):
-            return data
         return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     ensure_process_session(ctx)
     plain = (

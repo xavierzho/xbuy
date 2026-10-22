@@ -97,9 +97,18 @@ def main() -> int:
     js = _run("node", payload)
     _summary("Python", py)
     _summary("Node", js)
-    ok = bool(py.get("success")) and bool(js.get("success"))
+    def http_ok(r: dict) -> bool:
+        s = r.get("summary") if isinstance(r.get("summary"), dict) else {}
+        return all(
+            200 <= int(s.get(k) or 0) < 300
+            for k in ("strategyStatus", "versionStatus", "uploadStatus")
+        )
+
+    ok = all(bool(r.get("success")) and http_ok(r) for r in (py, js))
     if ok:
-        print("\nNote: did/startId 随机，state 不必逐字节相同；两者均应 success 且 __bbWarmupAlg=py-v1.1.3.2。")
+        print("\nOK: 两端 strategy/version/upload 均 2xx。did/startId 随机，state 不必逐字节相同。")
+    else:
+        print("\nFAIL: warmup 的 success 不看 HTTP 状态；以上 summary 中有非 2xx（如 403 多为 WAF 拦截）。")
     return 0 if ok else 1
 
 

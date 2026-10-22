@@ -1,0 +1,1190 @@
+/* RushBuy 主控 — 布局与行为（视觉见 ui-theme.css） */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+body {
+  font-family: 'PingFang SC','Microsoft YaHei','Inter',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.acct-list, .tab-content, .pay-notice-scroll {
+  scroll-behavior: smooth;
+}
+
+body.ui-busy .acct-list, body.ui-busy .tab-content, body.ui-busy .log-box, body.ui-busy .pay-notice-scroll, body.ui-busy .acct-log-box {
+  scroll-behavior: auto !important;
+}
+
+.log-box, .acct-log-box {
+  scroll-behavior: auto !important;
+}
+
+/* ── 顶栏 ── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar .logo-icon {
+  flex-shrink: 0;
+}
+
+.topbar .stats-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-chip b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-chip b.green {
+  color: var(--green);
+}
+
+.stat-chip b.red {
+  color: var(--red);
+}
+
+.stat-chip b.yellow {
+  color: var(--yellow);
+}
+
+.bj-clock {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dist-popover {
+  position: fixed;
+  top: 54px;
+  right: 18px;
+  z-index: 260;
+  width: min(980px, calc(100vw - 36px));
+  max-height: min(460px, calc(100vh - 80px));
+  overflow: auto;
+  padding: 10px;
+}
+
+.dist-popover[hidden] {
+  display: none;
+}
+
+/* ── 布局 ── */
+
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── 侧边栏（账号列表） ── */
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-head {
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.sidebar-head h2 {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  font-size: 12px;
+  padding: 8px 10px 8px 34px;
+  outline: none;
+}
+
+.search-box .ico {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.acct-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.acct-toolbar .btn-xs {
+  width: 100%;
+  min-height: 30px;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: center;
+}
+
+.group-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.group-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  user-select: none;
+  max-width: 100%;
+}
+
+.group-tabs-row2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.group-tabs-row2 .btn-xs {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.del-grp {
+  margin-left: 2px;
+  padding: 0 3px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.acct-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 8px;
+  /* 滚动容器隔离；will-change 利于侧栏长列表平滑滚动 */
+  contain: layout paint;
+  will-change: scroll-position;
+}
+
+.acct-item {
+  display: flex;
+  align-items: center;
+  /* 屏幕外列表项跳渲：账号多时（100+）侧栏滚动顺滑 */;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 56px;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.acct-avatar {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* 状态在线指示点（右下角，覆盖在头像上） */
+
+.acct-avatar-dot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.acct-avatar-dot.dot-ok {
+  background: var(--green);
+}
+
+.acct-avatar-dot.dot-sent {
+  background: var(--blue);
+}
+
+.acct-avatar-dot.dot-fail {
+  background: var(--red);
+}
+
+.acct-avatar-dot.dot-pend {
+  background: var(--text3);
+}
+
+/* 待拉支付链接（与右下角状态点区分：左上小红点） */
+
+.acct-avatar-pending-dot {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.acct-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.acct-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acct-phone {
+  font-size: 11px;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.acct-pending-pay-slot {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.acct-pending-pay-urgent {
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 6px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.acct-pending-pay-urgent .pp-mini {
+  font-size: 10px;
+  flex: 1 1 100%;
+  word-break: break-all;
+}
+
+.acct-pending-pay-urgent button {
+  font-size: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.badge {
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.acct-badges {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:3px;
+  flex-shrink:0;
+}
+
+/* ── 主内容 ── */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── 标签页 ── */
+
+.tabs {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.tab {
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+.tab-content {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: block;
+  contain: layout paint;
+}
+
+/* 主滚动容器 GPU 化：滚动期独立合成层，不触发兄弟容器重排 */
+
+#acctConfigWrap, #tab-log .log-box {
+  will-change: scroll-position;
+}
+
+/* 操作日志页：日志 + 代理池（纵向）；支付通知见顶栏独立「支付通知」标签 */
+
+#tab-log.tab-content.active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 16px 22px 18px;
+}
+
+.rush-code-stats {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 26px;
+  margin: -2px 0 10px;
+}
+
+.rush-code-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 10px;
+  line-height: 1;
+  cursor: default;
+  user-select: none;
+}
+
+.rush-code-pill strong {
+  font-weight: 700;
+}
+
+.rush-code-pill span {
+  font-size: 11px;
+}
+
+/* 支付通知：独立标签页，表格区占满剩余高度 */
+
+#tab-pay.tab-content.active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 22px 18px;
+}
+
+#tab-pay .pay-notice-card.pay-tab-full.card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+#tab-pay .pay-notice-card .pay-notice-toolbar, #tab-pay .pay-notice-card > p.hint {
+  flex-shrink: 0;
+}
+
+#tab-pay .pay-notice-scroll {
+  flex: 1;
+  min-height: 160px;
+  max-height: none;
+  overflow: auto;
+}
+
+/* ── 卡片 ── */
+
+.card {
+  position: relative;
+}
+
+/* 表单 */
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-line input {
+  flex-shrink: 0;
+}
+
+.form-group select option {
+  background: #fff;
+  color: var(--text);
+}
+
+/* 按钮 */
+
+.btn {
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  letter-spacing: .2px;
+}
+
+.btn:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
+/* ── 账号详情面板 ── */
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.detail-avatar {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 10px;
+}
+
+.info-item .lbl {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.info-item .val {
+  word-break: break-all;
+}
+
+/* ── 地址列表 ── */
+
+.addr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addr-card {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addr-sub {
+  margin-top: 3px;
+}
+
+/* ── 商品选择 ── */
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 10px;
+}
+
+.item-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ── 日志 ── */
+
+.log-box {
+  min-height: 360px;
+  max-height: none;
+  overflow: auto;
+  white-space: pre;
+  word-break: normal;
+  contain: content;
+  font-variant-numeric: tabular-nums;
+}
+
+.acct-list, .tab-content, .log-box {
+  scrollbar-width: auto;
+}
+
+#tab-log .card:first-child {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#tab-log .card:first-child .log-box {
+  flex: 1;
+}
+
+/* ── 进度条 ── */
+
+.progress-bar {
+  height: 3px;
+  overflow: hidden;
+  margin-top: 10px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+}
+
+/* ── 模态框 ── */
+
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-bg.show {
+  display: flex;
+}
+
+.modal {
+  width: 460px;
+  max-width: 92vw;
+}
+
+body.webengine-embed .modal-bg {
+  background: rgba(0, 0, 0, 0.42);
+}
+
+.modal h3 {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── 批量码输入 ── */
+
+.code-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.code-table th {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.code-table td {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.code-table input {
+  font-size: 13px;
+  padding: 4px 8px;
+  width: 110px;
+  outline: none;
+}
+
+/* ── 空状态 ── */
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.empty .ico {
+  font-size: 36px;
+  margin-bottom: 14px;
+  display: block;
+}
+
+/* ── Toast ── */
+
+#toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  padding: 13px 20px;
+  font-size: 13px;
+  z-index: 300;
+  pointer-events: none;
+  max-width: 320px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#rushWinNotifyStack {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  pointer-events: none;
+}
+
+#rushWinNotifyStack.show {
+  display: flex;
+}
+
+@media (max-width: 720px) {
+  #rushWinNotifyStack {
+    padding: 12px;
+  }
+}
+
+.rush-win-notice {
+  pointer-events: auto;
+  width: min(380px, calc(100vw - 36px));
+  padding: 12px;
+}
+
+.rush-win-notice-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.rush-win-notice-body {
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.rush-win-notice-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.rush-win-notice-actions button {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 分隔线 */
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* 小标签 */
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  font-weight: 500;
+}
+
+.acct-cfg-card {
+  position: relative;
+  /* 账号多时用 content-visibility 跳过屏外绘制；contain-intrinsic-size 减轻滚动条跳动 */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 460px;
+  contain: layout paint style;
+}
+
+.acct-adv summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.acct-adv summary::-webkit-details-marker {
+  display: none;
+}
+
+.acct-adv[open] summary {
+  margin-bottom: 10px;
+}
+
+.acct-log-box {
+  margin-top: 6px;
+  max-height: 160px;
+  overflow: auto;
+  font-size: 11px;
+  white-space: pre;
+  word-break: normal;
+  contain: content;
+  font-variant-numeric: tabular-nums;
+  scrollbar-width: auto;
+}
+
+.acct-cfg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.acct-cfg-head h4 {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-panel .hint {
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.hint {
+  line-height: 1.6;
+}
+
+/* 定时：页内日历（内嵌 WebEngine 下原生 date/time 弹窗常无效） */
+
+.sched-cal-anchor {
+  position: relative;
+  max-width: 280px;
+}
+
+.sched-cal-pop {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 600;
+  min-width: 268px;
+  padding: 10px 12px 12px;
+}
+
+.sched-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sched-cal-head button {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+.sched-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.sched-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.sched-cal-pad {
+  min-height: 32px;
+}
+
+.sched-cal-day {
+  min-height: 32px;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sched-time-selects {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sched-time-selects select {
+  flex: 1;
+  min-width: 58px;
+  font-size: 13px;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+
+#tab-log .log-top-card.card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+#tab-log .log-top-card .card-title {
+  flex-shrink: 0;
+}
+
+#tab-log .log-top-card .log-box {
+  flex: 1;
+  min-height: 180px;
+  max-height: none;
+  overflow-y: auto;
+}
+
+.pay-notice-scroll {
+  overflow-x: auto;
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-width: auto;
+  padding-bottom: 6px;
+}
+
+.proxy-pool-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.proxy-pool-inline {
+  margin: 4px 0 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.proxy-pool-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.9fr);
+  gap: 10px;
+}
+
+.proxy-pool-editor {
+  width: 100%;
+  min-height: 110px;
+  padding: 8px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.proxy-pool-list {
+  max-height: 170px;
+  overflow: auto;
+  padding: 8px 10px;
+  white-space: pre;
+  word-break: normal;
+  contain: content;
+  font-variant-numeric: tabular-nums;
+  scrollbar-width: auto;
+}
+
+.proxy-pool-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 12px;
+}
+
+.proxy-pool-item code {
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.pay-notice-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.pay-notice-table th, .pay-notice-table td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  vertical-align: top;
+  font-size: 12px;
+}
+
+.pay-notice-table td:nth-child(3), .pay-notice-table td.pay-notice-order-cell {
+  white-space: normal;
+  line-height: 1.45;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.pay-notice-table td:nth-child(3) {
+  max-width: 210px;
+}
+
+.pay-notice-table th {
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.pay-notice-table td.pay-countdown-cell {
+  min-width: 76px;
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+
+.pay-link-countdown {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text1);
+  letter-spacing: 0.06em;
+}
+
+.pay-copy-feedback {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  min-height: 1em;
+  vertical-align: middle;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes payCopyFlash {
+  from { opacity: 0.2; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 支付通知：链接不直接展开，只保留动作按钮，避免超长 URL 撑开表格 */
+
+.pay-notice-link-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.pay-notice-link-vertical .pay-notice-actions-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pay-notice-order-cell {
+  min-width: 190px;
+  max-width: 240px;
+}
+
+.pay-notice-order-no {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-notice-actions-row.pay-notice-actions-compact {
+  margin-top: 6px;
+}
+
+.pay-method-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 6px;
+  margin-bottom: 4px;
+}

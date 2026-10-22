@@ -41,6 +41,10 @@ Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
 | 文件 | 对外路径 | 说明 |
 | --- | --- | --- |
 | `web/ui.html` | `/ui.html`、`/` | 主控 WebUI |
+| `web/ui-shell.css` | `/ui-shell.css` | 主控布局与组件结构 |
+| `web/ui-theme.css` | `/ui-theme.css` | 主控视觉主题（覆盖 shell） |
+
+主控样式分工与校验见 [`web/README.md`](../web/README.md)。
 | `web/remote_login.html` | `/remote_login.html`、`/remote_login` | 远程上号页 |
 | `web/mobile_order.html` | `/mobile_order.html`、`/mobile_order` | 移动查单/支付页 |
 

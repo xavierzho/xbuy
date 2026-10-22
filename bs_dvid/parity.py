@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import json
 from typing import Any
 
 from bs_dvid.constants import APP_KEY, DEFAULT_HAOTIAN_SDK, DEFAULT_HAOTIAN_X0
@@ -21,7 +20,7 @@ from bs_dvid.payloads import (
     build_sig_request_body,
     build_token_request_body,
 )
-from parity.context import ParityContext, parity_context_from_fixture
+from parity.context import parity_context_from_fixture
 
 
 def _resolve_device_config(fixture: dict) -> dict:
@@ -136,7 +135,7 @@ def build_bs_dvid_parity_artifacts(fixture: dict | None = None) -> dict:
     add_step(
         "step7_token",
         "/c/11/z/210",
-        build_token_request_body(local_id, base_ms + 400, app_version),
+        build_token_request_body(local_id, base_ms + 400, None),
         {
             "User-Agent": f"haotian_x6/{APP_KEY}/{app_version}/{DEFAULT_HAOTIAN_X0}",
             "x-client-src": "jar",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "appVersion": "1.9.14",
-  "versionCode": 10910,
+  "appVersion": "1.9.16",
+  "versionCode": 10916,
   "sdkVersion": "V3.5.0_20260928.1_imaotai",
   "signWasmVersion": "v1.1.7.4",
   "legacySignWasmVersions": [
@@ -12,8 +12,14 @@
     "file": "runtime.wasm",
     "upstreamName": "stub.117.wasm",
     "sourceUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/stub.117.wasm",
-    "size": 197235,
-    "sha256": "8953f26210b96796d69c69affcb2dd3fecb867ee63aaa3136d1e2885dc891646"
+    "size": 183820,
+    "sha256": "ca6b9999b4a1d424e46376bb0d5ebb274f90c38e4b08db95a48179af8fcc6c31",
+    "pendingUpstream": {
+      "upstreamName": "stub.117.wasm",
+      "sourceUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/stub.117.wasm",
+      "size": 197235,
+      "sha256": "8953f26210b96796d69c69affcb2dd3fecb867ee63aaa3136d1e2885dc891646"
+    }
   },
   "signModule": {
     "file": "sign_wasm.bin",
@@ -32,5 +38,17 @@
     "checkCommand": "node nodejs/bb/update.cjs --check",
     "applyCommand": "node nodejs/bb/update.cjs --apply"
   },
-  "checkedAt": "2026-10-18T05:20:12.388Z"
+  "checkedAt": "2026-10-22T02:51:25.209Z",
+  "runtimeWasmtimeSkip": {
+    "reason": "wasmtime_legacy_exceptions",
+    "detail": "validate_runtime_wasm: FAIL: runtime.wasm 含 Wasm legacy exception（try）编码，当前 Python wasmtime 无法加载；Node 校验可通过但 shield 预热会失败。可从 nodejs/bb/reverse/*/runtime.wasm 恢复到 runtime/，或暂不执行 --sync 直至上游 wasm 与 wasmtime 对齐。\n原始错误: failed to compile: wasm[0]::function[38]\n\nCaused by:\n    0: WebAssembly translation error\n    1: Invalid input WebAssembly code at offset 34986: legacy_exceptions feature required for try instruction",
+    "keptSha256": "ca6b9999b4a1d424e46376bb0d5ebb274f90c38e4b08db95a48179af8fcc6c31",
+    "upstream": {
+      "upstreamName": "stub.117.wasm",
+      "sourceUrl": "https://resource.moutai519.com.cn/mt-resource/static-union/stub.117.wasm",
+      "size": 197235,
+      "sha256": "8953f26210b96796d69c69affcb2dd3fecb867ee63aaa3136d1e2885dc891646"
+    }
+  },
+  "appVersionSource": "itunes_lookup:unchanged"
 }

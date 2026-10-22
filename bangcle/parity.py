@@ -17,6 +17,7 @@ from bangcle.constants import (
 from bangcle.context import apply_remote_strategy, create_bb_context, strip_query_and_hash
 from bangcle.crypto_bb import process_data
 from bangcle.sdk import SDK_VERSION, load_sign_wasm_bytes, object_to_array
+from bangcle.warmup import extract_wasm_versions_parsed
 from bangcle.wrapped_state import build_wrapped_state
 from parity.context import parity_context_from_fixture
 from project_versions import BB_SIGN_WASM
@@ -30,22 +31,6 @@ def _wasm_host(ctx: dict) -> str:
 def _upload_url(ctx: dict) -> str:
     host = str(ctx.get("hostAd") or DEFAULT_BB_HOST).rstrip("/")
     return f"{host}{DEFAULT_UPLOAD_PATH}"
-
-
-def _extract_wasm_versions(payload: Any) -> dict:
-    if isinstance(payload, dict):
-        parsed = payload
-    else:
-        return {"versions": [], "signWasmOk": False, "raw": None}
-    versions: list[str] = []
-    if isinstance(parsed.get("v"), list):
-        for entry in parsed["v"]:
-            if isinstance(entry, str):
-                versions.append(entry)
-            elif isinstance(entry, dict):
-                versions.append(str(entry.get("v") or entry.get("version") or ""))
-    versions = [v for v in versions if v]
-    return {"versions": versions, "signWasmOk": parsed.get("w") is not False, "raw": parsed}
 
 
 def _create_parity_session(fixture: dict, page_domain: str, base_now: int, rng) -> dict:
@@ -188,17 +173,15 @@ def build_bangcle_warmup_parity_artifacts(fixture: dict | None = None) -> dict:
     version_url = f"{_wasm_host(session)}{DEFAULT_WASM_VERSION_LIST_PATH}"
     version_header = process_data(session, [session.get("did") or "", version_now])
     version_payload = fixture.get("versionResponse") or {"v": [LIVE_BB_WASM_VERSION], "w": True}
-    version_info = _extract_wasm_versions(version_payload)
+    version_info = extract_wasm_versions_parsed(version_payload)
     session["signWasmVersion"] = LIVE_BB_WASM_VERSION
-    if version_info.get("raw") and (
-        not version_info.get("versions") or LIVE_BB_WASM_VERSION in version_info["versions"]
-    ):
+    if version_info.get("raw") and LIVE_BB_WASM_VERSION in version_info["versions"]:
         session["signWasmOk"] = bool(session.get("signWasmBase64")) and version_info.get("signWasmOk") is not False
 
+    prev_state = fixture.get("bbState") if isinstance(fixture.get("bbState"), dict) else {}
     if (
         not fixture.get("skipWasmDownload")
-        and not (isinstance(fixture.get("bbState"), dict) and fixture["bbState"].get("__bbWasmFetched"))
-        and not fixture.get("forceWasm")
+        and (not prev_state.get("__bbWasmFetched") or fixture.get("forceWasm"))
         and not flags["localWasm"]
     ):
         flags["wasmUnavailableReason"] = "parity: wasm download not mocked"

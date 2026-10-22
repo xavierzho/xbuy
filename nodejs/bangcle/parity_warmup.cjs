@@ -233,7 +233,7 @@ function buildParityArtifacts(fixture = {}) {
         const versionPayload = fixture.versionResponse || { v: [LIVE_BB_WASM_VERSION], w: true };
         const versionInfo = extractBangcleWasmVersions(versionPayload);
         session.signWasmVersion = LIVE_BB_WASM_VERSION;
-        if (versionInfo.raw && (!versionInfo.versions?.length || versionInfo.versions.includes(LIVE_BB_WASM_VERSION))) {
+        if (versionInfo.raw && (!versionInfo.versions || versionInfo.versions.includes(LIVE_BB_WASM_VERSION))) {
             session.signWasmOk = !!session.signWasmBytes && versionInfo.signWasmOk !== false;
         }
 

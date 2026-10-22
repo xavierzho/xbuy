@@ -120,6 +120,49 @@ function signFallbackAllowed() {
     return v !== '0' && v !== 'false' && v !== 'no' && v !== 'off';
 }
 
+function envTruthy(name, defaultTrue = true) {
+    const raw = process.env[name];
+    if (raw === undefined || raw === null || String(raw).trim() === '') {
+        return defaultTrue;
+    }
+    const v = String(raw).trim().toLowerCase();
+    return v === '1' || v === 'true' || v === 'yes' || v === 'on';
+}
+
+/**
+ * App 版本号默认与 iTunes lookup 的 results[0].version 对齐（可升可降）。
+ * MT_BB_ITUNES_APP_VERSION=0 保持 version.json；MT_APP_VERSION 强制覆盖。
+ */
+function resolveAppVersion(current, storeInfo, args) {
+    const currentVer = String(current.appVersion || '').trim();
+    if (args.appVersion) {
+        return { appVersion: String(args.appVersion).trim(), appVersionSource: 'cli:--app-version' };
+    }
+    const pinned = String(process.env.MT_APP_VERSION || '').trim();
+    if (pinned) {
+        return { appVersion: pinned, appVersionSource: 'env:MT_APP_VERSION' };
+    }
+    const storeVersion =
+        storeInfo && storeInfo.appVersion && !storeInfo.error ? String(storeInfo.appVersion).trim() : '';
+    if (!envTruthy('MT_BB_ITUNES_APP_VERSION', true)) {
+        return {
+            appVersion: currentVer,
+            appVersionSource: 'pinned:MT_BB_ITUNES_APP_VERSION=0',
+            storeLookupVersion: storeVersion || undefined,
+        };
+    }
+    if (!storeVersion) {
+        return { appVersion: currentVer, appVersionSource: 'unchanged:no_itunes' };
+    }
+    const source =
+        !currentVer || storeVersion !== currentVer ? 'itunes_lookup' : 'itunes_lookup:unchanged';
+    return {
+        appVersion: storeVersion,
+        appVersionSource: source,
+        storeLookupVersion: storeVersion,
+    };
+}
+
 function readLiveBangcleState() {
     if (!fs.existsSync(LIVE_STATE_PATH)) return null;
     try {
@@ -364,6 +407,13 @@ function compareSemver(a, b) {
     return 0;
 }
 
+/** 与 Android versionCode 习惯一致：1.9.16 → 10916（见历史 1.9.10 → 10910）。 */
+function appVersionToVersionCode(appVersion) {
+    const [major, minor, patch] = parseSemverParts(appVersion);
+    if (![major, minor, patch].every((n) => Number.isFinite(n))) return null;
+    return major * 10000 + minor * 100 + patch;
+}
+
 function fetchAppStoreVersion() {
     try {
         const result = fetchBytes(ITUNES_LOOKUP_URL);
@@ -406,6 +456,42 @@ function validateRuntime(bytes) {
     const missing = required.filter((name) => !exports.includes(name));
     if (missing.length) throw new Error(`runtime.wasm 缺少导出: ${missing.join(', ')}`);
     return exports;
+}
+
+/** Python shield（wasmtime）能否加载；与 Node WebAssembly 校验互补。 */
+function checkRuntimeWasmtime(bytes) {
+    const temporary = path.join(BB_DIR, `.runtime-wt.${process.pid}.${Date.now()}.wasm`);
+    fs.writeFileSync(temporary, bytes);
+    const script = path.join(ROOT, 'scripts', 'validate_runtime_wasm.py');
+    const venvPy = path.join(ROOT, '.venv', 'bin', 'python');
+    const py =
+        process.env.PYTHON ||
+        process.env.PYTHON3 ||
+        (fs.existsSync(venvPy) ? venvPy : 'python3');
+    try {
+        const result = spawnSync(py, [script, temporary], {
+            encoding: 'utf8',
+            cwd: ROOT,
+            maxBuffer: 1024 * 1024,
+        });
+        if (result.status === 0) {
+            return { ok: true };
+        }
+        const detail = (result.stderr || result.stdout || '').trim();
+        return { ok: false, detail: detail || 'wasmtime validate failed' };
+    } finally {
+        fs.rmSync(temporary, { force: true });
+    }
+}
+
+function wasmtimeRequiredForRuntimeApply() {
+    const v = String(process.env.MT_BB_UPDATE_REQUIRE_WASMTIME || '').trim().toLowerCase();
+    return v === '1' || v === 'true' || v === 'yes' || v === 'on';
+}
+
+function isRuntimeWasmtimeLegacyBlock(detail) {
+    const s = String(detail || '').toLowerCase();
+    return s.includes('legacy_exceptions') || s.includes('legacy exception');
 }
 
 async function validatePair(runtimeBytes, signBytes) {
@@ -466,6 +552,7 @@ function atomicWrite(file, bytes) {
     const runtimeRef = extractRuntimeUrl(sdkResult.bytes.toString('utf8'), sdkUrl);
     const runtimeResult = fetchBytes(runtimeRef.url);
     const runtimeExports = validateRuntime(runtimeResult.bytes);
+    const runtimeWasmtime = checkRuntimeWasmtime(runtimeResult.bytes);
 
     const bb = require('./bb_sdk');
     const currentRuntimePath = runtimeArtifactPath(current);
@@ -479,13 +566,24 @@ function atomicWrite(file, bytes) {
     const signBytes = sign.bytes;
     const pair = await validatePair(runtimeResult.bytes, signBytes);
     const sdkFromH5 = extractSdkVersion(sdkResult.bytes.toString('utf8'));
-    const storeInfo = args.mode === 'auto' || args.mode === 'sync' ? fetchAppStoreVersion() : null;
-    const storeVersion =
-        storeInfo && storeInfo.appVersion && !storeInfo.error ? storeInfo.appVersion : '';
+    const storeInfo = ['auto', 'sync', 'check', 'apply'].includes(args.mode)
+        ? fetchAppStoreVersion()
+        : null;
+    const appResolved = resolveAppVersion(current, storeInfo, args);
+    const resolvedAppVersion = appResolved.appVersion;
+    const derivedVersionCode = appVersionToVersionCode(resolvedAppVersion);
+    const versionCodeFromApp =
+        args.versionCode ||
+        (appResolved.appVersionSource.startsWith('itunes_lookup') ||
+        appResolved.appVersionSource === 'cli:--app-version' ||
+        appResolved.appVersionSource === 'env:MT_APP_VERSION'
+            ? derivedVersionCode
+            : null);
     const next = {
         ...current,
-        appVersion: args.appVersion || storeVersion || current.appVersion,
-        versionCode: Number(args.versionCode || current.versionCode),
+        appVersion: resolvedAppVersion,
+        appVersionSource: appResolved.appVersionSource,
+        versionCode: Number(versionCodeFromApp != null ? versionCodeFromApp : current.versionCode),
         sdkVersion: sdkFromH5 || current.sdkVersion,
         signWasmVersion: args.signVersion || sign.version || current.signWasmVersion,
         runtime: {
@@ -520,14 +618,16 @@ function atomicWrite(file, bytes) {
         signModule: !fs.existsSync(currentSignPath) || sha256(fs.readFileSync(currentSignPath)) !== next.signModule.sha256,
         signWasmVersion: current.signWasmVersion !== next.signWasmVersion,
     };
+    const storeLookupVersion = appResolved.storeLookupVersion || '';
     const storeUpgrade =
-        !!storeVersion && compareSemver(storeVersion, current.appVersion) > 0;
+        !!storeLookupVersion && compareSemver(storeLookupVersion, current.appVersion) > 0;
     const bbResourceChanged =
         changes.runtime || changes.signModule || changes.signWasmVersion || changes.sdkVersion;
 
     const report = {
         mode: args.mode,
         store: storeInfo,
+        appVersionResolve: appResolved,
         storeUpgrade,
         transport: 'local',
         pageUrl: args.page,
@@ -536,6 +636,7 @@ function atomicWrite(file, bytes) {
         changes,
         validation: {
             runtimeExportCount: runtimeExports.length,
+            runtimeWasmtime,
             pair,
             signNetworkFetch: sign.networkFetch || null,
         },
@@ -558,14 +659,58 @@ function atomicWrite(file, bytes) {
         console.log(JSON.stringify({ ...report, applied: false, reason: 'no_change' }, null, 2));
         return;
     }
+    let runtimeSkipped = null;
+    if (!runtimeWasmtime.ok) {
+        if (!isRuntimeWasmtimeLegacyBlock(runtimeWasmtime.detail)) {
+            throw new Error(
+                runtimeWasmtime.detail || 'runtime.wasm Python wasmtime 校验失败',
+            );
+        }
+        if (wasmtimeRequiredForRuntimeApply() || !fs.existsSync(currentRuntimePath)) {
+            throw new Error(
+                runtimeWasmtime.detail ||
+                    'CDN runtime.wasm 含 legacy try，wasmtime 无法加载；无本地可保留的 runtime.wasm',
+            );
+        }
+        const keptBytes = fs.readFileSync(currentRuntimePath);
+        runtimeSkipped = {
+            reason: 'wasmtime_legacy_exceptions',
+            detail: runtimeWasmtime.detail,
+            keptSha256: sha256(keptBytes),
+            upstream: {
+                upstreamName: runtimeRef.upstreamName,
+                sourceUrl: runtimeRef.url,
+                size: runtimeResult.bytes.length,
+                sha256: sha256(runtimeResult.bytes),
+            },
+        };
+        next.runtime = {
+            ...(current.runtime || {}),
+            file: 'runtime.wasm',
+            size: keptBytes.length,
+            sha256: runtimeSkipped.keptSha256,
+            pendingUpstream: runtimeSkipped.upstream,
+        };
+        changes.runtime = false;
+        console.warn(
+            `[bb-update] 已跳过写入 runtime.wasm（wasmtime 不兼容 legacy try）；` +
+                `保留本地文件，仍更新 sign/sdk/appVersion。H5 上游: ${runtimeRef.upstreamName}`,
+        );
+    }
+
     let archivedTo = null;
     const bytesChanged = changes.runtime || changes.signModule;
     if (bytesChanged) {
         archivedTo = archiveCurrent(current);
     }
     fs.mkdirSync(RUNTIME_DIR, { recursive: true });
-    atomicWrite(currentRuntimePath, runtimeResult.bytes);
+    if (changes.runtime) {
+        atomicWrite(currentRuntimePath, runtimeResult.bytes);
+    }
     atomicWrite(currentSignPath, signBytes);
+    if (runtimeSkipped) {
+        next.runtimeWasmtimeSkip = runtimeSkipped;
+    }
     atomicWrite(VERSION_PATH, Buffer.from(`${JSON.stringify(next, null, 2)}\n`));
     try {
         const bbModule = require('./bb_module.cjs');

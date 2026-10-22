@@ -45,8 +45,9 @@ def _offline_parity() -> int:
 
 
 def _run(backend: str, device_id: str | None) -> dict:
+    from bs_dvid import fetch_bs_dvid_full
+
     os.environ["MT_BS_DVID_BACKEND"] = backend
-    # re-read backend on each call via env in fetch_bs_dvid_full
     return fetch_bs_dvid_full(device_id=device_id)
 
 
@@ -55,7 +56,8 @@ def main() -> int:
     if not args or args[0] != "--live":
         return _offline_parity()
     device_id = args[1] if len(args) > 1 else "353456789012345"
-    from bs_dvid import fetch_bs_dvid_full, final_bs_dvid_token
+    from bs_dvid import final_bs_dvid_token
+
     py = _run("python", device_id)
     js = _run("node", device_id)
 

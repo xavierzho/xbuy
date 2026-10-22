@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import copy
 import json
+import math
+import time
 from typing import Any
 from urllib.parse import urlparse
 
@@ -137,25 +139,30 @@ def apply_remote_strategy(
             decoded = un_process_data(ctx, str(strategy_response or ""))
         except Exception:
             decoded = None
-    fallback = [copy.deepcopy(LIVE_BB_REMOTE_TASK), request_started_at, LIVE_BB_STRATEGY_VERSION]
-    data = decoded if isinstance(decoded, list) and isinstance(decoded[0], list) else fallback
+    fallback = [copy.deepcopy(LIVE_BB_REMOTE_TASK), int(time.time() * 1000), LIVE_BB_STRATEGY_VERSION]
+    data = decoded if isinstance(decoded, list) and decoded and isinstance(decoded[0], list) else fallback
     task = data[0] if isinstance(data[0], list) else copy.deepcopy(LIVE_BB_REMOTE_TASK)
-    request_at = int(request_started_at)
-    response_at = int(response_received_at)
-    midpoint = request_at + int((response_at - request_at) / 2)
-    server_time = int(data[1] if len(data) > 1 else midpoint)
-    tactics_version = int(data[2] if len(data) > 2 else LIVE_BB_STRATEGY_VERSION)
+    request_at = int(request_started_at or time.time() * 1000)
+    response_at = int(response_received_at or request_at)
+    midpoint = request_at + math.floor((response_at - request_at) / 2 + 0.5)
+
+    def at(seq: list, i: int) -> Any:
+        return seq[i] if i < len(seq) else None
+
+    server_time = int(at(data, 1) or midpoint)
+    tactics_version = int(at(data, 2) or LIVE_BB_STRATEGY_VERSION)
 
     sdk_task = ctx["sdkConfig"]["task"]
-    sdk_task[16] = task[0] if len(task) > 0 else 0
-    sdk_task[22] = task[1] if len(task) > 1 else 0
-    sdk_task[17] = copy.deepcopy(task[2]) if len(task) > 2 and isinstance(task[2], list) else []
-    sdk_task[20] = task[3] if len(task) > 3 and isinstance(task[3], int) and task[3] > 10 else 3600
-    sdk_task[21] = task[4] if len(task) > 4 else 0
+    sdk_task[16] = at(task, 0) or 0
+    sdk_task[22] = at(task, 1) or 0
+    sdk_task[17] = copy.deepcopy(task[2]) if isinstance(at(task, 2), list) else []
+    t3 = at(task, 3)
+    sdk_task[20] = t3 if isinstance(t3, (int, float)) and not isinstance(t3, bool) and t3 > 10 else 3600
+    sdk_task[21] = at(task, 4) or 0
     sdk_task[7] = task[5] if len(task) > 5 else 10
-    sdk_task[15] = task[6] if len(task) > 6 else 10
-    sdk_task[23] = task[7] if len(task) > 7 else 20
-    sdk_task[24] = task[8] if len(task) > 8 else 3
+    sdk_task[15] = at(task, 6) or 10
+    sdk_task[23] = at(task, 7) or 20
+    sdk_task[24] = at(task, 8) or 3
     if not isinstance(sdk_task[25], list):
         sdk_task[25] = [0, "", "", "", "", "", "", "", ""]
     if len(task) > 9 and isinstance(task[9], list):

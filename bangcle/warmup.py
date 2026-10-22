@@ -5,7 +5,9 @@ import copy
 import json
 import time
 from typing import Any
-import requests
+
+# fk1.moutai519.com.cn 的 ESA WAF 按 TLS 指纹拦截 Python ssl（requests/urllib 恒 403），须走 curl。
+from curl_cffi import requests
 
 from bangcle.constants import (
     CONTENT_INFO_BB_HEADER,
@@ -90,17 +92,28 @@ def _extract_wasm_versions(payload: Any) -> dict:
             parsed = json.loads(payload)
         except Exception:
             parsed = None
-    if not isinstance(parsed, dict):
-        return {"versions": [], "signWasmOk": False, "raw": parsed}
-    versions = []
-    if isinstance(parsed.get("v"), list):
-        for entry in parsed["v"]:
-            if isinstance(entry, str):
-                versions.append(entry)
-            elif isinstance(entry, dict):
-                versions.append(str(entry.get("v") or entry.get("version") or ""))
+    return extract_wasm_versions_parsed(parsed)
+
+
+def extract_wasm_versions_parsed(parsed: Any) -> dict:
+    """bb_sdk.js extractBangcleWasmVersions（payload 已解析）。"""
+    if not parsed:
+        return {"versions": [], "signWasmOk": False, "raw": None}
+    if isinstance(parsed, dict) and isinstance(parsed.get("v"), list):
+        entries = parsed["v"]
+    elif isinstance(parsed, list):
+        entries = parsed
+    else:
+        entries = []
+    versions: list[str] = []
+    for entry in entries:
+        if isinstance(entry, str):
+            versions.append(entry)
+        elif isinstance(entry, dict):
+            versions.append(str(entry.get("v") or entry.get("version") or ""))
     versions = [v for v in versions if v]
-    return {"versions": versions, "signWasmOk": parsed.get("w") is not False, "raw": parsed}
+    sign_ok = not (isinstance(parsed, dict) and parsed.get("w") is False)
+    return {"versions": versions, "signWasmOk": sign_ok, "raw": parsed}
 
 
 def _extract_wasm_download(payload: Any) -> dict:
@@ -246,7 +259,6 @@ def run_bangcle_warmup(input_data: dict | None = None, *, timeout: float = 20.0)
             headers=_post_headers(headers, strategy_url, strategy_body),
             timeout=req_timeout,
             proxies=proxies,
-            verify=False,
         )
         strategy_status = resp.status_code
         if 200 <= resp.status_code < 300 and resp.content:
@@ -279,17 +291,14 @@ def run_bangcle_warmup(input_data: dict | None = None, *, timeout: float = 20.0)
         headers={**headers, CONTENT_INFO_BB_HEADER: info_payload},
         timeout=req_timeout,
         proxies=proxies,
-        verify=False,
     )
     version_info = _extract_wasm_versions(version_resp.content)
     session["signWasmVersion"] = LIVE_BB_WASM_VERSION
-    if version_info.get("raw") and (
-        not version_info.get("versions") or LIVE_BB_WASM_VERSION in version_info["versions"]
-    ):
+    if version_info.get("raw") and LIVE_BB_WASM_VERSION in version_info["versions"]:
         session["signWasmOk"] = bool(session.get("signWasmBase64")) and version_info.get("signWasmOk") is not False
 
     prev_state = input_data.get("bbState") if isinstance(input_data.get("bbState"), dict) else {}
-    if (not prev_state.get("__bbWasmFetched") and not input_data.get("forceWasm")) and not flags["localWasm"]:
+    if (not prev_state.get("__bbWasmFetched") or input_data.get("forceWasm")) and not flags["localWasm"]:
         wasm_url = f"{_wasm_host(session)}{DEFAULT_WASM_DOWNLOAD_PATH}"
         dl_headers = {
             **headers,
@@ -300,7 +309,6 @@ def run_bangcle_warmup(input_data: dict | None = None, *, timeout: float = 20.0)
             headers=dl_headers,
             timeout=req_timeout,
             proxies=proxies,
-            verify=False,
         )
         if 200 <= wasm_resp.status_code < 300:
             wasm_info = _extract_wasm_download(wasm_resp.text)
@@ -345,7 +353,6 @@ def run_bangcle_warmup(input_data: dict | None = None, *, timeout: float = 20.0)
         headers=_post_headers(headers, upload_url, upload_body),
         timeout=req_timeout,
         proxies=proxies,
-        verify=False,
     )
     if 200 <= upload_resp.status_code < 300:
         session["serial"] = serial + 1

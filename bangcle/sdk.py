@@ -478,8 +478,10 @@ def _load_wasm_module():
         if _wasm_module is None:
             if not os.path.exists(_RUNTIME_WASM_PATH):
                 raise FileNotFoundError(_RUNTIME_WASM_PATH)
-            _wasm_engine = _wt.Engine()
-            _wasm_module = _wt.Module.from_file(_wasm_engine, _RUNTIME_WASM_PATH)
+            from wasmtime_bb import compile_bb_wasm_module, make_bb_wasm_engine
+
+            _wasm_engine = make_bb_wasm_engine()
+            _wasm_module = compile_bb_wasm_module(_wasm_engine, _RUNTIME_WASM_PATH)
     return _wasm_engine, _wasm_module
 
 

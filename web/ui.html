@@ -4,1460 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>i茅台 · 抢购控制台</title>
-<style>
-  :root {
-    --bg:       #f5f6fa;
-    --bg2:      #ffffff;
-    --bg3:      #f0f1f5;
-    --border:   #e5e7eb;
-    --accent:   #b8944e;
-    --accent2:  #d4a853;
-    --accent3:  rgba(184,148,78,.08);
-    --green:    #22c55e;
-    --red:      #ef4444;
-    --yellow:   #f59e0b;
-    --blue:     #3b82f6;
-    --text:     #1a1a2e;
-    --text2:    #6b7280;
-    --text3:    #9ca3af;
-    --radius:   14px;
-    --shadow:   0 4px 24px rgba(0,0,0,.06);
-    --glow:     0 0 0 1px rgba(184,148,78,.12), 0 4px 20px rgba(184,148,78,.08);
-    --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
-    --shadow-md: 0 4px 16px rgba(0,0,0,.06);
-    --shadow-lg: 0 12px 40px rgba(0,0,0,.08);
-    --accent-light: rgba(184,148,78,.08);
-    --accent-ring: 0 0 0 3px rgba(184,148,78,.12);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-      transition-duration: 0.01ms !important;
-      animation-duration: 0.01ms !important;
-    }
-  }
-  body {
-    font-family: 'PingFang SC','Microsoft YaHei','Inter',sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    background-image:
-      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(184,148,78,.04) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 30% at 80% 100%, rgba(59,130,246,.02) 0%, transparent 50%);
-  }
-  .acct-list,
-  .tab-content,
-  .pay-notice-scroll {
-    scroll-behavior: smooth;
-  }
-  body.ui-busy .acct-list,
-  body.ui-busy .tab-content,
-  body.ui-busy .log-box,
-  body.ui-busy .pay-notice-scroll,
-  body.ui-busy .acct-log-box {
-    scroll-behavior: auto !important;
-  }
-  .log-box,
-  .acct-log-box {
-    scroll-behavior: auto !important;
-  }
-
-  /* ── 顶栏 ── */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    height: 58px;
-    background: rgba(255,255,255,.85);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100;
-    backdrop-filter: blur(20px) saturate(180%);
-    box-shadow: 0 1px 3px rgba(0,0,0,.04);
-  }
-  .topbar-glow {
-    position: absolute;
-    bottom: -1px; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(184,148,78,.15) 30%, rgba(184,148,78,.15) 70%, transparent 100%);
-    pointer-events: none;
-  }
-  .topbar .logo {
-    font-size: 16px; font-weight: 800;
-    color: var(--accent);
-    letter-spacing: .6px;
-    display: flex; align-items: center; gap: 10px;
-    text-shadow: none;
-  }
-  .topbar .logo-icon {
-    font-size: 22px;
-    filter: drop-shadow(0 0 6px rgba(184,148,78,.25));
-    flex-shrink: 0;
-  }
-  .topbar .logo span { color: var(--text2); font-weight: 400; font-size: 12px; letter-spacing: .3px; }
-  .topbar .logo { transition: text-shadow .3s; }
-  .topbar .logo:hover { text-shadow: 0 0 30px rgba(184,148,78,.3); }
-  .topbar .logo-icon { transition: filter .3s; }
-  .topbar .logo:hover .logo-icon { filter: drop-shadow(0 0 14px rgba(184,148,78,.5)); }
-  .topbar .stats-row {
-    display: flex; gap: 6px; align-items: center;
-  }
-  .stat-chip {
-    font-size: 11px; color: var(--text2);
-    padding: 4px 10px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    display: flex; align-items: center; gap: 4px;
-    letter-spacing: .2px;
-    transition: border-color .15s, background .15s;
-  }
-  .stat-chip:hover { background: rgba(184,148,78,.06); border-color: rgba(184,148,78,.2); }
-  .stat-chip b { color: var(--text); font-size: 12px; font-weight: 700; }
-  .stat-chip b.green { color: var(--green); }
-  .stat-chip b.red   { color: var(--red); }
-  .stat-chip b.yellow{ color: var(--yellow); }
-  .bj-clock {
-    font-size: 12px; color: var(--accent); font-variant-numeric: tabular-nums;
-    padding: 5px 12px; border: 1px solid rgba(184,148,78,.2); border-radius: 20px;
-    background: rgba(184,148,78,.06); letter-spacing: .4px; white-space: nowrap;
-    text-shadow: none;
-  }
-  .dist-popover {
-    position: fixed;
-    top: 54px;
-    right: 18px;
-    z-index: 260;
-    width: min(980px, calc(100vw - 36px));
-    max-height: min(460px, calc(100vh - 80px));
-    overflow: auto;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 18px 60px rgba(0,0,0,.16);
-    padding: 10px;
-  }
-  .dist-popover[hidden] { display: none; }
-
-  /* ── 布局 ── */
-  .layout {
-    display: grid;
-    grid-template-columns: 290px 1fr;
-    gap: 0;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  /* ── 侧边栏（账号列表） ── */
-  .sidebar {
-    background: rgba(255,255,255,.92);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .sidebar-head {
-    padding: 16px 14px 12px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(255,255,255,.5);
-    position: relative;
-  }
-  .sidebar-head::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 14px; right: 14px;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(184,148,78,.15) 0%, transparent 100%);
-  }
-  .sidebar-head h2 {
-    font-size: 10px; font-weight: 700;
-    color: var(--text3); text-transform: uppercase;
-    letter-spacing: 2px; margin-bottom: 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .sidebar-head h2::before {
-    content: '';
-    display: inline-block;
-    width: 3px; height: 12px;
-    background: linear-gradient(180deg, var(--accent), var(--accent2));
-    border-radius: 2px;
-    box-shadow: 0 0 6px rgba(184,148,78,.3);
-  }
-  .search-box {
-    position: relative;
-  }
-  .search-box input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 12px;
-    padding: 8px 10px 8px 34px;
-    outline: none;
-    transition: border-color .15s, box-shadow .15s, background .15s;
-  }
-  .search-box input:focus {
-    border-color: var(--accent);
-    box-shadow: var(--accent-ring);
-    background: #fff;
-  }
-  .search-box input::placeholder { color: var(--text3); }
-  .search-box input:hover:not(:focus) { border-color: rgba(184,148,78,.15); }
-  .search-box .ico {
-    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-    color: var(--text3); font-size: 13px; pointer-events: none;
-  }
-
-  .acct-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 5px;
-    row-gap: 6px;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(255,255,255,.5);
-  }
-  .btn-xs {
-    font-size: 11px; padding: 5px 9px;
-    border-radius: 8px; border: 1px solid var(--border);
-    background: #fff; color: var(--text2);
-    cursor: pointer;
-    transition: all .13s;
-    font-family: inherit;
-    letter-spacing: .2px;
-  }
-  .btn-xs:active { transform: scale(0.95); }
-  .btn-xs:hover { background: var(--bg3); color: var(--text); border-color: rgba(184,148,78,.2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-  .btn-xs.accent {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    border-color: var(--accent);
-    color: #1a1200;
-    font-weight: 700;
-    box-shadow: 0 2px 8px rgba(184,148,78,.2);
-  }
-  .btn-xs.accent:hover { filter: brightness(1.05); box-shadow: 0 4px 16px rgba(184,148,78,.25); transform: translateY(-1px); }
-  .btn-xs.danger { color: var(--red); border-color: rgba(239,68,68,.2); background: rgba(239,68,68,.05); }
-  .btn-xs.danger:hover { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); transform: translateY(-1px); }
-  .btn-xs.secondary { color: var(--text2); border-color: var(--border); background: #fff; }
-  .btn-xs.secondary:hover { background: var(--bg3); color: var(--text); transform: translateY(-1px); }
-
-  .acct-list {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 6px 8px;
-    /* 滚动容器隔离：滚动时不触发外层重排；
-       will-change 告诉浏览器把这块单独提到合成层做 GPU 平滑滚动 */
-    contain: layout paint;
-    will-change: scroll-position;
-  }
-
-  .acct-item {
-    display: flex;
-    align-items: center;
-    /* 屏幕外列表项跳渲：账号多时（100+）侧栏滚动顺滑 */
-    content-visibility: auto;
-    contain-intrinsic-size: auto 56px;
-    gap: 10px;
-    padding: 9px 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all .15s;
-    border: 1px solid transparent;
-    margin-bottom: 2px;
-    position: relative;
-  }
-  .acct-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 25%; bottom: 25%;
-    width: 2px;
-    border-radius: 2px;
-    background: var(--accent);
-    opacity: 0;
-    transition: opacity .15s;
-  }
-  .acct-item:hover { background: rgba(184,148,78,.04); border-color: rgba(184,148,78,.15); }
-  .acct-item:hover::before { opacity: .4; }
-  .acct-item:active { transform: scale(0.985); }
-  .acct-item.active {
-    background: rgba(184,148,78,.06);
-    border-color: rgba(184,148,78,.2);
-    box-shadow: 0 0 0 1px rgba(184,148,78,.06) inset, 0 2px 8px rgba(0,0,0,.04);
-  }
-  .acct-item.active::before { opacity: 1; }
-  .acct-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(184,148,78,.1) 0%, rgba(184,148,78,.03) 100%);
-    border: 1.5px solid rgba(184,148,78,.18);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700; color: var(--accent);
-    flex-shrink: 0;
-    position: relative;
-    transition: border-color .15s;
-  }
-  .acct-item.active .acct-avatar {
-    border-color: rgba(184,148,78,.4);
-    background: linear-gradient(135deg, rgba(184,148,78,.15) 0%, rgba(184,148,78,.06) 100%);
-    box-shadow: 0 0 0 3px rgba(184,148,78,.08);
-  }
-  /* 状态在线指示点（右下角，覆盖在头像上） */
-  .acct-avatar-dot {
-    position: absolute;
-    bottom: -1px; right: -1px;
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-  }
-  .acct-avatar-dot.dot-ok     { background: var(--green); }
-  .acct-avatar-dot.dot-sent   { background: var(--blue); }
-  .acct-avatar-dot.dot-fail   { background: var(--red); }
-  .acct-avatar-dot.dot-pend   { background: var(--text3); }
-  /* 待拉支付链接（与右下角状态点区分：左上小红点） */
-  .acct-avatar-pending-dot {
-    position: absolute;
-    top: -3px;
-    left: -3px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #ef4444;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 1px rgba(220, 38, 38, .4);
-    z-index: 2;
-    pointer-events: none;
-    animation: acctPendingDotPulse 1.35s ease-in-out infinite;
-  }
-  @keyframes acctPendingDotPulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.12); opacity: .82; }
-  }
-  .acct-info { flex: 1; min-width: 0; }
-  .acct-name {
-    font-size: 13px; font-weight: 600;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    color: var(--text);
-  }
-  .acct-phone {
-    font-size: 11px; color: var(--text3); margin-top: 2px;
-    font-variant-numeric: tabular-nums;
-  }
-  .acct-pending-pay-slot { margin-top: 6px; width: 100%; }
-  .acct-pending-pay-urgent {
-    font-size: 11px; line-height: 1.35;
-    padding: 6px 8px;
-    border-radius: 6px;
-    background: linear-gradient(90deg, rgba(220, 38, 38, .12), rgba(245, 158, 11, .1));
-    border: 1px solid rgba(220, 60, 60, .42);
-    color: #7f1d1d;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    max-width: 100%;
-  }
-  .acct-pending-pay-urgent strong { color: #991b1b; }
-  .acct-pending-pay-urgent .pp-mini {
-    font-size: 10px; color: #92400e;
-    flex: 1 1 100%;
-    word-break: break-all;
-  }
-  .acct-pending-pay-urgent button {
-    font-size: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
-    border: 1px solid rgba(0,0,0,.12);
-    background: #fff;
-    color: var(--text1);
-  }
-  .acct-pending-pay-urgent button.pp-go { background: var(--accent); color: #fff; border-color: transparent; font-weight: 600; }
-  .badge {
-    font-size: 10px; padding: 2px 8px;
-    border-radius: 20px; font-weight: 600; flex-shrink: 0;
-    letter-spacing: .3px;
-  }
-  .badge.ok     { background: rgba(34,197,94,.08); color: #16a34a; border: 1px solid rgba(34,197,94,.15); }
-  .badge.fail   { background: rgba(239,68,68,.08);  color: #dc2626; border: 1px solid rgba(239,68,68,.15); }
-  .badge.sent   { background: rgba(59,130,246,.08); color: #2563eb; border: 1px solid rgba(59,130,246,.15); }
-  .badge.pend   { background: rgba(156,163,175,.08); color: var(--text3); border: 1px solid rgba(156,163,175,.12); }
-  .acct-badges { display:flex; flex-direction:column; align-items:flex-end; gap:3px; flex-shrink:0; }
-  .badge.risk-normal   { background: rgba(34,197,94,.06); color: #16a34a; border: 1px solid rgba(34,197,94,.12); }
-  .badge.risk-black    { background: rgba(239,68,68,.06); color: #dc2626; border: 1px solid rgba(239,68,68,.12); }
-  .badge.risk-suspect  { background: rgba(245,158,11,.06); color: #d97706; border: 1px solid rgba(245,158,11,.12); }
-  .badge.risk-token    { background: rgba(234,140,80,.06); color: #c2742e; border: 1px solid rgba(234,140,80,.12); }
-  .badge.risk-error    { background: rgba(107,114,128,.06); color: var(--text2); border: 1px solid rgba(107,114,128,.1); }
-  .badge.risk-unknown  { background: rgba(156,163,175,.06); color: var(--text3); border: 1px solid rgba(156,163,175,.1); }
-  .badge { transition: all .2s; }
-  .badge:hover { filter: brightness(1.2); transform: scale(1.05); }
-
-  /* ── 主内容 ── */
-  .main {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  /* ── 标签页 ── */
-  .tabs {
-    display: flex;
-    gap: 0;
-    flex-shrink: 0;
-    background: rgba(255,255,255,.8);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    position: relative;
-  }
-  .tabs::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 1px;
-    background: var(--border);
-    z-index: 0;
-  }
-  .tab {
-    padding: 14px 20px;
-    font-size: 13px; color: var(--text3);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color .14s, border-bottom-color .14s;
-    user-select: none;
-    font-weight: 500;
-    letter-spacing: .2px;
-    position: relative;
-    z-index: 1;
-  }
-  .tab:hover { color: var(--text); background: rgba(184,148,78,.04); }
-  .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-    font-weight: 700;
-    letter-spacing: .3px;
-    text-shadow: none;
-  }
-
-  .tab-content { display: none; flex: 1; min-height: 0; overflow-y: auto; padding: 22px 26px; }
-  .tab-content.active { display: block; contain: layout paint; }
-  /* 主滚动容器 GPU 化：滚动期独立合成层，不触发兄弟容器重排 */
-  #acctConfigWrap, #tab-log .log-box {
-    will-change: scroll-position;
-  }
-  /* 操作日志页：日志 + 代理池（纵向）；支付通知见顶栏独立「支付通知」标签 */
-  #tab-log.tab-content.active {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 14px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: 16px 22px 18px;
-  }
-  .rush-code-stats {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: wrap;
-    min-height: 26px;
-    margin: -2px 0 10px;
-  }
-  .rush-code-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 22px;
-    padding: 0 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(245, 151, 36, .56);
-    color: #f59a23;
-    background: #fffaf2;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-    cursor: default;
-    user-select: none;
-  }
-  .rush-code-pill strong {
-    font-size: 12px;
-    font-weight: 800;
-  }
-  .rush-code-pill span {
-    font-size: 11px;
-    color: #c77d15;
-  }
-  .rush-code-pill.all {
-    background: #ff8f34;
-    border-color: #ff8f34;
-    color: #fff;
-  }
-  .rush-code-pill.all span {
-    color: rgba(255,255,255,.9);
-  }
-  .rush-code-pill.ok {
-    border-color: rgba(30, 158, 91, .56);
-    color: #198754;
-    background: #f1fff7;
-  }
-  .rush-code-pill.ok span {
-    color: #16804d;
-  }
-  .rush-code-pill.err {
-    border-color: rgba(219, 72, 72, .5);
-    color: #c73737;
-    background: #fff5f5;
-  }
-  .rush-code-pill.err span {
-    color: #b33131;
-  }
-  /* 支付通知：独立标签页，表格区占满剩余高度 */
-  #tab-pay.tab-content.active {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    padding: 16px 22px 18px;
-  }
-  #tab-pay .pay-notice-card.pay-tab-full.card {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    margin-bottom: 0;
-    overflow: hidden;
-  }
-  #tab-pay .pay-notice-card .pay-notice-toolbar,
-  #tab-pay .pay-notice-card > p.hint {
-    flex-shrink: 0;
-  }
-  #tab-pay .pay-notice-scroll {
-    flex: 1;
-    min-height: 160px;
-    max-height: none;
-    overflow: auto;
-  }
-
-  /* ── 卡片 ── */
-  .card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 14px;
-    transition: border-color .2s, box-shadow .2s;
-    position: relative;
-  }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 20px; right: 20px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(184,148,78,.06) 50%, transparent 100%);
-    border-radius: 0 0 2px 2px;
-    pointer-events: none;
-  }
-  .card:hover {
-    border-color: rgba(184,148,78,.2);
-    box-shadow: 0 4px 20px rgba(0,0,0,.06);
-    transform: translateY(-1px);
-  }
-  .card-title {
-    font-size: 11px; font-weight: 700;
-    color: var(--text2); text-transform: uppercase;
-    letter-spacing: 1.4px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-title .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: radial-gradient(circle at center, var(--accent2) 0%, var(--accent) 100%);
-    box-shadow: 0 0 6px rgba(184,148,78,.4), 0 0 2px rgba(184,148,78,.3);
-    flex-shrink: 0;
-  }
-
-  /* 表单 */
-  .form-row {
-    display: flex; gap: 10px; align-items: flex-end;
-    flex-wrap: wrap; margin-bottom: 10px;
-  }
-  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
-  .form-group label { font-size: 12px; color: var(--text2); font-weight: 500; }
-  .form-group input, .form-group select, .form-group textarea {
-    background: #fff;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-size: 13px;
-    padding: 8px 10px;
-    outline: none;
-    transition: border .15s, box-shadow .15s, background .15s;
-    font-family: inherit;
-  }
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    border-color: var(--accent);
-    box-shadow: var(--accent-ring);
-    background: #fff;
-  }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-  .form-hint {
-    font-size: 11px;
-    color: var(--text2);
-    line-height: 1.5;
-    margin-top: 6px;
-  }
-  .check-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--text2);
-    cursor: pointer;
-    user-select: none;
-  }
-  .check-line input { flex-shrink: 0; }
-  .form-group input:hover:not(:focus), .form-group select:hover:not(:focus), .form-group textarea:hover:not(:focus) {
-    border-color: rgba(184,148,78,.15);
-  }
-  .form-group select option { background: #fff; color: var(--text); }
-
-  /* 按钮 */
-  .btn {
-    padding: 9px 20px;
-    border-radius: 10px;
-    border: none;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s;
-    white-space: nowrap;
-    font-family: inherit;
-    letter-spacing: .2px;
-  }
-  .btn:active:not(:disabled) { transform: scale(0.96); }
-  .btn.primary {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    color: #fff;
-    box-shadow: 0 2px 12px rgba(184,148,78,.2);
-  }
-  .btn.primary:hover:not(:disabled) {
-    box-shadow: 0 6px 24px rgba(184,148,78,.25);
-    filter: brightness(1.05);
-    transform: translateY(-2px);
-  }
-  .btn.secondary { background: #fff; color: var(--text2); border: 1.5px solid var(--border); }
-  .btn.secondary:hover:not(:disabled) { background: var(--bg3); color: var(--text); border-color: rgba(184,148,78,.2); transform: translateY(-1px); }
-  .btn.success { background: rgba(34,197,94,.06); color: var(--green); border: 1.5px solid rgba(34,197,94,.2); }
-  .btn.success:hover:not(:disabled) { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.3); transform: translateY(-1px); }
-  .btn.danger  { background: rgba(239,68,68,.05); color: var(--red); border: 1.5px solid rgba(239,68,68,.18); }
-  .btn.danger:hover:not(:disabled)  { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); transform: translateY(-1px); }
-  .btn.secondary:hover:not(:disabled), .btn.success:hover:not(:disabled), .btn.danger:hover:not(:disabled) { transform: translateY(-1px); }
-  .btn:disabled { opacity: .38; cursor: not-allowed; }
-
-  /* ── 账号详情面板 ── */
-  .detail-panel {
-    background: rgba(255,255,255,.8);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    margin-bottom: 14px;
-    backdrop-filter: blur(4px);
-    transition: border-color .3s, box-shadow .3s;
-  }
-  .detail-panel:hover { border-color: rgba(184,148,78,.15); box-shadow: 0 4px 20px rgba(0,0,0,.06); }
-  .detail-header {
-    display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
-  }
-  .detail-avatar {
-    width: 54px; height: 54px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(184,148,78,.12) 0%, rgba(184,148,78,.04) 100%);
-    border: 2px solid rgba(184,148,78,.3);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; font-weight: 700; color: var(--accent);
-    box-shadow: 0 0 0 5px rgba(184,148,78,.06), 0 4px 16px rgba(0,0,0,.06);
-    text-shadow: none;
-  }
-  .detail-meta h3 { font-size: 16px; font-weight: 600; }
-  .detail-meta p  { font-size: 12px; color: var(--text2); margin-top: 3px; }
-  .info-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-    gap: 10px;
-  }
-  .info-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    transition: border-color .15s, background .15s;
-  }
-  .info-item:hover { border-color: rgba(184,148,78,.2); background: rgba(184,148,78,.03); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.04); }
-  .info-item .lbl { font-size: 11px; color: var(--text3); margin-bottom: 4px; font-weight: 500; letter-spacing: .5px; }
-  .info-item .val { font-size: 13px; font-weight: 500; word-break: break-all; }
-
-  /* ── 地址列表 ── */
-  .addr-list { display: flex; flex-direction: column; gap: 8px; }
-  .addr-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 15px;
-    cursor: pointer;
-    transition: all .15s;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .addr-card:hover { border-color: rgba(184,148,78,.28); background: rgba(184,148,78,.04); box-shadow: 0 4px 14px rgba(0,0,0,.04); transform: translateY(-1px); }
-  .addr-card.selected {
-    border-color: rgba(184,148,78,.5);
-    background: rgba(184,148,78,.07);
-    box-shadow: 0 0 0 1px rgba(184,148,78,.12) inset, 0 4px 14px rgba(0,0,0,.04);
-  }
-  .addr-main { font-size: 13px; font-weight: 500; }
-  .addr-sub  { font-size: 12px; color: var(--text2); margin-top: 3px; }
-  .addr-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px;
-    background: rgba(184,148,78,.08); color: var(--accent); flex-shrink: 0; font-weight: 600; border: 1px solid rgba(184,148,78,.18); }
-
-  /* ── 商品选择 ── */
-  .item-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
-    gap: 10px;
-  }
-  .item-name { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
-  .item-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .item-price { font-size: 13px; color: var(--accent); font-weight: 700; }
-  .item-code  { font-size: 11px; color: var(--text3); }
-
-  /* ── 日志 ── */
-  .log-box {
-    background: #151515;
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-family: 'JetBrains Mono','Fira Code','Consolas','Courier New',monospace;
-    font-size: 12px;
-    line-height: 1.45;
-    min-height: 360px;
-    max-height: none;
-    overflow: auto;
-    color: #f2c94c;
-    white-space: pre;
-    word-break: normal;
-    box-shadow: none;
-    contain: content;
-    font-variant-numeric: tabular-nums;
-  }
-  /* Firefox：主滚动区用更易拖的滚动条（WebKit 走全局 ::-webkit-scrollbar） */
-  .acct-list,
-  .tab-content,
-  .log-box {
-    scrollbar-width: auto;
-    scrollbar-color: rgba(184, 148, 78, 0.45) rgba(184, 148, 78, 0.08);
-  }
-  #tab-log .card:first-child {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  #tab-log .card:first-child .log-box {
-    flex: 1;
-  }
-
-  /* ── 进度条 ── */
-  .progress-bar {
-    height: 3px;
-    background: rgba(184,148,78,.06);
-    border-radius: 3px;
-    overflow: visible;
-    margin-top: 10px;
-    position: relative;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
-    border-radius: 3px;
-    transition: width .4s ease, box-shadow .3s;
-    width: 0%;
-    box-shadow: 0 0 10px rgba(184,148,78,.4), 0 0 3px rgba(184,148,78,.6);
-    position: relative;
-  }
-  .progress-fill:hover { box-shadow: 0 0 12px rgba(184,148,78,.25), 0 0 10px rgba(184,148,78,.4), 0 0 3px rgba(184,148,78,.6); }
-  .progress-fill::after {
-    content: '';
-    position: absolute;
-    right: -3px; top: -3px;
-    width: 9px; height: 9px;
-    border-radius: 50%;
-    background: var(--accent2);
-    box-shadow: 0 0 8px rgba(184,148,78,.6);
-  }
-
-  /* ── 模态框 ── */
-  .modal-bg {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.3);
-    backdrop-filter: blur(8px);
-    z-index: 200;
-    align-items: center; justify-content: center;
-  }
-  .modal-bg.show { display: flex; }
-  .modal {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 30px;
-    width: 460px;
-    max-width: 92vw;
-    box-shadow: 0 24px 80px rgba(0,0,0,.12), 0 0 0 1px rgba(184,148,78,.08);
-    animation: modalIn .2s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes modalIn {
-    from { opacity: 0; transform: translateY(20px) scale(0.94); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  /* Qt WebEngine 在 backdrop-filter + 背景每秒更新时容易重合成闪烁，嵌入模式降级特效。 */
-  body.webengine-embed .modal-bg {
-    backdrop-filter: none;
-    background: rgba(0, 0, 0, 0.42);
-  }
-  body.webengine-embed .modal {
-    animation: none;
-  }
-  .modal h3 {
-    font-size: 16px; margin-bottom: 20px;
-    display: flex; align-items: center; gap: 10px;
-    font-weight: 700;
-    letter-spacing: .2px;
-  }
-  .modal h3 .ico { color: var(--accent); font-size: 18px; }
-  .modal-footer {
-    display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ── 批量码输入 ── */
-  .code-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  .code-table th {
-    font-size: 11px; color: var(--text3);
-    text-align: left; padding: 6px 8px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600; letter-spacing: .5px;
-  }
-  .code-table td { padding: 6px 8px; font-size: 13px; }
-  .code-table tr:hover td { background: var(--bg3); }
-  .code-table input {
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text);
-    font-size: 13px; padding: 4px 8px; width: 110px; outline: none;
-  }
-  .code-table input:focus { border-color: var(--accent); }
-
-  /* ── 空状态 ── */
-  .empty {
-    text-align: center; padding: 60px 20px;
-    color: var(--text3); font-size: 13px;
-    line-height: 1.6;
-  }
-  .empty .ico { font-size: 36px; margin-bottom: 14px; opacity: .45; display: block; }
-
-  /* ── Toast ── */
-  #toast {
-    position: fixed; bottom: 28px; right: 28px;
-    background: rgba(255,255,255,.92);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 13px 20px;
-    font-size: 13px;
-    box-shadow: 0 12px 40px rgba(0,0,0,.1), 0 2px 8px rgba(0,0,0,.04);
-    transform: translateY(16px) scale(0.96); opacity: 0;
-    transition: all .25s cubic-bezier(.34,1.56,.64,1);
-    z-index: 300; pointer-events: none;
-    max-width: 320px;
-    font-weight: 500;
-    backdrop-filter: blur(12px);
-    display: flex; align-items: center; gap: 10px;
-  }
-  #toast.show { transform: translateY(0) scale(1); opacity: 1; }
-  #toast.ok   { border-color: rgba(34,197,94,.3); color: #16a34a; background: rgba(34,197,94,.06); }
-  #toast.err  { border-color: rgba(239,68,68,.3);  color: #dc2626; background: rgba(239,68,68,.06); }
-  #toast.info { border-color: rgba(59,130,246,.3); color: #2563eb; background: rgba(59,130,246,.06); }
-  #toast.warn { border-color: rgba(245,158,11,.3); color: #d97706; background: rgba(245,158,11,.06); }
-  #rushWinNotifyStack {
-    position: fixed;
-    inset: 0;
-    z-index: 3000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 18px;
-    background: rgba(15,23,42,.22);
-    pointer-events: none;
-  }
-  #rushWinNotifyStack.show { display: flex; }
-  @media (max-width: 720px) {
-    #rushWinNotifyStack {
-      padding: 12px;
-    }
-  }
-  .rush-win-notice {
-    pointer-events: auto;
-    width: min(380px, calc(100vw - 36px));
-    background: rgba(255,255,255,.98);
-    border: 1px solid rgba(34,197,94,.34);
-    border-left: 4px solid #16a34a;
-    border-radius: 8px;
-    box-shadow: 0 12px 36px rgba(15,23,42,.16);
-    padding: 12px;
-    color: var(--text);
-  }
-  .rush-win-notice-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #15803d;
-    margin-bottom: 6px;
-  }
-  .rush-win-notice-body {
-    font-size: 13px;
-    line-height: 1.5;
-    word-break: break-all;
-  }
-  .rush-win-notice-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
-  }
-  .rush-win-notice-actions button {
-    border: 1px solid rgba(34,197,94,.34);
-    background: rgba(34,197,94,.08);
-    color: #15803d;
-    border-radius: 7px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .rush-win-notice-actions button:hover { background: rgba(34,197,94,.14); }
-
-  /* 分隔线 */
-  .divider { height: 1px; background: var(--border); margin: 16px 0; }
-
-  /* 小标签 */
-  .tag {
-    display: inline-block; font-size: 11px;
-    padding: 2px 8px; border-radius: 5px;
-    background: var(--bg3); border: 1px solid var(--border);
-    color: var(--text3); font-weight: 500;
-    transition: all .2s;
-  }
-  .tag:hover { filter: brightness(1.15); }
-
-  .acct-cfg-card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    margin-bottom: 12px;
-    transition: border-color .18s, box-shadow .18s;
-    position: relative;
-    /* GPU/合成层 + 屏幕外跳渲：120 张账号卡片只渲染视口内的 ~5 张，
-       屏幕外 115 张跳过 layout/paint/style，渲染开销下降 ~95%。
-       contain-intrinsic-size 给浏览器一个占位高度，防滚动条抖动。 */
-    content-visibility: auto;
-    contain-intrinsic-size: auto 460px;
-    contain: layout paint style;
-  }
-  .acct-cfg-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 14px; right: 14px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(184,148,78,.06), transparent);
-    pointer-events: none;
-  }
-  .acct-cfg-card:hover { border-color: rgba(184,148,78,.18); box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
-  .acct-cfg-card.dim { opacity: .68; border-style: dashed; }
-  .acct-adv {
-    margin: 10px 0;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    background: var(--bg);
-    transition: border-color .15s;
-  }
-  .acct-adv:hover { border-color: rgba(184,148,78,.15); }
-  .acct-adv summary {
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--text2);
-    user-select: none;
-    list-style: none;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .acct-adv summary::before { content: '▸'; font-size: 10px; opacity: .5; transition: transform .15s; }
-  .acct-adv[open] summary::before { transform: rotate(90deg); opacity: 1; }
-  .acct-adv summary::-webkit-details-marker { display: none; }
-  .acct-adv[open] summary { margin-bottom: 10px; color: var(--accent); }
-  .acct-log-box {
-    margin-top: 6px;
-    max-height: 160px;
-    overflow: auto;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
-    line-height: 1.45;
-    color: #f2c94c;
-    white-space: pre;
-    word-break: normal;
-    background: #151515;
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: 1px solid #2a2a2a;
-    box-shadow: none;
-    contain: content;
-    font-variant-numeric: tabular-nums;
-    scrollbar-width: auto;
-    scrollbar-color: rgba(242, 201, 76, 0.45) rgba(255, 255, 255, 0.08);
-  }
-  .acct-cfg-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .acct-cfg-head h4 {
-    font-size: 14px; color: var(--text); font-weight: 600;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .acct-cfg-head h4::before {
-    content: '';
-    width: 3px; height: 14px;
-    border-radius: 2px;
-    background: linear-gradient(180deg, var(--accent), var(--accent2));
-    flex-shrink: 0;
-  }
-  .batch-panel .hint { font-size: 12px; color: var(--text3); margin-top: 6px; line-height: 1.5; }
-  .hint { font-size: 12px; color: var(--text3); line-height: 1.6; }
-  .hint strong { color: var(--text2); }
-  .hint code { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 11px; color: var(--accent2); }
-
-  /* 定时：页内日历（内嵌 WebEngine 下原生 date/time 弹窗常无效） */
-  .sched-cal-anchor { position: relative; max-width: 280px; }
-  .sched-cal-pop {
-    display: none;
-    position: absolute;
-    left: 0;
-    top: calc(100% + 6px);
-    z-index: 600;
-    min-width: 268px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px 12px;
-    box-shadow: var(--shadow);
-  }
-  .sched-cal-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .sched-cal-head button {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    color: var(--text);
-    cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    padding: 0;
-  }
-  .sched-cal-head button:hover { background: var(--border); }
-  .sched-cal-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    margin-bottom: 4px;
-    font-size: 11px;
-    color: var(--text3);
-    text-align: center;
-  }
-  .sched-cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-  }
-  .sched-cal-pad { min-height: 32px; }
-  .sched-cal-day {
-    min-height: 32px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg2);
-    color: var(--text);
-    font-size: 13px;
-    cursor: pointer;
-    padding: 0;
-  }
-  .sched-cal-day:hover { background: rgba(184,148,78,.06); }
-  .sched-cal-day.sched-cal-sel {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #1a1200;
-    border-color: var(--accent);
-    font-weight: 700;
-    box-shadow: 0 2px 10px rgba(184,148,78,.3);
-  }
-  .sched-time-selects {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-  .sched-time-selects select {
-    flex: 1;
-    min-width: 58px;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 13px;
-    padding: 8px 6px;
-    cursor: pointer;
-  }
-
-  #tab-log .log-top-card.card {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    margin-bottom: 0;
-    overflow: hidden;
-  }
-  #tab-log .log-top-card .card-title { flex-shrink: 0; }
-  #tab-log .log-top-card .log-box {
-    flex: 1;
-    min-height: 180px;
-    max-height: none;
-    overflow-y: auto;
-  }
-  body.ui-busy .card,
-  body.ui-busy .btn,
-  body.ui-busy .btn-xs,
-  body.ui-busy .acct-item,
-  body.ui-busy .acct-cfg-card,
-  body.ui-busy .item-card {
-    transition: none !important;
-    animation: none !important;
-  }
-  body.ui-busy .card,
-  body.ui-busy .acct-cfg-card,
-  body.ui-busy .item-card,
-  body.ui-busy .modal,
-  body.ui-busy #toast,
-  body.ui-busy .rush-win-notice {
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-  }
-  .pay-notice-card .pay-notice-toolbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 10px;
-  }
-  .pay-notice-scroll {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    max-height: 420px;
-    overflow-y: auto;
-    background: var(--bg);
-    /* 底部留白，横向条不贴边（滚动条样式见全局 ::-webkit-scrollbar） */
-    scrollbar-width: auto;
-    scrollbar-color: rgba(184, 148, 78, 0.45) rgba(184, 148, 78, 0.08);
-    padding-bottom: 6px;
-  }
-  .proxy-pool-toolbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 8px;
-  }
-  .proxy-pool-inline {
-    margin: 4px 0 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-  }
-  .proxy-pool-grid {
-    display: grid;
-    grid-template-columns: minmax(260px, 1fr) minmax(180px, 0.9fr);
-    gap: 10px;
-  }
-  .proxy-pool-editor {
-    width: 100%;
-    min-height: 110px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    padding: 8px 10px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12px;
-    line-height: 1.45;
-    resize: vertical;
-    transition: border-color .15s;
-  }
-  .proxy-pool-editor:focus { border-color: rgba(184,148,78,.5); outline: none; box-shadow: 0 0 0 3px rgba(184,148,78,.1); }
-  .proxy-pool-list {
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
-    max-height: 170px;
-    overflow: auto;
-    padding: 8px 10px;
-    background: #151515;
-    color: #f2c94c;
-    font-family: 'JetBrains Mono','Fira Code','Consolas','Courier New',monospace;
-    font-size: 12px;
-    line-height: 1.45;
-    white-space: pre;
-    word-break: normal;
-    contain: content;
-    font-variant-numeric: tabular-nums;
-    scrollbar-width: auto;
-    scrollbar-color: rgba(184, 148, 78, 0.45) rgba(184, 148, 78, 0.08);
-  }
-  .proxy-pool-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    font-size: 12px;
-    transition: all .12s;
-  }
-  .proxy-pool-item:hover { border-color: rgba(184,148,78,.18); background: rgba(184,148,78,.03); transform: translateY(-1px); }
-  .proxy-pool-item code {
-    color: var(--text2);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-  }
-  .pay-notice-table {
-    width: max-content;
-    min-width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-  }
-  .pay-notice-table th,
-  .pay-notice-table td {
-    padding: 9px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    vertical-align: top;
-    font-size: 12px;
-  }
-  .pay-notice-table td:nth-child(3),
-  .pay-notice-table td.pay-notice-order-cell {
-    white-space: normal;
-    line-height: 1.45;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-  .pay-notice-table td:nth-child(3) {
-    max-width: 210px;
-  }
-  .pay-notice-table th {
-    background: var(--bg3);
-    color: var(--text3);
-    font-weight: 700;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    font-size: 10px;
-    letter-spacing: .8px;
-    text-transform: uppercase;
-  }
-  .pay-notice-table td.pay-countdown-cell {
-    min-width: 76px;
-    font-variant-numeric: tabular-nums;
-    vertical-align: top;
-  }
-  .pay-link-countdown {
-    display: inline-block;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text1);
-    letter-spacing: 0.06em;
-  }
-  .pay-link-countdown[data-urgent="1"] { color: #c95a00; }
-  .pay-link-countdown.pay-link-countdown-expired { color: var(--red); }
-  .pay-copy-feedback {
-    display: inline-block;
-    margin-left: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--green);
-    min-height: 1em;
-    vertical-align: middle;
-    max-width: 140px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .pay-copy-feedback-show { animation: payCopyFlash 0.35s ease-out; }
-  @keyframes payCopyFlash {
-    from { opacity: 0.2; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  /* 支付通知：链接不直接展开，只保留动作按钮，避免超长 URL 撑开表格 */
-  .pay-notice-link-vertical {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    width: 100%;
-    max-width: 100%;
-  }
-  .pay-notice-link-vertical .pay-notice-actions-row {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .pay-notice-order-cell {
-    min-width: 190px;
-    max-width: 240px;
-  }
-  .pay-notice-order-no {
-    font-weight: 700;
-    color: var(--text1);
-    font-variant-numeric: tabular-nums;
-  }
-  .pay-notice-actions-row.pay-notice-actions-compact {
-    margin-top: 6px;
-  }
-  .pay-method-pill {
-    display: inline-flex;
-    align-items: center;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 999px;
-    border: 1px solid rgba(184,148,78,.22);
-    background: rgba(184,148,78,.08);
-    color: var(--text2);
-    font-size: 11px;
-    font-weight: 700;
-    margin-right: 6px;
-    margin-bottom: 4px;
-  }
-  .pay-notice-table tbody tr.pay-notice-data-row:hover td {
-    background: rgba(184,148,78,.04);
-  }
-  /* 响应式：窄屏默认隐藏侧栏（移动页）；本程序自 127.0.0.1/localhost 打开且常套 Qt WebEngine，视口宽度易被判小，勿隐藏侧栏以免账号列表「整栏消失」。 */
-  @media (max-width: 768px) {
-    .layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    body.webengine-embed .sidebar,
-    body.local-webui .sidebar {
-      display: flex;
-    }
-  }
-
-  /* ── 全局过渡优化 ── */
-  * { box-sizing: border-box; }
-  input, select, textarea, button { font-family: inherit; }
-  /* 全局滚动条加粗，便于拖拽（WebKit / Qt WebEngine；Firefox 用各区块 scrollbar-width） */
-  ::-webkit-scrollbar { width: 12px; height: 12px; }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(184, 148, 78, 0.35);
-    border-radius: 8px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(184, 148, 78, 0.52);
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  ::-webkit-scrollbar-track { background: rgba(184, 148, 78, 0.06); border-radius: 8px; }
-  ::selection { background: rgba(184,148,78,.2); color: var(--text); }
-
-  /* 商品卡片 */
-  .item-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px 16px;
-    cursor: pointer;
-    transition: all .16s;
-    position: relative;
-    overflow: hidden;
-  }
-  .item-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(184,148,78,.06), transparent);
-  }
-  .item-card:hover  { border-color: rgba(184,148,78,.28); background: rgba(184,148,78,.03); box-shadow: 0 4px 16px rgba(0,0,0,.06); transform: translateY(-1px); }
-  .item-card.active { border-color: var(--accent); background: rgba(184,148,78,.07); box-shadow: var(--glow); }
-
-  /* 账号分组 tabs */
-  .group-tabs {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 12px 0;
-    flex-wrap: wrap;
-    background: rgba(255,255,255,.5);
-    border-bottom: 1px solid var(--border);
-  }
-  .group-tab {
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: #fff;
-    color: var(--text2);
-    cursor: pointer;
-    transition: all .13s;
-    white-space: nowrap;
-    display: flex; align-items: center; gap: 4px;
-  }
-  .group-tab:hover { background: var(--bg3); color: var(--text); border-color: rgba(184,148,78,.2); }
-  .group-tab.active {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    border-color: var(--accent);
-    color: #1a1200;
-    font-weight: 700;
-    box-shadow: 0 2px 8px rgba(184,148,78,.2);
-  }
-  .group-tab .del-grp {
-    font-size: 10px; opacity: .6; margin-left: 2px;
-    cursor: pointer; line-height: 1;
-  }
-  .group-tab .del-grp:hover { opacity: 1; color: var(--red); }
-  .group-tabs-row2 {
-    display: flex; gap: 4px; padding: 4px 12px 6px;
-    background: rgba(255,255,255,.5);
-  }
-</style>
+<link rel="stylesheet" href="/ui-shell.css?v=11">
+<link rel="stylesheet" href="/ui-theme.css?v=15">
 </head>
 <body>
 
@@ -1465,9 +13,9 @@
 <div class="topbar">
   <div class="topbar-glow"></div>
   <div class="logo">
-    <span class="logo-icon">🍵</span>
-    美团外卖
-    <span>内部定制 v2.0</span>
+    <span class="logo-mark" aria-hidden="true">茅</span>
+    i茅台 · 主控
+    <span>抢购 / 节点 / 支付</span>
   </div>
   <div class="stats-row" id="statsRow">
     <div class="bj-clock" id="bjClock">北京时间 —</div>
@@ -1475,16 +23,16 @@
     <div class="stat-chip">登录 <b class="green" id="sOk">0</b></div>
     <div class="stat-chip">发码 <b class="yellow" id="sSent">0</b></div>
     <div class="stat-chip">失败 <b class="red" id="sFail">0</b></div>
-    <button id="topbarDistributedNodes" class="btn-xs secondary" style="margin-left:8px;font-size:12px;padding:5px 12px" onclick="toggleDistributedNodePanel()" title="查看分布式节点状态">节点 <b id="distributedNodeStatus">0</b></button>
-    <button id="topbarMobileRelays" class="btn-xs secondary" style="margin-left:8px;font-size:12px;padding:5px 12px" onclick="toggleMobileRelayPanel()" title="查看手机发包设备状态">手机 <b id="mobileRelayStatus">0</b></button>
-    <button id="topbarBatchRush" class="btn-xs accent" style="margin-left:8px;font-size:12px;padding:5px 14px" onclick="runBatchRush()" title="对已登录且填了商品ID的账号批量抢购">⚡ 一键抢购</button>
+    <button id="topbarDistributedNodes" class="btn-xs secondary topbar-btn-gap" onclick="toggleDistributedNodePanel()" title="查看分布式节点状态">节点 <b id="distributedNodeStatus">0</b></button>
+    <button id="topbarMobileRelays" class="btn-xs secondary topbar-btn-gap" onclick="toggleMobileRelayPanel()" title="查看手机发包设备状态">手机 <b id="mobileRelayStatus">0</b></button>
+    <button id="topbarBatchRush" class="btn-xs accent topbar-btn-gap accent-wide" onclick="runBatchRush()" title="对已登录且填了商品ID的账号批量抢购">⚡ 一键抢购</button>
   </div>
 </div>
 
 <div id="distributedNodePopover" class="dist-popover" hidden>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-    <strong style="font-size:13px;color:var(--text)">分布式节点</strong>
-    <span class="hint" style="margin:0;flex:1">在线节点、CPU、任务、命中、TLS/代理失败统计</span>
+  <div class="dist-popover-head">
+    <strong>分布式节点</strong>
+    <span class="hint">在线节点、CPU、任务、命中、TLS/代理失败统计</span>
     <button type="button" class="btn-xs secondary" onclick="refreshDistributedStatus()">刷新</button>
     <button type="button" class="btn-xs secondary" onclick="toggleDistributedNodePanel(false)">关闭</button>
   </div>
@@ -1492,9 +40,9 @@
 </div>
 
 <div id="mobileRelayPopover" class="dist-popover" hidden>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-    <strong style="font-size:13px;color:var(--text)">手机发包设备</strong>
-    <span class="hint" style="margin:0;flex:1">在线手机、设备编号、客户端、队列；账号设备 ID 留空时会随机分配在线手机</span>
+  <div class="dist-popover-head">
+    <strong>手机发包设备</strong>
+    <span class="hint">在线手机、设备编号、客户端、队列；账号设备 ID 留空时会随机分配在线手机</span>
     <button type="button" class="btn-xs secondary" onclick="refreshMobileRelayStatus()">刷新</button>
     <button type="button" class="btn-xs secondary" onclick="toggleMobileRelayPanel(false)">关闭</button>
   </div>
@@ -1552,20 +100,20 @@
 
     <!-- ── 抢购配置（每账号参数 + 批量/定时） ── -->
     <div class="tab-content active" id="tab-acct">
-      <div class="card" style="margin-bottom:12px;padding:12px 14px">
-        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.45">
-          <input type="checkbox" id="rushAutoChainAfter" checked style="margin-top:3px;flex-shrink:0">
+      <div class="card card-compact">
+        <label class="label-row-start">
+          <input type="checkbox" id="rushAutoChainAfter" checked>
           <span>抢购成功后自动组单、下单并拉支付链接；支付成功在顶栏<strong>「支付通知」</strong>页展示（无弹窗）。关闭后行为与原来一致。</span>
         </label>
-        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text2);line-height:1.45;margin-top:10px">
-          <input type="checkbox" id="showDeviceRefreshEntry" style="margin-top:3px;flex-shrink:0">
+        <label class="label-row-start">
+          <input type="checkbox" id="showDeviceRefreshEntry">
           <span>显示「刷新设备参数」入口（换新指纹并<strong>清除登录态</strong>，需重新发码登录）。默认关闭。</span>
         </label>
       </div>
-      <div class="card" style="margin-bottom:12px;padding:12px 14px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <strong style="font-size:13px;color:var(--text)">TLS模式</strong>
-          <span id="goBridgeModeBadge" class="hint" style="margin:0;min-width:260px">读取中...</span>
+      <div class="card card-compact">
+        <div class="tls-mode-row">
+          <strong>TLS模式</strong>
+          <span id="goBridgeModeBadge" class="hint">读取中...</span>
           <button type="button" class="btn-xs secondary" id="btnGoBridgeReqrio" onclick="switchGoBridgeMode('reqrio')">动态reqrio</button>
           <button type="button" class="btn-xs secondary" id="btnGoBridgeTLSClient" onclick="switchGoBridgeMode('ja3_client')">tls-client 14套</button>
           <button type="button" class="btn-xs secondary" onclick="refreshGoBridgeMode()">刷新</button>
@@ -1584,24 +132,24 @@
       <div class="card">
         <div class="card-title"><span class="dot"></span>选择账号</div>
         <div class="form-row">
-          <div class="form-group" style="max-width:260px">
+          <div class="form-group fg-w260">
             <label>操作账号</label>
             <select id="rushPhone">
               <option value="">— 请选择已登录账号 —</option>
             </select>
           </div>
-          <div class="form-group" style="max-width:200px">
+          <div class="form-group fg-w200">
             <label>收货地址</label>
             <select id="rushAddr">
               <option value="">— 先选账号 —</option>
             </select>
           </div>
-          <button class="btn secondary" style="align-self:flex-end" onclick="loadAddresses()">刷新地址</button>
+          <button class="btn secondary fg-self-end" onclick="loadAddresses()">刷新地址</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title"><span class="dot"></span>商品 &amp; 抢购参数 <span style="font-size:11px;color:var(--text3);font-weight:400">必填：<strong>商品 ID</strong>（code）、<strong>编号</strong>（spuId/IMTP）、<strong>H5 商品详情页</strong>（referer）。抢购分支、是否带验证码字段由程序根据详情页 URL 自动推断（可从商品管理一键带出，亦可手动改）。</span></div>
+        <div class="card-title"><span class="dot"></span>商品 &amp; 抢购参数 <span class="card-title-meta">必填：<strong>商品 ID</strong>（code）、<strong>编号</strong>（spuId/IMTP）、<strong>H5 商品详情页</strong>（referer）。抢购分支、是否带验证码字段由程序根据详情页 URL 自动推断（可从商品管理一键带出，亦可手动改）。</span></div>
         <div class="form-row">
           <div class="form-group">
             <label title="接口字段 itemCode，即商品 ID">商品 ID（code）</label>
@@ -1615,7 +163,7 @@
             <label>活动 ID（可空，按编号自动拉取）</label>
             <input type="text" id="rushActId" placeholder="留空则按编号拉取活动 ID">
           </div>
-          <div class="form-group" style="max-width:90px">
+          <div class="form-group fg-w90">
             <label>数量</label>
             <input type="number" id="rushAmount" value="2" min="1">
           </div>
@@ -1625,29 +173,29 @@
             <label>来源 ID（可选）</label>
             <input type="text" id="rushSrc" placeholder="可不填">
           </div>
-          <div class="form-group" style="max-width:100px">
+          <div class="form-group fg-w100">
             <label>重试次数</label>
             <input type="number" id="rushRetry" value="10" min="1">
           </div>
-          <div class="form-group" style="max-width:120px">
+          <div class="form-group fg-w120">
             <label title="每次抢购请求返回后，再等多少毫秒发下一次；0=与 mt 一样紧连">间隔(ms)</label>
             <input type="number" id="rushDelay" value="0" min="0" title="多次尝试之间停顿；0 为发一次返回后立即下一发">
           </div>
-          <div class="form-group" style="max-width:88px" title="⚡高频：总枪数=重试×轮次；每轮内仍按间隔(ms)连发">
+          <div class="form-group fg-w88" title="⚡高频：总枪数=重试×轮次；每轮内仍按间隔(ms)连发">
             <label>轮次</label>
             <input type="number" id="rushRounds" value="1" min="1" max="100">
           </div>
-          <div class="form-group" style="max-width:118px">
+          <div class="form-group fg-w118">
             <label title="每轮全部发出后，再 sleep 本毫秒数，再发下一轮">轮次间隔(ms)</label>
             <input type="number" id="rushRoundGapMs" value="1000" min="0" max="300000" step="50">
           </div>
-          <div class="form-group" style="max-width:128px">
+          <div class="form-group fg-w128">
             <label title="轮次间隔 ± 均匀随机；0=不抖">轮次抖动±ms</label>
             <input type="number" id="rushRoundGapJitterMs" value="100" min="0" max="60000">
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group" style="max-width:150px">
+          <div class="form-group fg-w150">
             <label title="根据 H5 详情页路径自动推断；可手动覆盖">抢购 API 分支（自动）</label>
             <select id="rushBranch">
               <option value="">默认（普通抢购）</option>
@@ -1657,7 +205,7 @@
               <option value="four">分支四</option>
             </select>
           </div>
-          <div class="form-group" style="min-width:220px;max-width:320px">
+          <div class="form-group fg-min220">
             <label title="单账号与批量抢购共用；三选一，勿再混勾多个模式">启动模式</label>
             <select id="rushLaunchMode" title="运营常用：选 MT 多线 + 点批量抢购即可">
               <option value="mt" selected>MT 多线（推荐·等多账号批量）</option>
@@ -1666,45 +214,45 @@
               <option value="mt_nowait">MT 连发（不等响应·进阶）</option>
             </select>
           </div>
-          <p class="hint" id="rushLaunchModeHint" style="flex:1 1 100%;margin:0;font-size:12px;line-height:1.45"></p>
-          <details style="flex:1 1 100%;font-size:12px;color:var(--text2)">
-            <summary style="cursor:pointer;color:var(--text3)">高级：旧版模式开关 / wasm BB</summary>
-            <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <p class="hint hint-flex-1" id="rushLaunchModeHint"></p>
+          <details class="details-block">
+            <summary>高级：旧版模式开关 / wasm BB</summary>
+            <div class="adv-check-row">
+              <label class="label-check">
                 <input type="checkbox" id="rushFastLoop" title="与「标准逐枪」相同，仅日志标极速"> 极速（等同标准）
               </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <label class="label-check">
                 <input type="checkbox" id="rushMtMode"> MT模式
               </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <label class="label-check">
                 <input type="checkbox" id="rushMtNoWait"> MT不等响应
               </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer" title="外层 wasm en 签名；一般保持默认即可">
+              <label class="label-check" title="外层 wasm en 签名；一般保持默认即可">
                 <input type="checkbox" id="rushWasmBb" onchange="toggleWasmBbAll(this.checked)"> wasm BB
               </label>
             </div>
           </details>
-          <div class="form-group" style="align-self:flex-end;padding-bottom:6px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="按商品规则自动勾选，可手动改">
+          <div class="form-group fg-pb6">
+            <label class="label-check" title="按商品规则自动勾选，可手动改">
               <input type="checkbox" id="rushNeedCode"> 抢购体带 code 字段（自动）
             </label>
           </div>
-          <div class="form-group" style="flex:2">
+          <div class="form-group fg-flex2">
             <label title="即 HTTP Referer，须与该商品在 App 内打开的 H5 详情页一致">H5 商品详情页（referer）</label>
             <input type="text" id="rushReferer" value="https://h5.moutai519.com.cn/mt/item/smsp-detail?appConfig=2_1_2" placeholder="完整 https://…/mt/item/… 链接">
           </div>
         </div>
-        <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;align-items:center">
+        <div class="rush-action-bar">
           <button class="btn primary" id="btnRush" onclick="startRush()">&#x1F3AF; 开始抢购</button>
           <button class="btn secondary" onclick="fillFromSelected()">填入已选商品</button>
           <button type="button" class="btn secondary" onclick="resolveRushRouteFromInputs()" title="根据商品 ID + H5 详情页，从本地库或 URL 自动填编号、分支、是否带 code">自动匹配编号/分支</button>
           <button type="button" class="btn secondary" id="btnWarmupBb" onclick="batchWarmupBb()" title="抢购前 30~50 秒点一次：对所有已登录账号并发 POST /bbprbdata/upload 上报设备指纹，60 秒内有效">&#x1F525; 一键预热</button>
-          <span id="warmupBbStatus" style="font-size:13px;color:var(--text2);min-width:160px;display:inline-block">未预热</span>
+          <span id="warmupBbStatus">未预热</span>
         </div>
-        <p class="hint" style="margin-top:8px;font-size:12px;line-height:1.5" id="nodeRushPanelHint">
+        <p class="hint" id="nodeRushPanelHint" style="margin-top:8px">
           <strong>Node 桥说明</strong>（每枪明细请看下方各账号「本账号操作记录」）：
           <a href="#" id="nodeRushPanelLink" target="_blank" rel="noopener">打开说明页</a>
-          <span style="color:var(--text2)">· MT 每枪 RTT/429 等由接口写入各账号日志，<strong>默认不再</strong>在 Node 网页/终端刷屏。<strong>固定入口</strong>：主 WebUI 口（默认 <code>8989</code>）+ <code>/node_rush_panel</code>。当前页端口 <code id="webuiPortNote">—</code> · 可收藏 <code id="nodeRushPanelStableNote">—</code></span>
+          <span class="hint">· MT 每枪 RTT/429 等由接口写入各账号日志，<strong>默认不再</strong>在 Node 网页/终端刷屏。<strong>固定入口</strong>：主 WebUI 口（默认 <code>8989</code>）+ <code>/node_rush_panel</code>。当前页端口 <code id="webuiPortNote">—</code> · 可收藏 <code id="nodeRushPanelStableNote">—</code></span>
         </p>
         <div class="progress-bar" id="rushProgress" style="display:none">
           <div class="progress-fill" id="rushProgressFill"></div>
@@ -1719,13 +267,13 @@
             <label>优先购记录号（抢购成功后自动填入）</label>
             <input type="text" id="composeRecId" placeholder="抢购成功后自动出现">
           </div>
-          <div class="form-group" style="max-width:90px">
+          <div class="form-group fg-w90">
             <label>组单/下单件数</label>
             <input type="number" id="composeCnt" value="1" min="1">
           </div>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <select id="payChannelSelectMain" title="支付通道" style="max-width:180px">
+        <div class="rush-pay-row">
+          <select id="payChannelSelectMain" class="select-w180" title="支付通道">
             <option value="70">支付宝 (70)</option>
             <option value="60">微信支付 (60)</option>
             <option value="80">云闪付 (80)</option>
@@ -1743,8 +291,8 @@
       <div class="card">
         <div class="card-title"><span class="dot"></span>商品列表（点击填入抢购参数）</div>
         <p class="hint" style="margin-bottom:10px">默认 <strong>8 条</strong>与 <code>mt_item_list.json</code> / <code>test-full-flow.js</code> 一致：<strong>商品 ID</strong>（code）、<strong>编号</strong>（spuId）、<strong>H5 详情页</strong>（referer）；活动 ID、抢购分支、是否带 code 字段由程序自动配套。勾选「全部分类」可再加载 <code>product_list.json</code> 其余 SKU。</p>
-        <div class="form-row" style="margin-bottom:14px;flex-wrap:wrap;gap:8px;align-items:flex-end">
-          <div class="form-group">
+        <div class="form-row items-toolbar">
+          <div class="form-group items-search">
             <label>搜索商品</label>
             <input type="text" id="itemSearch" placeholder="名称、商品 ID、编号(IMTP)…" oninput="filterItems()">
           </div>
@@ -1784,7 +332,7 @@
         <div class="pay-notice-toolbar">
           <div class="card-title" style="margin:0"><span class="dot"></span>支付通知 <span style="font-size:12px;font-weight:400;color:var(--text3)">（隐藏长链接，只保留支付操作）</span></div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select id="payChannelSelectLog" title="提取支付链接通道" style="max-width:170px">
+            <select id="payChannelSelectLog" class="select-w170" title="提取支付链接通道">
               <option value="70">支付宝 (70)</option>
               <option value="60">微信支付 (60)</option>
               <option value="80">云闪付 (80)</option>
@@ -1941,12 +489,12 @@
         <label>账号</label>
         <input id="au_phone" disabled>
       </div>
-      <div class="form-group" style="max-width:140px">
+      <div class="form-group fg-w140">
         <label>shipAddressId</label>
         <input id="au_shipAddressId" type="number" min="0" value="0" placeholder="0=新增">
       </div>
-      <div class="form-group" style="max-width:120px;align-self:flex-end;padding-bottom:6px">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)">
+      <div class="form-group fg-w120 fg-pb6">
+        <label class="label-check">
           <input id="au_dft" type="checkbox"> 设为默认
         </label>
       </div>
@@ -2198,7 +746,7 @@ function renderGroupTabs() {
     const isActive = n === _currentGroup;
     const cnt = n === '全部' ? accounts.length : getPhonesInGroup(n).filter(ph => accounts.find(a => a.phone === ph)).length;
     const delBtn = n !== '全部' ? `<span class="del-grp" onclick="event.stopPropagation();confirmDeleteGroup('${escHtml(n)}')" title="删除分组">✕</span>` : '';
-    return `<div class="group-tab${isActive ? ' active' : ''}" onclick="switchGroup('${escHtml(n)}')">${escHtml(n)}<span style="opacity:.6;font-size:10px;margin-left:2px">${cnt}</span>${delBtn}</div>`;
+    return `<div class="group-tab${isActive ? ' active' : ''}" onclick="switchGroup('${escHtml(n)}')">${escHtml(n)}<span class="group-tab-count">${cnt}</span>${delBtn}</div>`;
   }).join('');
   row2.style.display = names.length > 0 || true ? '' : 'none';
 }
@@ -7539,8 +6087,8 @@ function renderAccounts(list) {
         const phoneEl = row.querySelector('.acct-phone');
         if (phoneEl) {
           const onboard = accountOnboardDateText(a);
-          const remarkPart = a.remark ? '<span style="opacity:.78"> · ' + escHtml(a.remark) + '</span>' : '';
-          const onboardPart = onboard ? '<span style="opacity:.78"> · 上号 ' + escHtml(onboard) + '</span>' : '';
+          const remarkPart = a.remark ? '<span class="acct-meta-muted"> · ' + escHtml(a.remark) + '</span>' : '';
+          const onboardPart = onboard ? '<span class="acct-meta-muted"> · 上号 ' + escHtml(onboard) + '</span>' : '';
           phoneEl.innerHTML = escHtml(String(a.phone || '')) + remarkPart + onboardPart;
         }
         const pendSlot = row.querySelector('.acct-pending-pay-slot');
@@ -7552,14 +6100,14 @@ function renderAccounts(list) {
   el.innerHTML = list.map((a, idx) => `
     <div class="acct-item ${a.phone === selectedPhone ? 'active' : ''}" data-phone="${a.phone}"
          onclick="onAccountRowClick(event, '${a.phone}')">
-      <span style="min-width:22px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0;margin-right:4px">${idx + 1}</span>
-      <input type="checkbox" style="margin-right:8px" ${selectedDeletePhones.has(String(a.phone || '').trim()) ? 'checked' : ''}
+      <span class="acct-index">${idx + 1}</span>
+      <input type="checkbox" class="acct-cb" ${selectedDeletePhones.has(String(a.phone || '').trim()) ? 'checked' : ''}
              onclick="onCheckboxClick(event, '${a.phone}')"
              onchange="">
       <div class="acct-avatar">${escHtml((accountCustomNickname(a) || a.phone || '?')[0])}${statusAvatarDot(a.status)}${pendingPayManualAvatarDotHtml(a.phone)}</div>
       <div class="acct-info">
         <div class="acct-name">${escHtml(accountListTitle(a))}</div>
-        <div class="acct-phone">${escHtml(String(a.phone || ''))}${a.remark ? '<span style="opacity:.78"> · ' + escHtml(a.remark) + '</span>' : ''}${accountOnboardDateText(a) ? '<span style="opacity:.78"> · 上号 ' + escHtml(accountOnboardDateText(a)) + '</span>' : ''}</div>
+        <div class="acct-phone">${escHtml(String(a.phone || ''))}${a.remark ? '<span class="acct-meta-muted"> · ' + escHtml(a.remark) + '</span>' : ''}${accountOnboardDateText(a) ? '<span class="acct-meta-muted"> · 上号 ' + escHtml(accountOnboardDateText(a)) + '</span>' : ''}</div>
         <div class="acct-pending-pay-slot">${pendingPayManualSlotInnerHtml(a.phone)}</div>
       </div>
       <div class="acct-badges">${statusBadge(a.status)}${riskBadge(a.risk_tag)}</div>
@@ -7820,7 +6368,7 @@ function renderAcctConfigPanel(force) {
             <button type="button" class="btn secondary" id="schedCalToday" style="width:100%;margin-top:10px;font-size:12px">跳到北京时间今天</button>
           </div>
         </div>
-        <div class="form-group" style="max-width:280px">
+        <div class="form-group fg-w280">
           <label>时间（北京时间）</label>
           <div class="sched-time-selects">
             <select id="schedHour" title="时"></select>
@@ -7830,7 +6378,7 @@ function renderAcctConfigPanel(force) {
             <select id="schedSecond" title="秒"></select>
           </div>
         </div>
-        <div class="form-group" style="max-width:280px">
+        <div class="form-group fg-w280">
           <label>场次（决定末批截止）</label>
           <select id="schedSessionPreset" title="早场补货 / 晚场投放" style="width:100%">
             <option value="morning">早场 · 每 5 分钟至当日 09:30</option>
@@ -7849,7 +6397,7 @@ function renderAcctConfigPanel(force) {
           <input type="checkbox" id="schedPrewarmBefore" checked style="width:18px;height:18px;margin-top:2px;flex-shrink:0;cursor:pointer;accent-color:var(--accent)">
           <span><strong style="color:var(--text)">开抢前自动 HTTP 预热</strong>：当「距下轮」剩余时间 ≤ 右侧秒数时，自动执行与「一键全部 HTTP 预热」相同逻辑。预热为经 Node 对 H5 根域<strong>逐条建连探路</strong>（与抢购<strong>不共用 TCP</strong>，每枪抢购仍新开子进程），<strong>不保降低抢购延迟</strong>，主要验证出口可用。Node 并发可调 <code>MT_PREWARM_CONCURRENCY</code>。</span>
         </label>
-        <div class="form-group" style="max-width:110px;margin-bottom:0">
+        <div class="form-group fg-w110 fg-mb0">
           <label title="建议 ≥ 你实测批量预热总时长 + 2～4 秒">提前（秒）</label>
           <input type="number" id="schedPrewarmLeadSec" min="5" max="180" value="14">
         </div>
@@ -7882,15 +6430,15 @@ function renderAcctConfigPanel(force) {
         </div>
       </div>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:10px">
-        <div class="form-group" style="max-width:130px">
+        <div class="form-group fg-w130">
           <label>批量默认数量</label>
           <input type="number" id="batchDefaultAmt" min="1" value="2" title="抢购数量；并同步各账号「组单/下单数量」与抢购操作页件数">
         </div>
-        <div class="form-group" style="max-width:110px">
+        <div class="form-group fg-w110">
           <label>重试次数</label>
           <input type="number" id="batchRushRetry" min="1" value="10" title="抢购失败重试次数；一键配置/批量填充时写入各账号「重试」">
         </div>
-        <div class="form-group" style="max-width:120px">
+        <div class="form-group fg-w120">
           <label>间隔毫秒</label>
           <input type="number" id="batchRushDelayMs" min="0" value="500" title="一键配置/填充时写入各卡「间隔(ms)」；批量抢购现为各号独立 rushOne，枪间间隔以各卡为准">
         </div>
@@ -7900,19 +6448,19 @@ function renderAcctConfigPanel(force) {
       <details style="margin-bottom:10px;font-size:13px;color:var(--text2)">
         <summary style="cursor:pointer;color:var(--text3)">高级：并发 / 分批 / 分布式 / 旧版勾选</summary>
         <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-top:10px">
-          <div class="form-group" style="max-width:120px">
+          <div class="form-group fg-w120">
             <label>批量并发数</label>
             <input type="number" id="batchConcurrency" min="1" max="2048" value="1" readonly title="自动跟随当前已登录账号数">
           </div>
-          <div class="form-group" style="max-width:130px">
+          <div class="form-group fg-w130">
             <label>MT回流/流</label>
             <input type="number" id="batchMtStreamShardSize" min="0" max="300" value="50">
           </div>
-          <div class="form-group" style="max-width:110px">
+          <div class="form-group fg-w110">
             <label>每批账号数</label>
             <input type="number" id="batchAutoShardSize" min="0" max="512" value="7">
           </div>
-          <div class="form-group" style="max-width:120px">
+          <div class="form-group fg-w120">
             <label>批间间隔ms</label>
             <input type="number" id="batchAutoShardGapMs" min="0" max="300000" value="5000">
           </div>
@@ -7938,15 +6486,15 @@ function renderAcctConfigPanel(force) {
         </div>
       </details>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:6px">
-        <div class="form-group" style="max-width:88px">
+        <div class="form-group fg-w88">
           <label title="覆盖抢购操作页同名字段；留空则跟抢购页">批量·轮次</label>
           <input type="number" id="batchRushRounds" min="1" max="100" placeholder="同左页" title="留空=用抢购操作页 rushRounds">
         </div>
-        <div class="form-group" style="max-width:118px">
+        <div class="form-group fg-w118">
           <label>批量·轮次间隔</label>
           <input type="number" id="batchRushRoundGapMs" min="0" max="300000" step="50" placeholder="ms" title="留空=用 rushRoundGapMs">
         </div>
-        <div class="form-group" style="max-width:128px">
+        <div class="form-group fg-w128">
           <label>批量·轮次抖动±</label>
           <input type="number" id="batchRushRoundGapJitterMs" min="0" max="60000" placeholder="ms" title="留空=用 rushRoundGapJitterMs">
         </div>
@@ -7979,15 +6527,15 @@ function renderAcctConfigPanel(force) {
           </label>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin:0 0 8px 0;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius)">
-          <div class="form-group" style="max-width:120px;margin-bottom:0">
+          <div class="form-group fg-w120 fg-mb0">
             <label title="后台持续提取，直到代理池达到这个总数">补池目标</label>
             <input type="number" id="proxyFillTargetCount" min="1" max="200000" value="10000">
           </div>
-          <div class="form-group" style="max-width:96px;margin-bottom:0">
+          <div class="form-group fg-w96 fg-mb0">
             <label title="每轮同时请求多少次代理 API；多条 API 会轮流分摊">提取并发</label>
             <input type="number" id="proxyFillParallel" min="1" max="24" value="6">
           </div>
-          <div class="form-group" style="max-width:118px;margin-bottom:0">
+          <div class="form-group fg-w118 fg-mb0">
             <label title="每轮提取结束后等待多久再下一轮">轮间隔(ms)</label>
             <input type="number" id="proxyFillIntervalMs" min="0" max="60000" value="300">
           </div>
@@ -8004,11 +6552,11 @@ function renderAcctConfigPanel(force) {
       <div class="card-title" style="margin-top:6px"><span class="dot"></span>批量黑号检测</div>
       <p class="hint" style="margin-top:4px">对已登录账号发起 741（飞天带杯）branch/one 探测；活动 ID 先经 <code>purchaseInfoV2</code> 动态拉取，不写死场次。结果写入账号并保存到 <code>accounts.json</code>。若接口返回「当前活动未开启」或 4030「购买活动信息异常」等，视为<strong>正常</strong>（活动未开售但账号可访问接口）；「检测异常」多为代理/网关或未拉到活动 ID。</p>
       <div class="form-row" style="align-items:flex-end;flex-wrap:wrap;gap:10px;margin-top:8px">
-        <div class="form-group" style="max-width:130px">
+        <div class="form-group fg-w130">
           <label>429 最大重试</label>
           <input type="number" id="batchBlackRetries" min="1" max="200" value="50" title="HTTP 429 且 body 为 1/2 时的重试上限">
         </div>
-        <div class="form-group" style="max-width:130px">
+        <div class="form-group fg-w130">
           <label>账号间隔（秒）</label>
           <input type="number" id="batchBlackDelay" min="0" step="0.5" value="2">
         </div>
@@ -8018,7 +6566,7 @@ function renderAcctConfigPanel(force) {
       </div>
       <div id="batchBlackResult" style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.45"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-        <div class="form-group" style="max-width:120px;margin-bottom:0">
+        <div class="form-group fg-w120 fg-mb0">
           <label title="一键预热时同时跑几个账号；略大更快、易与代理/本机互挤">预热并行账号</label>
           <input type="number" id="prewarmAllParallel" min="1" max="24" value="6">
         </div>
@@ -8026,7 +6574,7 @@ function renderAcctConfigPanel(force) {
         <button type="button" class="btn secondary" onclick="enableRushFastAllAccounts()" title="将当前列表内所有已登录账号的卡片「极速」全部勾选并保存">一键极速</button>
         <button type="button" class="btn secondary" onclick="resolveActIdAllAccounts()" title="固定使用本机 IP 直连请求 1 次 purchaseInfoV2，只把得到的「活动 ID」填到当前列表里所有账号；不改各号商品/编号/Referer。">一键全部获取活动ID</button>
         <button type="button" class="btn secondary" onclick="runBatchVerifyRushReadiness()" title="按各账号卡片上的商品 ID/编号/Referer，核对 BS-DVID、浩天三元组、JWT 与 aid、purchaseInfoV2 活动 ID（不发抢购）">核实 BS-DVID/商品</button>
-        <div class="form-group" style="max-width:150px;margin-bottom:0">
+        <div class="form-group fg-w150 fg-mb0">
           <label title="一键刷新地址时，每两个已登录账号之间的等待；过小易触发 MT 地址接口 429">地址刷新间隔(ms)</label>
           <input type="number" id="addressRefreshGapMs" min="0" max="120000" step="100" value="3000">
         </div>
@@ -8213,7 +6761,7 @@ function _buildCardHtml(a, idx, cfg, showDevRefresh, firstLoggedIdx) {
         <div class="form-row">
           <div class="form-group"><label title="itemCode">商品 ID</label><input id="cfg_item_${a.phone}" data-ph="${a.phone}" data-k="item"></div>
           <div class="form-group"><label title="spuId">编号</label><input id="cfg_imtp_${a.phone}" data-ph="${a.phone}" data-k="imtp" placeholder="可空：服务端按商品库/详情页自动"></div>
-          <div class="form-group" style="max-width:90px"><label>数量</label><input id="cfg_amt_${a.phone}" type="number" min="1" data-ph="${a.phone}" data-k="amt"></div>
+          <div class="form-group fg-w90"><label>数量</label><input id="cfg_amt_${a.phone}" type="number" min="1" data-ph="${a.phone}" data-k="amt"></div>
         </div>
         <div class="form-row" style="align-items:flex-end">
           <div class="form-group" style="flex:1"><label>活动 ID（可空，按编号自动）</label><input id="cfg_act_${a.phone}" data-ph="${a.phone}" data-k="act" placeholder="留空则按编号拉取"></div>
@@ -8221,8 +6769,8 @@ function _buildCardHtml(a, idx, cfg, showDevRefresh, firstLoggedIdx) {
         </div>
         <div class="form-row">
           <div class="form-group"><label>来源(可选)</label><input id="cfg_src_${a.phone}" data-ph="${a.phone}" data-k="src"></div>
-          <div class="form-group" style="max-width:90px"><label title="与 mt 相同：几次抢购 = 几次独立请求，每次返回立即打日志">重试</label><input id="cfg_retry_${a.phone}" type="number" min="1" data-ph="${a.phone}" data-k="retry"></div>
-          <div class="form-group" style="max-width:110px"><label title="上一枪返回后等待毫秒再发下一枪；0=紧连">间隔(ms)</label><input id="cfg_delay_${a.phone}" type="number" min="0" data-ph="${a.phone}" data-k="delay"></div>
+          <div class="form-group fg-w90"><label title="与 mt 相同：几次抢购 = 几次独立请求，每次返回立即打日志">重试</label><input id="cfg_retry_${a.phone}" type="number" min="1" data-ph="${a.phone}" data-k="retry"></div>
+          <div class="form-group fg-w110"><label title="上一枪返回后等待毫秒再发下一枪；0=紧连">间隔(ms)</label><input id="cfg_delay_${a.phone}" type="number" min="0" data-ph="${a.phone}" data-k="delay"></div>
           <div class="form-group" style="align-self:flex-end;padding-bottom:6px;flex:1;min-width:200px">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="单次请求内 Node 连发 N 次，与 mt 同节奏（≈1 秒 20 枪视网络）；网页日志在整轮结束后按档刷出。每枪实时 RTT：Node 桥 http://127.0.0.1:19090/rush_panel（非 WebUI 端口）">
               <input type="checkbox" id="cfg_rushfast_${a.phone}" data-ph="${a.phone}" data-k="rushfast" title="每枪一次 /api/accounts/rush，与未勾选相同；仅日志标极速"> 极速（每枪一次 API）
@@ -8230,7 +6778,7 @@ function _buildCardHtml(a, idx, cfg, showDevRefresh, firstLoggedIdx) {
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group" style="max-width:150px">
+          <div class="form-group fg-w150">
             <label title="根据 H5 详情页自动推断，可改">抢购分支（自动）</label>
             <select id="cfg_branch_${a.phone}" data-ph="${a.phone}" data-k="branch" title="选商品后自动带出">
               <option value="">默认</option>
@@ -8250,8 +6798,8 @@ function _buildCardHtml(a, idx, cfg, showDevRefresh, firstLoggedIdx) {
               <input type="checkbox" id="cfg_wasmbb_${a.phone}" onchange="toggleWasmBbFor('${a.phone}', this.checked)"> wasm BB
             </label>
           </div>
-          <div class="form-group" style="max-width:180px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)" title="电脑仍然组包和跑自动链路；只把 rushPurchase POST 交给手机发包并回传响应。">
+          <div class="form-group fg-w180">
+            <label class="label-check" title="电脑仍然组包和跑自动链路；只把 rushPurchase POST 交给手机发包并回传响应。">
               <input type="checkbox" id="cfg_mobile_relay_${a.phone}" onchange="saveMobileRelayFor('${a.phone}')"> 手机发包
             </label>
             <input id="cfg_mobile_relay_device_${a.phone}" value="${escHtml(a.mobile_relay_device || '')}" placeholder="留空随机在线手机" onchange="saveMobileRelayFor('${a.phone}')">
@@ -8263,7 +6811,7 @@ function _buildCardHtml(a, idx, cfg, showDevRefresh, firstLoggedIdx) {
         </div>
         <div class="form-row">
           <div class="form-group"><label>优先购记录号</label><input id="cfg_rec_${a.phone}" data-ph="${a.phone}" data-k="rec" placeholder="抢购成功后填入"></div>
-          <div class="form-group" style="max-width:90px"><label>组单/下单数量</label><input id="cfg_ccnt_${a.phone}" type="number" min="1" data-ph="${a.phone}" data-k="ccnt"></div>
+          <div class="form-group fg-w90"><label>组单/下单数量</label><input id="cfg_ccnt_${a.phone}" type="number" min="1" data-ph="${a.phone}" data-k="ccnt"></div>
         </div>
         <div class="form-row">
           <div class="form-group" style="flex:1"><label title="与 compose 返回的 priorityStoreInfo.storeId 一致；填写后可直接 submit（与 mt 自造 transactionId，无需先组单）">门店ID（无组单下单）</label><input id="cfg_compose_shop_${a.phone}" data-ph="${a.phone}" data-k="composeShop" placeholder="填后可跳过组单直接下单"></div>

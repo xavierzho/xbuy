@@ -512,8 +512,10 @@ def _load_shield_module():
             return _wasm_engine, _wasm_module
         if not _WT_OK or not os.path.exists(_WASM_BIN):
             return None, None
-        _wasm_engine = _wt.Engine()
-        _wasm_module = _wt.Module.from_file(_wasm_engine, _WASM_BIN)
+        from wasmtime_bb import compile_bb_wasm_module, make_bb_wasm_engine
+
+        _wasm_engine = make_bb_wasm_engine()
+        _wasm_module = compile_bb_wasm_module(_wasm_engine, _WASM_BIN)
     return _wasm_engine, _wasm_module
 
 
