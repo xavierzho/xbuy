@@ -5,441 +5,242 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>私家车 · 用户中心</title>
   <style>
-    /* ── Modern Light Theme ── */
-    :root {
-      --bg:       #f5f6fa;
-      --bg2:      #ffffff;
-      --bg3:      #f0f1f5;
-      --border:   #e5e7eb;
-      --accent:   #b8944e;
-      --accent2:  #d4a853;
-      --accent-light: rgba(184,148,78,0.08);
-      --accent-ring:  rgba(184,148,78,0.15);
-      --green:    #22c55e;
-      --red:      #ef4444;
-      --yellow:   #f59e0b;
-      --blue:     #3b82f6;
-      --text:     #1a1a2e;
-      --text2:    #6b7280;
-      --text3:    #9ca3af;
-      --radius:   12px;
-      --shadow-sm:  0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
-      --shadow-md:  0 2px 20px rgba(0,0,0,0.06);
-      --shadow-lg:  0 8px 40px rgba(0,0,0,0.08);
-      --shadow-xl:  0 20px 60px rgba(0,0,0,0.1);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; }
-    body {
-      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100%;
-      padding: 48px 16px 64px;
-      -webkit-font-smoothing: antialiased;
-      background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(184,148,78,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 30% at 80% 100%, rgba(59,130,246,0.03) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 25% at 10% 80%, rgba(184,148,78,0.03) 0%, transparent 50%);
-    }
-    .hidden { display: none !important; }
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 
-    /* ── 品牌头部 ── */
-    .brand-header {
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    .brand-icon {
-      font-size: 52px;
-      margin-bottom: 14px;
-      line-height: 1;
-      filter: drop-shadow(0 4px 12px rgba(184,148,78,0.2));
-      display: block;
-      animation: iconFloat 4s ease-in-out infinite;
-    }
-    @keyframes iconFloat {
-      0%, 100% { transform: translateY(0); filter: drop-shadow(0 4px 12px rgba(184,148,78,0.2)); }
-      50% { transform: translateY(-4px); filter: drop-shadow(0 8px 20px rgba(184,148,78,0.25)); }
-    }
-    .brand-title {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: 0.5px;
-      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .brand-sub {
-      font-size: 13px;
-      color: var(--text3);
-      margin-top: 6px;
-      letter-spacing: .5px;
-      font-weight: 400;
-    }
+:root {
+  --bg: #f6f7f6;
+  --bg2: #ffffff;
+  --border: #e0e0dc;
+  --control: #d1d5db;
+  --accent: #8b6914;
+  --text: #121218;
+  --muted: #5c5c66;
+  --faint: #5f6368;
+  --radius: 8px;
+}
 
-    /* ── 主容器 ── */
-    .main-container {
-      width: 100%;
-      max-width: 420px;
-      background: var(--bg2);
-      border: 1px solid rgba(0,0,0,0.04);
-      border-radius: 24px;
-      padding: 32px 28px 28px;
-      box-shadow: var(--shadow-xl);
-      transition: transform .3s ease, box-shadow .3s ease;
-      position: relative;
-    }
-    .main-container::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 50px; right: 50px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(184,148,78,0.15), transparent);
-      border-radius: 0 0 4px 4px;
-    }
-    .main-container:hover {
-      box-shadow: 0 24px 70px rgba(0,0,0,0.12);
-      transform: translateY(-1px);
-    }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+  font-family: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 28px 20px 48px;
+  -webkit-font-smoothing: antialiased;
+}
+.hidden { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    /* ── Tab ── */
-    .tab-box {
-      display: flex;
-      background: var(--bg);
-      border-radius: 16px;
-      padding: 4px;
-      margin-bottom: 26px;
-      gap: 4px;
-      border: 1px solid var(--border);
-    }
-    .tab-item {
-      flex: 1;
-      text-align: center;
-      padding: 11px 0;
-      font-size: 14px;
-      color: var(--text3);
-      cursor: pointer;
-      border-radius: 13px;
-      transition: all .25s ease;
-      font-weight: 500;
-      user-select: none;
-      letter-spacing: .2px;
-    }
-    .tab-item:not(.active):hover {
-      color: var(--text2);
-      background: rgba(184,148,78,0.05);
-    }
-    .tab-item.active {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      color: #ffffff;
-      font-weight: 700;
-      box-shadow: 0 4px 16px rgba(184,148,78,0.3);
-      letter-spacing: .3px;
-    }
+.brand-header { width: min(100%, 440px); margin: 0 auto 16px; }
+.brand-title {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.brand-sub {
+  margin-top: 8px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text);
+}
 
-    /* ── 步骤提示 ── */
-    .step-hint {
-      font-size: 12px;
-      color: var(--text3);
-      text-align: center;
-      margin-bottom: 20px;
-      letter-spacing: .5px;
-      font-weight: 400;
-    }
-    .step-hint span { color: var(--accent); font-weight: 600; }
+.main-container {
+  width: min(100%, 440px);
+  margin: 0 auto;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 20px 22px;
+}
 
-    /* ── 分区标题 ── */
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      margin-top: 4px;
-    }
-    .section-label::before,
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border), transparent);
-    }
-    .section-label::after {
-      background: linear-gradient(90deg, transparent, var(--border));
-    }
-    .section-label span {
-      font-size: 11px;
-      color: var(--text3);
-      letter-spacing: 1.5px;
-      white-space: nowrap;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
+.tab-box {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.tab-item {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 8px 0 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab-item.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
 
-    /* 预填锁定备注 */
-    input[readonly].remark-locked {
-      opacity: .85;
-      cursor: default;
-      background: rgba(255,255,255,.04);
-    }
-    .remark-lock-hint {
-      font-size: 11px;
-      color: var(--text3);
-      margin: -6px 0 12px;
-      text-align: center;
-      line-height: 1.4;
-    }
+.step-hint {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.block-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 18px 0 10px;
+}
+.block-title:first-of-type { margin-top: 0; }
+.block-title span { font: inherit; color: inherit; }
 
-    /* ── 输入框 ── */
-    .input-group { margin-bottom: 13px; }
-    .input-wrap {
-      position: relative;
-    }
-    input, select, textarea {
-      width: 100%;
-      height: 50px;
-      background: var(--bg2);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 0 16px;
-      font-size: 14px;
-      color: var(--text);
-      outline: none;
-      font-family: inherit;
-      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-    }
-    textarea {
-      height: 76px;
-      resize: none;
-      padding: 14px 16px;
-    }
-    input::placeholder,
-    textarea::placeholder { color: var(--text3); }
-    input:hover:not(:focus), select:hover:not(:focus):not(:disabled), textarea:hover:not(:focus) {
-      border-color: #d1d5db;
-      background: var(--bg);
-    }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-ring), var(--shadow-sm);
-      background: var(--bg2);
-    }
-    select {
-      -webkit-appearance: none;
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      background-size: 14px;
-      cursor: pointer;
-    }
-    select:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-      background-color: var(--bg);
-    }
-    select:not(:disabled):hover {
-      border-color: var(--accent);
-      background-color: var(--bg);
-    }
-    select option { background: var(--bg2); color: var(--text); }
+.input-group { margin-bottom: 12px; }
+.input-group label,
+.grid-row label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+input, select, textarea {
+  width: 100%;
+  height: 40px;
+  background: var(--bg2);
+  border: 1px solid var(--control);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  font-size: 16px;
+  outline: none;
+}
+textarea { height: 76px; padding: 10px 12px; resize: vertical; }
+input::placeholder, textarea::placeholder { color: var(--faint); }
+input:focus, select:focus, textarea:focus { border-color: var(--text); }
+select { padding-right: 8px; }
+select:disabled { color: var(--faint); background-color: var(--bg); }
+input[readonly].remark-locked { background: var(--bg); color: var(--muted); }
 
-    .phone-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .phone-row input { flex: 1; }
-    .grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.remark-lock-hint { font-size: 13px; line-height: 1.45; color: var(--muted); margin: -4px 0 8px; }
+.grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.phone-row { display: flex; align-items: flex-end; gap: 8px; }
+.phone-row .input-group { flex: 1; margin-bottom: 12px; }
+.btn-code {
+  height: 40px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--control);
+  background: var(--bg2);
+  color: var(--faint);
+  font-size: 14px;
+  cursor: not-allowed;
+  white-space: nowrap;
+}
+.btn-code.enabled { color: var(--text); border-color: var(--text); cursor: pointer; font-weight: 600; }
+.btn-code.enabled:hover { background: var(--bg); }
 
-    /* ── 获取验证码按钮 ── */
-    .btn-code {
-      height: 50px;
-      min-width: 112px;
-      background: var(--bg);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      color: var(--text3);
-      font-size: 13px;
-      font-family: inherit;
-      cursor: not-allowed;
-      flex-shrink: 0;
-      transition: all .25s ease;
-      white-space: nowrap;
-      letter-spacing: .2px;
-    }
-    .btn-code.enabled {
-      color: var(--accent);
-      border-color: rgba(184,148,78,0.4);
-      cursor: pointer;
-      font-weight: 600;
-      background: var(--accent-light);
-    }
-    .btn-code.enabled:active { transform: scale(0.97); background: rgba(184,148,78,0.12); }
-    .btn-code.enabled:hover {
-      background: rgba(184,148,78,0.1);
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-ring);
-      transform: translateY(-2px);
-    }
+.btn-submit-wrapper { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.btn-submit {
+  height: 44px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-submit:disabled {
+  background: var(--bg);
+  color: var(--faint);
+  border: 1px solid var(--control);
+  cursor: not-allowed;
+}
+#btnCheckBlack {
+  background: var(--bg2);
+  color: var(--text);
+  border: 1px solid var(--control);
+  font-weight: 500;
+  height: 40px;
+}
+#btnCheckBlack:disabled { color: var(--faint); }
 
-    /* ── 提交区 ── */
-    .btn-submit-wrapper {
-      width: 100%;
-      max-width: 420px;
-      margin-top: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .btn-submit {
-      width: 100%;
-      height: 56px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-      color: #ffffff;
-      font-size: 16px;
-      letter-spacing: 1.5px;
-      font-weight: 700;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      transition: all .25s ease;
-      font-family: inherit;
-      box-shadow: 0 4px 20px rgba(184,148,78,0.3);
-    }
-    .btn-submit:hover:not(:disabled) {
-      box-shadow: 0 8px 30px rgba(184,148,78,0.4);
-      transform: translateY(-2px);
-      filter: brightness(1.05);
-    }
-    .btn-submit:active:not(:disabled) {
-      transform: scale(0.97) translateY(0);
-      box-shadow: 0 2px 10px rgba(184,148,78,0.25);
-    }
-    .btn-submit:disabled {
-      background: var(--bg) !important;
-      color: var(--text3) !important;
-      box-shadow: none !important;
-      border: 1.5px solid var(--border);
-      cursor: not-allowed;
-    }
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  display: none;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 12px 14px;
+  background: var(--bg2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 14px;
+  line-height: 1.5;
+  z-index: 20;
+  white-space: pre-wrap;
+}
+.toast.visible { display: block; }
 
-    #btnCheckBlack {
-      background: var(--bg2) !important;
-      color: var(--text2) !important;
-      border: 1.5px solid var(--border) !important;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: normal;
-      box-shadow: var(--shadow-sm) !important;
-      height: 46px;
-      border-radius: 14px;
-    }
-    #btnCheckBlack:not(:disabled) {
-      color: var(--text) !important;
-      border-color: var(--border) !important;
-    }
-    #btnCheckBlack:not(:disabled):hover {
-      background: var(--bg) !important;
-      border-color: #d1d5db !important;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md) !important;
-    }
-    #btnCheckBlack:active:not(:disabled) {
-      background: var(--bg3) !important;
-      transform: scale(0.97);
-    }
-    #btnCheckBlack:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
-
-    /* ── Toast (Glassmorphism) ── */
-    .toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -60%) scale(0.9);
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid rgba(255,255,255,0.6);
-      color: var(--text);
-      padding: 20px 32px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 500;
-      display: none;
-      z-index: 999;
-      text-align: center;
-      white-space: pre-wrap;
-      line-height: 1.7;
-      max-width: 84%;
-      box-shadow:
-        0 20px 60px rgba(0,0,0,0.1),
-        0 0 0 1px rgba(184,148,78,0.08);
-      opacity: 0;
-      transition:
-        opacity .25s cubic-bezier(.34,1.56,.64,1),
-        transform .25s cubic-bezier(.34,1.56,.64,1);
-    }
-    .toast.visible {
-      display: block;
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* ── Selection & Scrollbar ── */
-    ::selection { background: rgba(184,148,78,0.2); color: var(--text); }
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: rgba(184,148,78,0.15); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(184,148,78,0.3); }
-    ::-webkit-scrollbar-track { background: transparent; }
+@media (max-width: 480px) {
+  body { padding: 20px 16px 32px; }
+  .main-container { padding: 16px; }
+  .grid-row { grid-template-columns: 1fr; }
+}
   </style>
 </head>
 <body>
 
-  <div class="brand-header">
-    <div class="brand-icon">🍵</div>
-    <div class="brand-title">私家车</div>
-    <div class="brand-sub">用户中心 · 快速上号</div>
-  </div>
+  <header class="brand-header">
+    <h1 class="brand-title">私家车</h1>
+    <p class="brand-sub">用短信验证码完成上号。</p>
+  </header>
 
   <div class="main-container">
-    <!-- Tab -->
     <div class="tab-box">
       <div class="tab-item active" id="tabNew" onclick="switchTab('new')">新用户注册</div>
       <div class="tab-item" id="tabOld" onclick="switchTab('old')">老用户登录</div>
     </div>
 
-    <!-- 注册区 -->
     <div id="areaNew">
-      <div class="step-hint">填写信息 → 获取验证码 → <span>一键完成上号</span></div>
+      <p class="step-hint">先填实名和地址，再取验证码。</p>
 
-      <div class="section-label"><span>实名信息</span></div>
+      <h2 class="block-title" id="realNameHeading">实名</h2>
       <div class="input-group">
+        <label for="realName">姓名</label>
         <input type="text" id="realName" placeholder="真实姓名" maxlength="20" autocomplete="off">
       </div>
       <div class="input-group">
-        <input type="text" id="idCard" placeholder="身份证号码（18位）" maxlength="18" autocomplete="off">
+        <label for="idCard">身份证号</label>
+        <input type="text" id="idCard" placeholder="18 位" maxlength="18" autocomplete="off">
       </div>
-      <div class="section-label" style="margin-top:8px" id="newRemarkLabel"><span>账号标签</span></div>
+      <h2 class="block-title" id="newRemarkLabel">账号标签</h2>
       <div class="input-group">
+        <label for="newRemark">标签</label>
         <input type="text" id="newRemark" class="remark-locked" readonly tabindex="-1" placeholder="由分享链接指定" maxlength="40" autocomplete="off">
       </div>
-      <div class="remark-lock-hint" id="newRemarkLockHint">标签仅通过链接参数识别，页面不可修改</div>
+      <div class="remark-lock-hint" id="newRemarkLockHint">标签只认分享链接里的参数，这里不能改。</div>
 
-      <div class="section-label" style="margin-top:8px"><span>收货地址</span></div>
+      <h2 class="block-title">收货地址</h2>
       <div class="grid-row">
-        <select id="provinceSelect"><option value="">省份</option></select>
-        <select id="citySelect" disabled><option value="">城市</option></select>
+        <div class="input-group">
+          <label for="provinceSelect">省份</label>
+          <select id="provinceSelect"><option value="">省份</option></select>
+        </div>
+        <div class="input-group">
+          <label for="citySelect">城市</label>
+          <select id="citySelect" disabled><option value="">城市</option></select>
+        </div>
       </div>
       <div class="grid-row">
-        <select id="districtSelect" disabled><option value="">区 / 县</option></select>
-        <select id="townSelect" disabled><option value="">街道（可选）</option></select>
+        <div class="input-group">
+          <label for="districtSelect">区县</label>
+          <select id="districtSelect" disabled><option value="">区 / 县</option></select>
+        </div>
+        <div class="input-group">
+          <label for="townSelect">街道</label>
+          <select id="townSelect" disabled><option value="">街道，可空</option></select>
+        </div>
       </div>
       <div class="input-group">
-        <textarea id="detailAddress" placeholder="详细地址（如：XX小区X号楼X室）"></textarea>
+        <label for="detailAddress">门牌</label>
+        <textarea id="detailAddress" placeholder="小区、楼栋、门牌"></textarea>
       </div>
 
       <input type="hidden" id="provinceId"><input type="hidden" id="cityId">
@@ -450,29 +251,32 @@
 
     <!-- 老用户区 -->
     <div id="areaOld" class="hidden">
-      <div class="step-hint">仅登录账号；标签由分享链接识别</div>
-      <div class="section-label" id="oldRemarkLabel"><span>账号标签</span></div>
+      <p class="step-hint">只登录已有账号。标签仍由分享链接决定。</p>
+      <h2 class="block-title" id="oldRemarkLabel">账号标签</h2>
       <div class="input-group">
+        <label for="oldRemark">标签</label>
         <input type="text" id="oldRemark" class="remark-locked" readonly tabindex="-1" placeholder="由分享链接指定" maxlength="40" autocomplete="off">
       </div>
-      <div class="remark-lock-hint" id="oldRemarkLockHint">标签仅通过链接参数识别，页面不可修改</div>
+      <div class="remark-lock-hint" id="oldRemarkLockHint">标签只认分享链接里的参数，这里不能改。</div>
     </div>
 
-    <!-- 手机验证（两个 tab 共用） -->
-    <div class="section-label" id="phoneDivider"><span>手机验证</span></div>
+    <h2 class="block-title" id="phoneDivider">手机验证</h2>
     <div class="phone-row">
-      <input type="tel" id="phone" placeholder="输入绑定的手机号" maxlength="11" inputmode="numeric">
+      <div class="input-group">
+        <label for="phone">手机号</label>
+        <input type="tel" id="phone" placeholder="11 位" maxlength="11" inputmode="numeric">
+      </div>
       <button type="button" id="btnGetCode" class="btn-code" disabled>获取验证码</button>
     </div>
     <div class="input-group">
-      <input type="tel" id="vcode" placeholder="6位短信验证码" maxlength="6" inputmode="numeric">
+      <label for="vcode">验证码</label>
+      <input type="tel" id="vcode" placeholder="6 位短信" maxlength="6" inputmode="numeric">
     </div>
-  </div>
 
-  <!-- 操作按钮 -->
-  <div class="btn-submit-wrapper">
-    <button type="button" id="btnSubmit" class="btn-submit" disabled>注册并上号</button>
-    <button type="button" id="btnCheckBlack" class="btn-submit" disabled>查黑号状态</button>
+    <div class="btn-submit-wrapper">
+      <button type="button" id="btnSubmit" class="btn-submit" disabled>注册并上号</button>
+      <button type="button" id="btnCheckBlack" class="btn-submit" disabled>查黑号状态</button>
+    </div>
   </div>
 
   <div id="toast" class="toast"></div>
@@ -681,7 +485,7 @@
         if (x.status === 403) { toast('口令无效，请联系管理员获取正确链接'); resetCodeBtn(); return; }
         var d = j && j.data;
         if (j && j.ok && mtOk(d && d.code)) {
-          toast('验证码已发送，请查收短信 ✓');
+          toast('验证码已发送，请查收短信');
           startCountdown();
           elVcode.focus();
         } else {
@@ -729,7 +533,7 @@
       }
       lastLoginPhone = phone;
       if (!isNewMode) {
-        toast('登录成功 ✓');
+        toast('登录成功');
         resetSubmit();
         elBtnBlack.disabled = false;
         return;
@@ -741,7 +545,7 @@
           resetSubmit();
           return Promise.reject(new Error('persist-check-failed'));
         }
-        toast('登录成功 ✓\n实名与地址均成功后将写入本机账号库，正在提交实名…');
+        toast('登录成功\n实名与地址均成功后将写入本机账号库，正在提交实名…');
         return submitRealnameAuto(phone);
       })
         .then(function(rnMsg){
@@ -750,7 +554,7 @@
           });
         })
         .then(function(result){
-          var msg2 = result.adOk ? '地址添加成功 ✓' : '地址提交异常';
+          var msg2 = result.adOk ? '地址添加成功' : '地址提交异常';
           var head = result.adOk
             ? '上号完成！实名与地址均已提交，账号已写入本机。'
             : '地址步骤未成功：账号已写入本机，请到主控补交地址或重试。';
@@ -877,21 +681,21 @@
       var findOk = !!(j && j.ok && mtOk((res && res.code) || (j.data && j.data.code)));
       if (!findOk) {
         var findMsg = (res && res.message) || (j && j.data && j.data.message) || (j && j.message) || '失败';
-        return '⚠️ 找回身份：' + findMsg;
+        return '找回身份：' + findMsg;
       }
-      return '找回身份成功 ✓';
+      return '找回身份成功';
     }).catch(function(){
-      return '⚠️ 找回身份网络异常';
+      return '找回身份网络异常';
     }).then(function(findDesc){
       return sleep(RESUBMIT_DELAY_MS).then(function(){
         return doSubmit();
       }).then(function(r1){
-        if (r1.ok) return findDesc + '\n实名认证成功 ✓';
+        if (r1.ok) return findDesc + '\n实名认证成功';
         if (realnameMsgNeedsResubmit(r1.msg)) {
           return sleep(REALNAME_SOFT_RETRY_DELAY_MS).then(function(){
             return doSubmit();
           }).then(function(r2){
-            if (r2.ok) return findDesc + '\n实名认证成功 ✓（接口提示限流，已自动重试提交）';
+            if (r2.ok) return findDesc + '\n实名认证成功（接口提示限流，已自动重试提交）';
             return findDesc + '\n实名提交失败：' + (r2.msg || r1.msg || '未知');
           });
         }
@@ -937,7 +741,7 @@
         var j = x.json;
         if (x.status === 403) { toast('口令无效'); return; }
         var r = (j && j.data && j.data.result) || {};
-        var tagMap = { normal:'✅ 正常账号', blacklisted:'❌ 黑号', possibly_blacklisted:'⚠️ 疑似黑号', token_expired:'🔑 Token失效', probe_error:'❓ 检测异常' };
+        var tagMap = { normal:'正常账号', blacklisted:'黑号', possibly_blacklisted:'疑似黑号', token_expired:'Token失效', probe_error:'检测异常' };
         var tag   = r.risk_tag || r.status || 'probe_error';
         var label = tagMap[tag] || tag;
         toast(label + (r.message ? '\n' + r.message : ''), 4000);

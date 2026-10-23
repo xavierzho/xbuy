@@ -116,11 +116,12 @@ body.ui-busy .acct-list, body.ui-busy .tab-content, body.ui-busy .log-box, body.
 
 .layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 0;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  padding: 0 8px 8px 0;
 }
 
 /* ── 侧边栏（账号列表） ── */
@@ -152,8 +153,8 @@ body.ui-busy .acct-list, body.ui-busy .tab-content, body.ui-busy .log-box, body.
 
 .search-box input {
   width: 100%;
-  font-size: 12px;
-  padding: 8px 10px 8px 34px;
+  font-size: 14px;
+  padding: 8px 10px;
   outline: none;
 }
 
@@ -168,19 +169,81 @@ body.ui-busy .acct-list, body.ui-busy .tab-content, body.ui-busy .log-box, body.
 }
 
 .acct-toolbar {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: 6px;
-  padding: 10px 12px;
+  padding: 8px 12px 10px;
   border-bottom: 1px solid var(--border);
+}
+
+.acct-toolbar > .btn-xs,
+.acct-toolbar > .acct-more {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .acct-toolbar .btn-xs {
   width: 100%;
-  min-height: 30px;
+  min-height: 32px;
   line-height: 1.25;
   white-space: normal;
   text-align: center;
+}
+
+.acct-more {
+  position: relative;
+}
+
+.acct-more > summary {
+  list-style: none;
+  cursor: pointer;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.acct-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.acct-more-menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 220px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg2);
+  border: 1px solid var(--control, #d1d5db);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.acct-more-menu .btn-xs {
+  text-align: left;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .group-tabs {
@@ -370,7 +433,11 @@ body.ui-busy .acct-list, body.ui-busy .tab-content, body.ui-busy .log-box, body.
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
 
 /* ── 标签页 ── */
@@ -761,19 +828,22 @@ body.webengine-embed .modal-bg {
 
 #toast {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
-  padding: 13px 20px;
-  font-size: 13px;
+  bottom: 16px;
+  right: 16px;
+  left: 16px;
+  margin-left: auto;
+  padding: 12px 14px;
+  font-size: 14px;
   z-index: 300;
   pointer-events: none;
-  max-width: 320px;
+  max-width: 420px;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 10px;
   opacity: 0;
   transform: translateY(12px);
+  overflow-wrap: anywhere;
 }
 
 #toast.show {

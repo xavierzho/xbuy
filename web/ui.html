@@ -4,28 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>i茅台 · 抢购控制台</title>
-<link rel="stylesheet" href="/ui-shell.css?v=11">
-<link rel="stylesheet" href="/ui-theme.css?v=15">
+<link rel="stylesheet" href="/ui-shell.css?v=13">
+<link rel="stylesheet" href="/ui-theme.css?v=18">
 </head>
 <body>
 
 <!-- 顶栏 -->
 <div class="topbar">
   <div class="topbar-glow"></div>
+  <button type="button" class="nav-toggle" onclick="document.body.classList.toggle('queue-open')" aria-label="打开账号列表">账号</button>
   <div class="logo">
     <span class="logo-mark" aria-hidden="true">茅</span>
-    i茅台 · 主控
-    <span>抢购 / 节点 / 支付</span>
+    <span class="logo-name">抢购</span>
   </div>
+  <h1 class="screen-title" id="screenTitle">账号参数</h1>
   <div class="stats-row" id="statsRow">
     <div class="bj-clock" id="bjClock">北京时间 —</div>
-    <div class="stat-chip">总 <b id="sTotal">0</b></div>
-    <div class="stat-chip">登录 <b class="green" id="sOk">0</b></div>
-    <div class="stat-chip">发码 <b class="yellow" id="sSent">0</b></div>
-    <div class="stat-chip">失败 <b class="red" id="sFail">0</b></div>
+    <div class="readiness" role="group" aria-label="按状态看账号，不改变一键抢购的范围">
+      <button type="button" class="stat-chip is-on" data-status="" onclick="setAccountStatusFilter('')">全部 <b id="sTotal">0</b></button>
+      <button type="button" class="stat-chip" data-status="已登录" onclick="setAccountStatusFilter('已登录')">已登录 <b class="green" id="sOk">0</b></button>
+      <button type="button" class="stat-chip" data-status="已发码" onclick="setAccountStatusFilter('已发码')">已发码 <b class="yellow" id="sSent">0</b></button>
+      <button type="button" class="stat-chip" data-status="登录失败" onclick="setAccountStatusFilter('登录失败')">失败 <b class="red" id="sFail">0</b></button>
+    </div>
     <button id="topbarDistributedNodes" class="btn-xs secondary topbar-btn-gap" onclick="toggleDistributedNodePanel()" title="查看分布式节点状态">节点 <b id="distributedNodeStatus">0</b></button>
     <button id="topbarMobileRelays" class="btn-xs secondary topbar-btn-gap" onclick="toggleMobileRelayPanel()" title="查看手机发包设备状态">手机 <b id="mobileRelayStatus">0</b></button>
-    <button id="topbarBatchRush" class="btn-xs accent topbar-btn-gap accent-wide" onclick="runBatchRush()" title="对已登录且填了商品ID的账号批量抢购">⚡ 一键抢购</button>
+    <button id="topbarBatchRush" class="btn-xs accent topbar-btn-gap accent-wide" onclick="runBatchRush()" title="对已登录且填了商品ID的账号批量抢购">一键抢购</button>
   </div>
 </div>
 
@@ -55,26 +58,30 @@
   <!-- 左侧账号列表 -->
   <div class="sidebar">
     <div class="sidebar-head">
-      <h2>账号管理</h2>
+      <h2>账号</h2>
       <div class="search-box">
-        <span class="ico">&#x1F50D;</span>
-        <input type="text" id="searchInput" placeholder="搜索手机号/昵称…" oninput="filterAccounts()">
+        <input type="text" id="searchInput" placeholder="手机号或昵称" aria-label="搜索账号" oninput="filterAccounts()">
       </div>
     </div>
     <div class="acct-toolbar">
-      <button class="btn-xs" type="button" onclick="reloadAccountsFromDisk()" title="重新读取 accounts.json，机器人外部上号后无需重启">刷新列表</button>
-      <button class="btn-xs accent" onclick="showAddModal()">+ 添加</button>
-      <button class="btn-xs" onclick="showBatchImport()">批量导入</button>
-      <button class="btn-xs" onclick="toggleSelectAllVisibleAccounts()">全选</button>
-      <button class="btn-xs" onclick="clearSelectedAccounts()">清空勾选</button>
-      <button class="btn-xs" onclick="batchEnsureBsDvidMissing()" title="对已登录且缺少 BS-DVID 的号依次跑浩天并落盘；已有 bsid 的不动">补全缺少浩天</button>
-      <button class="btn-xs" onclick="exportSelectedPhones()" title="导出到服务端目录「账号记录」：文件名为 YYYYMMDD账号记录.txt">导出勾选手机号</button>
-      <button class="btn-xs danger" onclick="removeSelectedAccounts()">删除勾选</button>
-      <button class="btn-xs" onclick="unlockAllRushStopAfterOk()" title="清除全部账号的限购停抢标记，让所有号重新参与抢购">清除全部停抢</button>
-      <button class="btn-xs" onclick="batchSendCode()">批量发码</button>
-      <button class="btn-xs" onclick="batchRefreshLogin()" title="对已登录号用收货地址接口校验会话；不换机模，设备与 JWT 对齐。默认每号间隔≥4s">全部刷新登录</button>
-      <button class="btn-xs" id="btnToolbarBatchDeviceRefresh" onclick="batchRefreshDeviceParamsOnly()" title="各号换新完整模拟指纹并清除 Token，需重新发码登录；保留备注与代理" style="display:none">全部刷新设备参数</button>
-      <button class="btn-xs" onclick="batchRefreshHaotian()" title="已禁用：浩天仅在发码前自动获取并在后续流程复用" style="display:none">一键刷新浩天</button>
+      <button class="btn-xs" type="button" onclick="reloadAccountsFromDisk()" title="重新读取 accounts.json，机器人外部上号后无需重启">刷新</button>
+      <button class="btn-xs" onclick="showAddModal()">添加</button>
+      <details class="acct-more">
+        <summary>更多</summary>
+        <div class="acct-more-menu">
+          <button class="btn-xs" onclick="batchSendCode()">批量发码</button>
+          <button class="btn-xs" onclick="showBatchImport()">批量导入</button>
+          <button class="btn-xs" onclick="toggleSelectAllVisibleAccounts()">全选</button>
+          <button class="btn-xs" onclick="clearSelectedAccounts()">清空勾选</button>
+          <button class="btn-xs" onclick="batchRefreshLogin()" title="对已登录号用收货地址接口校验会话；不换机模，设备与 JWT 对齐。默认每号间隔≥4s">全部刷新登录</button>
+          <button class="btn-xs" onclick="batchEnsureBsDvidMissing()" title="对已登录且缺少 BS-DVID 的号依次跑浩天并落盘；已有 bsid 的不动">补全缺少浩天</button>
+          <button class="btn-xs" onclick="exportSelectedPhones()" title="导出到服务端目录「账号记录」：文件名为 YYYYMMDD账号记录.txt">导出勾选手机号</button>
+          <button class="btn-xs" onclick="unlockAllRushStopAfterOk()" title="清除全部账号的限购停抢标记，让所有号重新参与抢购">清除全部停抢</button>
+          <button class="btn-xs danger" onclick="removeSelectedAccounts()">删除勾选</button>
+          <button class="btn-xs" id="btnToolbarBatchDeviceRefresh" onclick="batchRefreshDeviceParamsOnly()" title="各号换新完整模拟指纹并清除 Token，需重新发码登录；保留备注与代理" style="display:none">全部刷新设备参数</button>
+          <button class="btn-xs" onclick="batchRefreshHaotian()" title="已禁用：浩天仅在发码前自动获取并在后续流程复用" style="display:none">一键刷新浩天</button>
+        </div>
+      </details>
     </div>
     <!-- 分组 tabs -->
     <div class="group-tabs" id="groupTabsBar"></div>
@@ -91,19 +98,22 @@
   <!-- 右侧主内容 -->
   <div class="main">
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('tab-acct')">抢购配置</div>
-      <div class="tab" onclick="switchTab('tab-rush')">抢购操作</div>
-      <div class="tab" onclick="switchTab('tab-items')">商品管理</div>
-      <div class="tab" onclick="switchTab('tab-log')">操作日志</div>
-      <div class="tab" onclick="switchTab('tab-pay')">支付通知</div>
+      <div class="tab active" onclick="switchTab('tab-acct')">参数</div>
+      <div class="tab" onclick="switchTab('tab-rush')">开抢</div>
+      <div class="tab" onclick="switchTab('tab-items')">商品</div>
+      <div class="tab" onclick="switchTab('tab-log')">日志</div>
+      <div class="tab" onclick="switchTab('tab-pay')">支付</div>
     </div>
 
     <!-- ── 抢购配置（每账号参数 + 批量/定时） ── -->
     <div class="tab-content active" id="tab-acct">
+      <p class="screen-lead">选一个账号，改这一号的商品、地址和开抢时间。</p>
+      <details class="global-strip">
+        <summary>全局：自动下单、设备入口、TLS</summary>
       <div class="card card-compact">
         <label class="label-row-start">
           <input type="checkbox" id="rushAutoChainAfter" checked>
-          <span>抢购成功后自动组单、下单并拉支付链接；支付成功在顶栏<strong>「支付通知」</strong>页展示（无弹窗）。关闭后行为与原来一致。</span>
+          <span>抢购成功后自动组单、下单并拉支付链接；支付成功在<strong>「支付」</strong>页展示（无弹窗）。关闭后行为与原来一致。</span>
         </label>
         <label class="label-row-start">
           <input type="checkbox" id="showDeviceRefreshEntry">
@@ -119,9 +129,9 @@
           <button type="button" class="btn-xs secondary" onclick="refreshGoBridgeMode()">刷新</button>
         </div>
       </div>
+      </details>
       <div id="acctConfigWrap">
         <div class="empty" style="padding:60px 0">
-          <div class="ico">&#x1F4CB;</div>
           <div>左侧添加账号后，在此为每个账号配置抢购参数</div>
         </div>
       </div>
@@ -129,6 +139,7 @@
 
     <!-- ── 抢购操作 ── -->
     <div class="tab-content" id="tab-rush">
+      <p class="screen-lead">对已登录的号开抢。抢到之后到支付里完成付款。</p>
       <div class="card">
         <div class="card-title"><span class="dot"></span>选择账号</div>
         <div class="form-row">
@@ -181,7 +192,7 @@
             <label title="每次抢购请求返回后，再等多少毫秒发下一次；0=与 mt 一样紧连">间隔(ms)</label>
             <input type="number" id="rushDelay" value="0" min="0" title="多次尝试之间停顿；0 为发一次返回后立即下一发">
           </div>
-          <div class="form-group fg-w88" title="⚡高频：总枪数=重试×轮次；每轮内仍按间隔(ms)连发">
+          <div class="form-group fg-w88" title="高频：总枪数=重试×轮次；每轮内仍按间隔(ms)连发">
             <label>轮次</label>
             <input type="number" id="rushRounds" value="1" min="1" max="100">
           </div>
@@ -243,10 +254,10 @@
           </div>
         </div>
         <div class="rush-action-bar">
-          <button class="btn primary" id="btnRush" onclick="startRush()">&#x1F3AF; 开始抢购</button>
+          <button class="btn primary" id="btnRush" onclick="startRush()">开始抢购</button>
           <button class="btn secondary" onclick="fillFromSelected()">填入已选商品</button>
           <button type="button" class="btn secondary" onclick="resolveRushRouteFromInputs()" title="根据商品 ID + H5 详情页，从本地库或 URL 自动填编号、分支、是否带 code">自动匹配编号/分支</button>
-          <button type="button" class="btn secondary" id="btnWarmupBb" onclick="batchWarmupBb()" title="抢购前 30~50 秒点一次：对所有已登录账号并发 POST /bbprbdata/upload 上报设备指纹，60 秒内有效">&#x1F525; 一键预热</button>
+          <button type="button" class="btn secondary" id="btnWarmupBb" onclick="batchWarmupBb()" title="抢购前 30~50 秒点一次：对所有已登录账号并发 POST /bbprbdata/upload 上报设备指纹，60 秒内有效">一键预热</button>
           <span id="warmupBbStatus">未预热</span>
         </div>
         <p class="hint" id="nodeRushPanelHint" style="margin-top:8px">
@@ -288,6 +299,7 @@
 
     <!-- ── 商品管理 ── -->
     <div class="tab-content" id="tab-items">
+      <p class="screen-lead">点一条商品，把它的编号和详情页填进开抢参数。</p>
       <div class="card">
         <div class="card-title"><span class="dot"></span>商品列表（点击填入抢购参数）</div>
         <p class="hint" style="margin-bottom:10px">默认 <strong>8 条</strong>与 <code>mt_item_list.json</code> / <code>test-full-flow.js</code> 一致：<strong>商品 ID</strong>（code）、<strong>编号</strong>（spuId）、<strong>H5 详情页</strong>（referer）；活动 ID、抢购分支、是否带 code 字段由程序自动配套。勾选「全部分类」可再加载 <code>product_list.json</code> 其余 SKU。</p>
@@ -300,12 +312,12 @@
             <input type="checkbox" id="catalogShowFull" onchange="loadItems()">
             <span style="font-size:13px;color:var(--text2)">显示全部分类（product_list 全部）</span>
           </label>
-          <button class="btn secondary" style="align-self:flex-end" onclick="loadItems()">&#x1F504; 刷新</button>
+          <button class="btn secondary" style="align-self:flex-end" onclick="loadItems()">刷新</button>
           <button class="btn success" style="align-self:flex-end" onclick="applySelectedItemToAllAccounts()" title="与抢购配置里「一键配置」相同">一键配置全部已登录账号</button>
         </div>
         <div class="item-grid" id="itemGrid">
           <div class="empty" style="grid-column:1/-1;padding:40px 0">
-            <div class="ico">&#x1F4E6;</div>点击刷新加载商品
+            点击刷新加载商品
           </div>
         </div>
       </div>
@@ -313,6 +325,7 @@
 
     <!-- ── 操作日志（全局） ── -->
     <div class="tab-content" id="tab-log">
+      <p class="screen-lead">这一轮每一枪的返回。</p>
       <div class="card log-top-card">
         <div class="card-title" style="justify-content:space-between">
           <span style="display:flex;align-items:center;gap:8px"><span class="dot"></span>操作日志</span>
@@ -328,6 +341,7 @@
 
     <!-- ── 支付通知（顶栏独立标签，与「操作日志」相邻） ── -->
     <div class="tab-content" id="tab-pay">
+      <p class="screen-lead">抢到的单停在这里。倒计时从记下的时间起算 15 分钟。</p>
       <div class="card pay-notice-card pay-tab-full">
         <div class="pay-notice-toolbar">
           <div class="card-title" style="margin:0"><span class="dot"></span>支付通知 <span style="font-size:12px;font-weight:400;color:var(--text3)">（隐藏长链接，只保留支付操作）</span></div>
@@ -745,7 +759,7 @@ function renderGroupTabs() {
   bar.innerHTML = all.map(n => {
     const isActive = n === _currentGroup;
     const cnt = n === '全部' ? accounts.length : getPhonesInGroup(n).filter(ph => accounts.find(a => a.phone === ph)).length;
-    const delBtn = n !== '全部' ? `<span class="del-grp" onclick="event.stopPropagation();confirmDeleteGroup('${escHtml(n)}')" title="删除分组">✕</span>` : '';
+    const delBtn = n !== '全部' ? `<span class="del-grp" onclick="event.stopPropagation();confirmDeleteGroup('${escHtml(n)}')" title="删除分组">×</span>` : '';
     return `<div class="group-tab${isActive ? ' active' : ''}" onclick="switchGroup('${escHtml(n)}')">${escHtml(n)}<span class="group-tab-count">${cnt}</span>${delBtn}</div>`;
   }).join('');
   row2.style.display = names.length > 0 || true ? '' : 'none';
@@ -4648,9 +4662,7 @@ function toast(msg, type='info') {
   const el = document.getElementById('toast');
   if (!el) return;
   if (_bulkUiBusyDepth && type !== 'err' && type !== 'warn') return;
-  const icons = { ok: '✓', err: '✕', warn: '⚠', info: 'ℹ' };
-  const icon = icons[type] || '';
-  el.innerHTML = icon ? `<span style="font-size:15px;flex-shrink:0">${icon}</span><span>${escHtml(String(msg))}</span>` : escHtml(String(msg));
+  el.textContent = String(msg);
   el.className = 'show ' + (type || '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.className = ''; }, 3000);
@@ -5759,6 +5771,16 @@ async function runPool(limit, items, fn) {
 //  标签页切换
 // ══════════════════════════════════════════════
 function switchTab(id) {
+  const screenNames = {
+    'tab-acct': '账号参数',
+    'tab-rush': '开抢',
+    'tab-items': '商品',
+    'tab-log': '操作日志',
+    'tab-pay': '支付通知',
+  };
+  const screenTitle = document.getElementById('screenTitle');
+  if (screenTitle && screenNames[id]) screenTitle.textContent = screenNames[id];
+  document.body.classList.remove('queue-open');
   document.querySelectorAll('.tab').forEach((t,i) => {
     const ids = ['tab-acct','tab-rush','tab-items','tab-log','tab-pay'];
     t.classList.toggle('active', ids[i] === id);
@@ -6053,10 +6075,25 @@ function riskBadge(tag) {
   return `<span class="badge ${pair[0]}" title="黑号检测">${pair[1]}</span>`;
 }
 
+let _accountStatusFilter = '';
+
+function setAccountStatusFilter(status) {
+  const next = String(status || '');
+  _accountStatusFilter = _accountStatusFilter === next ? '' : next;
+  document.querySelectorAll('.readiness .stat-chip').forEach((el) => {
+    el.classList.toggle('is-on', (el.dataset.status || '') === _accountStatusFilter);
+  });
+  filterAccounts();
+}
+
 function renderAccounts(list) {
+  const sourceCount = list.length;
+  if (_accountStatusFilter) {
+    list = list.filter(a => String(a && a.status || '') === _accountStatusFilter);
+  }
   const el = document.getElementById('acctList');
   if (!list.length) {
-    el.innerHTML = '<div class="empty"><div class="ico">&#x1F464;</div>暂无账号</div>';
+    el.innerHTML = '<div class="empty">' + (_accountStatusFilter && sourceCount ? '这个状态下没有账号' : '暂无账号') + '</div>';
     return;
   }
   // 如果行数一致且手机号顺序不变，只 patch active class 和 checkbox，避免全量重绘
@@ -6181,6 +6218,7 @@ function onAccountRowClick(ev, phone) {
   const t = ev && ev.target;
   if (t && typeof t.closest === 'function' && t.closest('input[type="checkbox"]'))
     return;
+  document.body.classList.remove('queue-open');
   selectAccount(phone);
 }
 
@@ -6480,7 +6518,7 @@ function renderAcctConfigPanel(force) {
             <input type="checkbox" id="rushMtModeBatch"> MT模式（镜像，请用上方的启动模式）
           </label>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text2)">
-            <input type="checkbox" id="rushFireAndForget"> ⚡ 高频（镜像）
+            <input type="checkbox" id="rushFireAndForget">  高频（镜像）
           </label>
           <span style="font-size:12px;color:var(--text3)">高频多轮：优先读下方「批量·轮次」；空则用抢购页轮次三格</span>
         </div>
@@ -6594,7 +6632,7 @@ function renderAcctConfigPanel(force) {
   if (!accounts.length) {
     _batchPanelSig = '';
     Object.keys(_cardSigMap).forEach(k => delete _cardSigMap[k]);
-    wrap.innerHTML = batchHtml + `<div class="empty" style="padding:40px"><div class="ico">&#x1F464;</div>请先在左侧添加账号</div>`;
+    wrap.innerHTML = batchHtml + `<div class="empty" style="padding:40px">请先在左侧添加账号</div>`;
     return;
   }
 
@@ -7084,7 +7122,7 @@ async function autoComposeSubmitPayCore(phone, recId, spu, cnt, addr, ctxLabel, 
     }
     const resultEl = document.getElementById('orderResult');
     if (resultEl) {
-      resultEl.innerHTML = '<div style="font-size:13px;color:var(--green)">自动链路：直接下单成功 ✓ 订单号 <b>' + escHtml(oid) + '</b></div>'
+      resultEl.innerHTML = '<div style="font-size:13px;color:var(--green)">自动链路：直接下单成功  订单号 <b>' + escHtml(oid) + '</b></div>'
         + (payUrl
           ? '<div style="margin-top:8px;font-size:12px;word-break:break-all;color:var(--text2)">支付链接：' + escHtml(payUrl) + '</div><div style="margin-top:6px;font-size:12px;color:var(--text3)">详情已写入顶栏「支付通知」页（支付宝+云闪付两个按钮）</div>'
           : '<div style="margin-top:8px;font-size:12px;color:var(--text3)">支付链接未解析到，请在「抢购操作」点「拉支付链接」</div>');
@@ -7331,7 +7369,7 @@ function parseRetryCountFromRushTab() {
   return 10;
 }
 
-/** ⚡高频多轮：批量三格非空优先，否则用抢购操作页；轮次间隔默认 1000、抖动默认 100（与后端一致） */
+/** 高频多轮：批量三格非空优先，否则用抢购操作页；轮次间隔默认 1000、抖动默认 100（与后端一致） */
 function parseHiFreqRoundPayload() {
   const pickNum = (batchId, rushId, defNum) => {
     const b = document.getElementById(batchId);
@@ -8087,7 +8125,7 @@ function applySprayRushPreset() {
   _enforceRushModeExclusive('rushMtModeBatch');
   saveUiPrefsNow();
   toast('已应用大并发扫射预设（MT·5lane·不分批·间隔80ms）', 'ok');
-  log('[批量抢购] 大并发扫射预设：MT ON（5 lane 等响应），⚡高频/按节点均分/全局手机发 OFF；重试10·lane间隔80ms；各号代理池错开+账号错峰；代理池建议≥账号数×10（16号≈160+）', 'info');
+  log('[批量抢购] 大并发扫射预设：MT ON（5 lane 等响应），高频/按节点均分/全局手机发 OFF；重试10·lane间隔80ms；各号代理池错开+账号错峰；代理池建议≥账号数×10（16号≈160+）', 'info');
 }
 
 async function runBatchRushCore(phoneList, silentToast) {
@@ -8929,7 +8967,7 @@ async function rushOne(phone, silentToast) {
   const mt = rushMtModeEnabled();
   const mtNoWait = !!(document.getElementById('rushMtNoWait')?.checked) && mt && !fireAndForget;
   const mtOnly = !!(mt && !fireAndForget);
-  log(`[抢购] ${phone} 商品ID=${item} 活动=${actId || '自动'} 编号=${imtp} 分支=${branch || '默认'}${mtOnly ? (mtNoWait ? ' ·MT不等响应' : ' ·MT模式') : ''}${fireAndForget ? ' ·⚡高频' : ''}`, 'info');
+  log(`[抢购] ${phone} 商品ID=${item} 活动=${actId || '自动'} 编号=${imtp} 分支=${branch || '默认'}${mtOnly ? (mtNoWait ? ' ·MT不等响应' : ' ·MT模式') : ''}${fireAndForget ? ' ·高频' : ''}`, 'info');
 
   if (mtOnly) {
     appendAcctLog(
@@ -9058,7 +9096,7 @@ async function rushOne(phone, silentToast) {
     const totalShots = retry * hiR.rushRounds;
     appendAcctLog(
       phone,
-      `开始抢购（⚡高频：${hiR.rushRounds} 轮×每轮 ${retry} 枪，共 ${totalShots} 枪；枪间 ${delayMs}ms；轮间≈${hiR.rushRoundGapMs}±${hiR.rushRoundGapJitterMs}ms）`,
+      `开始抢购（高频：${hiR.rushRounds} 轮×每轮 ${retry} 枪，共 ${totalShots} 枪；枪间 ${delayMs}ms；轮间≈${hiR.rushRoundGapMs}±${hiR.rushRoundGapJitterMs}ms）`,
     );
     const fafPayload = {
       phone,
@@ -9085,8 +9123,8 @@ async function rushOne(phone, silentToast) {
     const fafRush = unwrapRushPayload(fafRes);
     if (!fafRes.ok) {
       const line = rushHttpErrorLine(fafRes);
-      log(`[抢购] ${phone} ⚡高频 ← ${line}`, 'warn');
-      appendAcctLog(phone, '⚡高频 ← ' + line);
+      log(`[抢购] ${phone} 高频 ← ${line}`, 'warn');
+      appendAcctLog(phone, '高频 ← ' + line);
       maybeLockRushIfPurchaseLimited(phone, fafRes.message || line);
       bumpAcctStat(phone, 'rushFail');
       if (!silentToast) toast(line, 'err');
@@ -9104,8 +9142,8 @@ async function rushOne(phone, silentToast) {
         if (ae) ae.value = fafRes.data.resolvedActId;
         setRushPart(phone, 'act', fafRes.data.resolvedActId);
       }
-      log(`[抢购] ${phone} ⚡高频 成功 rid=${rid}`, 'ok');
-      appendAcctLog(phone, '⚡高频 抢购成功，记录号 ' + rid);
+      log(`[抢购] ${phone} 高频 成功 rid=${rid}`, 'ok');
+      appendAcctLog(phone, '高频 抢购成功，记录号 ' + rid);
       bumpAcctStat(phone, 'rushOk');
       autoMoveToRushOkGroup(phone);
       appendAcctLog(phone, '提示：抢购成功未默认停抢，未付款可继续抢；若接口返回限购文案将自动停抢');
@@ -9126,7 +9164,7 @@ async function rushOne(phone, silentToast) {
     }
     maybeLockRushIfPurchaseLimited(phone, fafRush);
     bumpAcctStat(phone, 'rushFail');
-    log(`[抢购] ${phone} ⚡高频 ${retry} 枪均未成功`, 'warn');
+    log(`[抢购] ${phone} 高频 ${retry} 枪均未成功`, 'warn');
     return;
   }
 
@@ -9826,7 +9864,7 @@ async function _autoChainSubmitAndPayNow(job) {
 
   const resultEl = document.getElementById('orderResult');
   if (resultEl) {
-    resultEl.innerHTML = '<div style="font-size:13px;color:var(--green)">自动链路：组单/下单成功 ✓ 订单号 <b>' + escHtml(oid) + '</b></div>'
+    resultEl.innerHTML = '<div style="font-size:13px;color:var(--green)">自动链路：组单/下单成功  订单号 <b>' + escHtml(oid) + '</b></div>'
       + (payUrl
         ? '<div style="margin-top:8px;font-size:12px;word-break:break-all;color:var(--text2)">支付链接：' + escHtml(payUrl) + '</div><div style="margin-top:6px;font-size:12px;color:var(--text3)">详情已写入顶栏「支付通知」页（支付宝+云闪付两个按钮）</div>'
         : '<div style="margin-top:8px;font-size:12px;color:var(--text3)">支付链接未解析到，请在「抢购操作」点「拉支付链接」</div>');
@@ -11487,7 +11525,7 @@ async function modalDoLogin() {
   const res = await api('/api/accounts/login', { phone, code, nickname });
   const result = res.data && res.data.result;
   if (result && result.code === 2000) {
-    toast('登录成功 ✓（BS-DVID 已固定复用，登录后不再后台刷新）', 'ok');
+    toast('登录成功 （BS-DVID 已固定复用，登录后不再后台刷新）', 'ok');
     log(`[登录] ← 成功 uid=${(res.data.account && res.data.account.uid) || ''}`, 'ok');
     closeModal('modalAdd');
   } else {
@@ -11873,7 +11911,7 @@ async function batchWarmupBb() {
   // 跑时进度（每秒滚动一个字符）
   btn.disabled = true;
   const origText = btn.textContent;
-  btn.textContent = '🔥 预热中…';
+  btn.textContent = '预热中…';
   _stopWarmupBbCountdown();
   let dots = 0;
   const runTimer = setInterval(() => {
@@ -12039,14 +12077,14 @@ async function startRush() {
     const hiR = parseHiFreqRoundPayload();
     const tot = retry * hiR.rushRounds;
     log(
-      `[抢购] 账号=${phone} ⚡高频：${hiR.rushRounds} 轮×${retry} 枪=${tot}；枪间 ${delayMs}ms；轮间≈${hiR.rushRoundGapMs}±${hiR.rushRoundGapJitterMs}ms`,
+      `[抢购] 账号=${phone} 高频：${hiR.rushRounds} 轮×${retry} 枪=${tot}；枪间 ${delayMs}ms；轮间≈${hiR.rushRoundGapMs}±${hiR.rushRoundGapJitterMs}ms`,
       'info',
     );
     appendAcctLog(
       phone,
-      `⚡高频：${hiR.rushRounds} 轮×每轮 ${retry} 枪（${tot}），枪间 ${delayMs}ms，轮间≈${hiR.rushRoundGapMs}±${hiR.rushRoundGapJitterMs}ms`,
+      `高频：${hiR.rushRounds} 轮×每轮 ${retry} 枪（${tot}），枪间 ${delayMs}ms，轮间≈${hiR.rushRoundGapMs}±${hiR.rushRoundGapJitterMs}ms`,
     );
-    resultEl.innerHTML = `<span style="color:var(--text2);font-size:13px">⚡高频 ${tot} 枪发送中…</span>`;
+    resultEl.innerHTML = `<span style="color:var(--text2);font-size:13px">高频 ${tot} 枪发送中…</span>`;
     const fafPayload = {
       phone, itemCode: item, amount, sourceId: src, hot: true,
       rushLoopAttempts: retry,
@@ -12069,12 +12107,12 @@ async function startRush() {
     fill.style.width = '100%';
     if (!lastRes.ok) {
       const line = rushHttpErrorLine(lastRes);
-      log(`[抢购] ⚡高频 ← ${line}`, 'warn');
-      appendAcctLog(phone, '⚡高频 ← ' + line);
+      log(`[抢购] 高频 ← ${line}`, 'warn');
+      appendAcctLog(phone, '高频 ← ' + line);
       maybeLockRushIfPurchaseLimited(phone, lastRes.message || line);
       toast(line, 'err');
       resultEl.innerHTML = `<div style="color:var(--red);font-size:13px">${line}</div>`;
-      btn.disabled = false; btn.textContent = '🎯 开始抢购';
+      btn.disabled = false; btn.textContent = '开始抢购';
       scheduleSaveUiPrefs();
       return;
     }
@@ -12087,13 +12125,13 @@ async function startRush() {
         const im = document.getElementById('rushImtp');
         if (im && !(im.value || '').trim()) im.value = lastRes.data.resolvedSpuId;
       }
-      log(`[抢购] ⚡高频 成功 rid=${rid}`, 'ok');
-      appendAcctLog(phone, '⚡高频 成功，记录号 ' + rid);
+      log(`[抢购] 高频 成功 rid=${rid}`, 'ok');
+      appendAcctLog(phone, '高频 成功，记录号 ' + rid);
       appendAcctLog(phone, '提示：抢购成功未默认停抢，未付款可继续抢；若接口返回限购文案将自动停抢');
       const traceH = rushLoopTraceToHtml(lastRush);
       resultEl.innerHTML = `
       <div style="background:rgba(76,175,130,.1);border:1px solid var(--green);border-radius:8px;padding:12px 16px;margin-top:8px">
-        <div style="color:var(--green);font-weight:600;font-size:14px">✅ 抢购成功！（⚡高频）</div>
+        <div style="color:var(--green);font-weight:600;font-size:14px">抢购成功（高频）</div>
         <div style="font-size:12px;color:var(--text2);margin-top:4px">优先购记录号：<b style="color:var(--text)">${rid}</b></div>
       </div>` + (traceH || '');
       writeRushRecordIdToFrontend(phone, rid, amount);
@@ -12103,7 +12141,7 @@ async function startRush() {
     } else {
       resultEl.innerHTML = `
       <div style="background:rgba(224,92,92,.1);border:1px solid var(--red);border-radius:8px;padding:12px 16px;margin-top:8px">
-        <div style="color:var(--red);font-weight:600">❌ 高频 ${retry} 枪均未成功</div>
+        <div style="color:var(--red);font-weight:600">高频 ${retry} 枪均未成功</div>
         <div style="font-size:12px;color:var(--text2);margin-top:4px">${JSON.stringify(lastRush||lastRes.data||lastRes.message)}</div>
       </div>` + (rushLoopTraceToHtml(lastRush) || '');
       toast('抢购未成功', 'err');
@@ -12123,7 +12161,7 @@ async function startRush() {
       }
     }
     scheduleSaveUiPrefs();
-    btn.disabled = false; btn.textContent = '🎯 开始抢购';
+    btn.disabled = false; btn.textContent = '开始抢购';
     return;
   }
 
@@ -12164,7 +12202,7 @@ async function startRush() {
       maybeLockRushIfPurchaseLimited(phone, lastRes.message || line);
       toast(line, 'err');
       resultEl.innerHTML = `<div style="color:var(--red);font-size:13px">${line}</div>`;
-      btn.disabled = false; btn.textContent = '🎯 开始抢购';
+      btn.disabled = false; btn.textContent = '开始抢购';
       scheduleSaveUiPrefs();
       return;
     }
@@ -12215,7 +12253,7 @@ async function startRush() {
       }
     }
     scheduleSaveUiPrefs();
-    btn.disabled = false; btn.textContent = '🎯 开始抢购';
+    btn.disabled = false; btn.textContent = '开始抢购';
     return;
   }
 
@@ -12308,7 +12346,7 @@ async function startRush() {
   }
 
   scheduleSaveUiPrefs();
-  btn.disabled = false; btn.textContent = '🎯 开始抢购';
+  btn.disabled = false; btn.textContent = '开始抢购';
   fill.style.width = '100%';
 }
 
@@ -12341,7 +12379,7 @@ async function doCompose() {
       lastComposeDataByPhone[phone] = res.data.data;
     }
     toast('组单成功', 'ok'); log('[组单] 成功', 'ok');
-    resultEl.innerHTML = `<span style="color:var(--green);font-size:13px">组单成功 ✓</span>`;
+    resultEl.innerHTML = `<span style="color:var(--green);font-size:13px">组单成功 </span>`;
   } else {
     toast('组单失败', 'err'); log('[组单] 失败 '+JSON.stringify(res.data||res.message), 'err');
     resultEl.innerHTML = `<span style="color:var(--red);font-size:13px">组单失败: ${escHtml(JSON.stringify(res.data||res.message))}</span>`;
@@ -12385,7 +12423,7 @@ async function doSubmit() {
     const oid = (res.data.data||{}).orderId||'';
     lastOrderId = oid;
     toast('下单成功', 'ok'); log(`[下单] 成功 订单号=${oid}`, 'ok');
-    resultEl.innerHTML = `<span style="color:var(--green);font-size:13px">下单成功 ✓ 订单号：${oid}</span>`;
+    resultEl.innerHTML = `<span style="color:var(--green);font-size:13px">下单成功  订单号：${oid}</span>`;
   } else {
     toast('下单失败', 'err'); log('[下单] 失败 '+JSON.stringify(res.data||res.message), 'err');
     resultEl.innerHTML = `<span style="color:var(--red);font-size:13px">下单失败: ${escHtml(JSON.stringify(res.data||res.message))}</span>`;
@@ -12412,16 +12450,16 @@ async function doPay() {
       if (resultEl) {
         if (isAuthCode) {
           const qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(payUrl);
-          resultEl.innerHTML = `<div style="color:var(--green);font-size:13px">云闪付授权码 ✓（扫码支付）</div>`
+          resultEl.innerHTML = `<div style="color:var(--green);font-size:13px">云闪付授权码 （扫码支付）</div>`
             + `<div style="margin-top:8px"><img src="${escHtml(qrSrc)}" width="160" height="160" style="image-rendering:pixelated;border:1px solid #ccc;border-radius:6px">`
             + `<div style="margin-top:6px;font-size:11px;word-break:break-all;color:var(--text2)">${escHtml(payUrl)}</div></div>`;
         } else if (isMoutaiNative) {
           const qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' + encodeURIComponent(payUrl);
-          resultEl.innerHTML = `<div style="color:var(--green);font-size:13px">云闪付 ✓（i茅台扫码支付）</div>`
+          resultEl.innerHTML = `<div style="color:var(--green);font-size:13px">云闪付 （i茅台扫码支付）</div>`
             + `<div style="margin-top:8px"><img src="${escHtml(qrSrc)}" width="160" height="160" style="image-rendering:pixelated;border:1px solid #ccc;border-radius:6px">`
             + `<div style="margin-top:6px;font-size:11px;word-break:break-all;color:var(--text2)">${escHtml(payUrl)}</div></div>`;
         } else {
-          resultEl.innerHTML = `<div style="color:var(--green);font-size:13px">支付请求成功 ✓（见「支付通知」两个按钮）</div><div style="margin-top:6px;font-size:12px;word-break:break-all;color:var(--text2)">支付链接：${escHtml(payUrl)}</div>`;
+          resultEl.innerHTML = `<div style="color:var(--green);font-size:13px">支付请求成功 （见「支付通知」两个按钮）</div><div style="margin-top:6px;font-size:12px;word-break:break-all;color:var(--text2)">支付链接：${escHtml(payUrl)}</div>`;
         }
       }
       copyTextWithFallback(payUrl, { silentOk: true });
@@ -12512,7 +12550,7 @@ function filterItems() {
 
   const grid = document.getElementById('itemGrid');
   if (!list.length) {
-    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;padding:40px 0"><div class="ico">&#x1F50D;</div>没有匹配的商品</div>';
+    grid.innerHTML = '<div class="empty" style="grid-column:1/-1;padding:40px 0">没有匹配的商品</div>';
     return;
   }
   grid.innerHTML = list.slice(0, 200).map(item => {

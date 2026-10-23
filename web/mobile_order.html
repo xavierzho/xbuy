@@ -6,683 +6,294 @@
   <meta name="format-detection" content="telephone=no" />
   <title>私享订单 · 查单中心</title>
   <style>
-    :root {
-      --bg: #f4f8ff;
-      --bg2: #ffffff;
-      --bg3: #edf5ff;
-      --border: #dbe7f5;
-      --accent: #12a8ff;
-      --accent2: #1677ff;
-      --accent3: #00d1ff;
-      --accent-light: rgba(18,168,255,0.1);
-      --accent-ring: rgba(18,168,255,0.16);
-      --green: #18c16f;
-      --red: #ef4444;
-      --blue: #1688ff;
-      --text: #102033;
-      --text2: #607083;
-      --text3: #9aa8b8;
-      --shadow-sm: 0 2px 8px rgba(22,119,255,0.08), 0 1px 2px rgba(16,32,51,0.04);
-      --shadow-md: 0 12px 34px rgba(22,119,255,0.1), 0 2px 10px rgba(16,32,51,0.04);
-      --shadow-xl: 0 24px 70px rgba(22,119,255,0.16), 0 8px 24px rgba(16,32,51,0.12);
-      color-scheme: light;
-      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Inter", sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html,
-    body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    body {
-      padding: 42px 14px 56px;
-      background-image:
-        linear-gradient(120deg, rgba(18,168,255,0.055) 1px, transparent 1px),
-        linear-gradient(60deg, rgba(22,119,255,0.045) 1px, transparent 1px),
-        radial-gradient(circle at 12% 10%, rgba(0,209,255,0.18) 0 1px, transparent 2px 100%),
-        radial-gradient(circle at 88% 16%, rgba(22,119,255,0.12) 0 1px, transparent 2px 100%),
-        linear-gradient(180deg, #f9fcff 0%, #f3f8ff 54%, #edf5ff 100%);
-      background-size: 28px 48px, 28px 48px, 92px 92px, 110px 110px, auto;
-      background-attachment: fixed;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    button,
-    textarea,
-    input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .app {
-      width: min(100%, 486px);
-      margin: 0 auto;
-      position: relative;
-    }
-
-    .top {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .clock {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 72px;
-      height: 30px;
-      padding: 0 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(18,168,255,.18);
-      background: rgba(255,255,255,.9);
-      color: #26689d;
-      font-size: 13px;
-      font-weight: 850;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 12px;
-    }
-
-    .title {
-      font-size: 30px;
-      font-weight: 900;
-      letter-spacing: 0;
-      background: linear-gradient(135deg, #20354f 0%, #1677ff 62%, #00b7ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .signal {
-      color: #86a0bb;
-      font-size: 13px;
-      margin-top: 7px;
-      letter-spacing: 2px;
-    }
-
-    .signal .bar,
-    .signal .battery {
-      display: none;
-    }
-
-    .panel,
-    .status-row,
-    .summary,
-    .table {
-      position: relative;
-      background: var(--bg2);
-      border: 1px solid rgba(22,119,255,0.08);
-      box-shadow: var(--shadow-md);
-    }
-
-    .panel {
-      border-radius: 24px;
-      padding: 28px 24px 24px;
-      margin-bottom: 0;
-      overflow: hidden;
-    }
-
-    .panel::before,
-    .table::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50px;
-      right: 50px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(18,168,255,0.28), transparent);
-    }
-
-    .phone-box {
-      width: 100%;
-      min-height: 136px;
-      resize: vertical;
-      border: 1.5px solid #d7e4f4;
-      outline: none;
-      padding: 15px 16px;
-      border-radius: 14px;
-      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
-      color: var(--text);
-      line-height: 1.55;
-      font-size: 14px;
-      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-    }
-
-    .phone-box::placeholder {
-      color: var(--text3);
-    }
-
-    .phone-box:hover:not(:focus) {
-      border-color: #b9d8f8;
-      background: var(--bg);
-    }
-
-    .phone-box:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-ring), var(--shadow-sm);
-      background: var(--bg2);
-    }
-
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .section-label::before,
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border), transparent);
-    }
-
-    .section-label::after {
-      background: linear-gradient(90deg, transparent, var(--border));
-    }
-
-    .section-label span {
-      font-size: 11px;
-      color: var(--text3);
-      letter-spacing: 1.5px;
-      white-space: nowrap;
-      text-transform: uppercase;
-      font-weight: 800;
-    }
-
-    .primary {
-      position: relative;
-      margin: 18px 0 16px;
-      width: 100%;
-      height: 58px;
-      border-radius: 17px;
-      color: #fff;
-      background: linear-gradient(135deg, #12b8ff 0%, #1677ff 62%, #0d63dc 100%);
-      box-shadow: 0 12px 26px rgba(22,119,255,0.24);
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: .8px;
-      transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
-    }
-
-    .primary:hover:not(:disabled) {
-      box-shadow: 0 16px 34px rgba(22,119,255,0.3);
-      transform: translateY(-2px);
-      filter: brightness(1.05);
-    }
-
-    .primary:disabled {
-      background: #eef5ff !important;
-      color: var(--text3) !important;
-      border: 1.5px solid var(--border);
-      box-shadow: none;
-      cursor: wait;
-    }
-
-    .status-row {
-      min-height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      border-radius: 18px;
-      border-left: 4px solid var(--accent);
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      background: rgba(255,255,255,.94);
-    }
-
-    .status-name {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      min-width: 0;
-      font-size: 15px;
-      font-weight: 800;
-      color: #1677ff;
-    }
-
-    .radar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at center, #12b8ff 0 4px, rgba(18,168,255,.18) 5px 9px, transparent 10px),
-        repeating-radial-gradient(circle at center, rgba(18,168,255,.45) 0 1px, transparent 2px 7px);
-      border: 2px solid rgba(18,168,255,.28);
-      flex: 0 0 auto;
-    }
-
-    .auto {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-      color: var(--text2);
-      font-weight: 650;
-      font-size: 13px;
-    }
-
-    .switch {
-      width: 62px;
-      height: 34px;
-      border-radius: 18px;
-      padding: 3px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      transition: background .16s ease;
-    }
-
-    .switch span {
-      display: block;
-      width: 27px;
-      height: 27px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, .18);
-      transition: transform .16s ease;
-    }
-
-    .switch.on {
-      background: linear-gradient(135deg, #12b8ff, #1677ff);
-    }
-
-    .switch.on span {
-      transform: translateX(27px);
-      background: #fff;
-    }
-
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 12px;
-      background: transparent;
-      border: 0;
-      box-shadow: none;
-    }
-
-    .metric {
-      border: 1px solid rgba(22,119,255,0.1);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, .96);
-      padding: 11px 8px 10px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 21px;
-      line-height: 1.1;
-      color: var(--text);
-    }
-
-    .metric span {
-      display: block;
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--text3);
-    }
-
-    .table {
-      border-radius: 18px;
-      overflow: hidden;
-      background: var(--bg2);
-      margin-bottom: 18px;
-    }
-
-    .thead,
-    .row {
-      display: grid;
-      grid-template-columns: minmax(116px, 1fr) minmax(78px, .62fr) minmax(178px, 1.18fr);
-      align-items: stretch;
-    }
-
-    .thead {
-      background: linear-gradient(135deg, #13b5ff 0%, #1677ff 100%);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .thead div,
-    .cell {
-      padding: 12px 10px;
-      border-right: 1px solid rgba(255, 255, 255, .2);
-      min-width: 0;
-    }
-
-    .thead div:last-child,
-    .cell:last-child {
-      border-right: 0;
-    }
-
-    .row {
-      min-height: 116px;
-      border-top: 1px solid var(--border);
-      background: rgba(255, 255, 255, .98);
-    }
-
-    .row:nth-child(odd) {
-      background: #f9fcff;
-    }
-
-    .phone {
-      font-size: 15px;
-      font-weight: 850;
-      word-break: break-all;
-      color: #12243a;
-    }
-
-    .sub {
-      margin-top: 5px;
-      color: var(--text3);
-      font-size: 12px;
-      line-height: 1.35;
-      word-break: break-all;
-    }
-
-    .asset {
-      display: flex;
-      align-items: center;
-      min-height: 100%;
-      font-size: 15px;
-      font-weight: 750;
-      word-break: break-word;
-      color: #21384f;
-    }
-
-    .pay-cell {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      align-content: center;
-      justify-content: start;
-      width: 100%;
-    }
-
-    .pay-btn {
-      width: 100%;
-      height: 42px;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 850;
-      box-shadow: var(--shadow-sm);
-      white-space: nowrap;
-    }
-
-    .pay-btn.alipay { background: var(--blue); }
-    .pay-btn.ysf-android { background: var(--green); }
-    .pay-btn.ysf-ios { background: #aab6c5; }
-    .pay-btn:disabled { filter: grayscale(.2); opacity: .55; cursor: wait; }
-
-    .empty {
-      padding: 34px 16px;
-      color: var(--text3);
-      text-align: center;
-      background: #fff;
-      font-size: 16px;
-    }
-
-    .detail {
-      width: 100%;
-      min-height: 38px;
-      margin-top: 0;
-      border-radius: 10px;
-      border: 1px solid #d7e6f5;
-      background: #f7fbff;
-      color: #2474ba;
-      font-weight: 850;
-      line-height: 1.2;
-    }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -60%) scale(.95);
-      width: auto;
-      max-width: min(420px, calc(100% - 36px));
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .16s ease, transform .16s ease;
-      background: rgba(255,255,255,.94);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,.7);
-      padding: 18px 26px;
-      border-radius: 16px;
-      font-size: 14px;
-      line-height: 1.45;
-      text-align: center;
-      box-shadow: var(--shadow-xl);
-      z-index: 20;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(16, 32, 51, .36);
-      display: none;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 14px;
-      z-index: 30;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .sheet {
-      width: min(450px, 100%);
-      background: #fff;
-      border-radius: 22px 22px 18px 18px;
-      overflow: hidden;
-      box-shadow: var(--shadow-xl);
-    }
-
-    .sheet-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 850;
-    }
-
-    .close {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      background: #f0f7ff;
-      color: var(--text2);
-      font-size: 22px;
-      line-height: 1;
-    }
-
-    .sheet-body {
-      padding: 14px 16px 16px;
-    }
-
-    .link-box {
-      width: 100%;
-      min-height: 96px;
-      padding: 10px;
-      border: 1px solid #d7e6f5;
-      border-radius: 14px;
-      background: #f7fbff;
-      color: var(--text);
-      word-break: break-all;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .sheet-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .sheet-actions button,
-    .sheet-actions a {
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 14px;
-      text-decoration: none;
-      font-weight: 800;
-    }
-
-    .copy {
-      background: #20354f;
-      color: #fff;
-    }
-
-    .open {
-      background: linear-gradient(135deg, #12b8ff 0%, #1677ff 100%);
-      color: #fff;
-    }
-
-    @media (max-width: 430px) {
-      body {
-        padding: 30px 8px 44px;
-      }
-
-      .app {
-        padding-left: 8px;
-        padding-right: 8px;
-      }
-
-      .title {
-        font-size: 25px;
-      }
-
-      .clock {
-        font-size: 12px;
-      }
-
-      .panel {
-        padding: 24px 18px 20px;
-        border-radius: 22px;
-      }
-
-      .phone-box {
-        min-height: 132px;
-      }
-
-      .primary {
-        height: 56px;
-      }
-
-      .thead {
-        display: grid;
-        grid-template-columns: 1fr .62fr 1.14fr;
-        font-size: 12px;
-      }
-
-      .row {
-        grid-template-columns: 1fr .62fr 1.14fr;
-        min-height: 106px;
-        border-top: 1px solid var(--border);
-        border-bottom: 0;
-        padding: 0;
-      }
-
-      .thead div,
-      .cell {
-        padding: 10px 8px;
-        border-right: 1px solid rgba(22,119,255,.08);
-      }
-
-      .actions {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-      }
-
-      .pay-cell {
-        gap: 8px;
-      }
-
-      .pay-btn {
-        height: 38px;
-        font-size: 12px;
-      }
-
-      .detail {
-        min-height: 36px;
-      }
-    }
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  --bg: #f6f7f6;
+  --bg2: #ffffff;
+  --border: #e0e0dc;
+  --control: #d1d5db;
+  --accent: #8b6914;
+  --text: #121218;
+  --muted: #5c5c66;
+  --faint: #5f6368;
+  --positive: #247b50;
+  --negative: #c4242a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+  font-family: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px 16px 40px;
+  -webkit-font-smoothing: antialiased;
+}
+button, textarea, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.app { width: min(100%, 520px); margin: 0 auto; }
+.top { margin-bottom: 16px; }
+.clock {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.signal { margin-top: 8px; font-size: 16px; line-height: 1.45; }
+
+.panel { margin-bottom: 12px; }
+.block-title, .status-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.phone-box {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--control);
+  border-radius: 8px;
+  background: var(--bg2);
+  font-size: 16px;
+  line-height: 1.45;
+}
+.phone-box:focus { border-color: var(--text); outline: none; }
+.phone-box::placeholder { color: var(--faint); }
+
+.primary {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+.primary:disabled { background: #e7e5df; color: var(--faint); cursor: not-allowed; }
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.status-name { margin: 0; }
+.auto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+}
+.switch {
+  width: 32px;
+  height: 18px;
+  padding: 2px;
+  border: none;
+  border-radius: 999px;
+  background: #d5d3cc;
+}
+.switch span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+}
+.switch.on { background: #1d1f20; }
+.switch.on span { transform: translateX(14px); }
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.metric { padding: 12px 14px; }
+.metric + .metric { border-left: 1px solid var(--border); }
+.metric strong {
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.metric span { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+
+.table {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.thead, .row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+.thead {
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.thead div, .cell { padding: 10px 12px; min-width: 0; }
+.row { border-top: 1px solid #f0f0ee; align-items: start; }
+.row:first-of-type { border-top: none; }
+.phone, .asset { font-size: 14px; font-weight: 500; }
+.phone { font-variant-numeric: tabular-nums; }
+.sub { margin-top: 2px; font-size: 12px; line-height: 1.4; color: var(--muted); word-break: break-all; }
+.empty { padding: 28px 12px; font-size: 14px; color: var(--muted); }
+.pay-cell { display: flex; flex-direction: column; gap: 6px; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.detail, .pay-btn, .copy, .open {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--control);
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail:disabled, .pay-btn:disabled { color: var(--faint); cursor: not-allowed; }
+.pay-btn.alipay, .pay-btn.ysf-android, .pay-btn.ysf-ios { background: var(--bg2); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 12px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 14px;
+  z-index: 40;
+}
+.toast.show { opacity: 1; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(18, 18, 24, 0.4);
+  z-index: 30;
+}
+.modal.show { display: flex; }
+.sheet {
+  width: min(440px, 100%);
+  background: var(--bg2);
+  border-radius: 16px 16px 12px 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text);
+}
+.sheet-body { padding: 0 16px 16px; }
+.link-box {
+  font-size: 13px;
+  line-height: 1.45;
+  word-break: break-all;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.sheet-actions { display: flex; gap: 8px; }
+.copy, .open { flex: 1; }
+
+@media (max-width: 640px) {
+  .thead { display: none; }
+  .row { grid-template-columns: 1fr; gap: 4px; padding: 4px 0 8px; }
+  .cell { padding: 4px 12px; }
+}
   </style>
 </head>
 <body>
   <main class="app">
     <header class="top">
-      <div class="clock" id="clock">--:--</div>
-      <div class="title">私享订单</div>
-      <div class="signal" aria-hidden="true">
-        查单中心
-        <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
-        <span class="battery"></span>
-      </div>
+      <p class="clock" id="clock">--:--</p>
+      <h1 class="title">私享订单</h1>
+      <p class="signal">粘贴手机号，查出待支付的单。</p>
     </header>
 
     <section class="panel">
-      <div class="section-label"><span>ORDER QUERY</span></div>
-      <textarea id="phoneInput" class="phone-box" inputmode="numeric" placeholder="粘贴手机号，每行一个"></textarea>
+      <h2 class="block-title">手机号</h2>
+      <label class="sr" for="phoneInput">手机号，每行一个</label>
+      <textarea id="phoneInput" class="phone-box" inputmode="numeric" placeholder="每行一个手机号"></textarea>
     </section>
 
-    <button id="scanBtn" class="primary" type="button">启动查询扫描</button>
+    <button id="scanBtn" class="primary" type="button">查询</button>
 
     <section class="status-row">
-      <div class="status-name"><span class="radar"></span><span>订单扫描</span></div>
+      <h2 class="status-name">结果</h2>
       <label class="auto">
-        <span>多次刷新 (60s)</span>
+        <span>每 60 秒再查</span>
         <button id="autoSwitch" class="switch" type="button" aria-label="切换自动刷新"><span></span></button>
       </label>
     </section>
 
-    <section class="summary">
-      <div class="metric"><strong id="totalNum">0</strong><span>终端</span></div>
+    <section class="summary" aria-label="这次查询">
+      <div class="metric"><strong id="totalNum">0</strong><span>号码</span></div>
       <div class="metric"><strong id="hitNum">0</strong><span>查到</span></div>
       <div class="metric"><strong id="costNum">0ms</strong><span>耗时</span></div>
     </section>
 
     <section class="table">
       <div class="thead">
-        <div>接收方终端</div>
-        <div>资产类型</div>
-        <div>授权行动</div>
+        <div>手机号</div>
+        <div>订单</div>
+        <div>支付</div>
       </div>
       <div id="rows">
         <div class="empty">等待查询</div>
