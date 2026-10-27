@@ -6,6 +6,8 @@
 
 ```bash
 bash scripts/bb_fetch_latest.sh
+# 或
+python scripts/bb_fetch_latest.py --sync
 ```
 
 等价：
@@ -13,6 +15,10 @@ bash scripts/bb_fetch_latest.sh
 ```bash
 MT_BB_UPDATE_SIGN_FALLBACK=0 node nodejs/bb/update.cjs --sync
 ```
+
+若拉取的 sign 未通过校验、走了本地回退或版本不符合预期，控制台会打印 **`[bb-sign-warn]`**（可用 `MT_BB_SIGN_EXPECT_VERSION=v1.1.7.4` 做版本对比）。
+
+**版本变更归档**：`appVersion` / `versionCode` / `sdkVersion` / `signWasmVersion` / wasm 字节任一变化时，`update.cjs` 会把**更新前**的 `runtime/` 制品与 `version.json` 等复制到 `nodejs/bb/reverse/v<app>-sign-<signVer>/`（重名则加时间戳），控制台输出 `[bb-update] 已归档旧制品 → …`。
 
 流程：H5 商品页 → `bs_h5.min.js` → `stub.*.wasm`；Bangcle `GET /api/v1/1/1`（**无 `?id=`**）→ sign wasm；`run_wac` 校验 → 写入仓库根 `runtime/`。
 

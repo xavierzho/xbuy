@@ -513,27 +513,46 @@ async function validatePair(runtimeBytes, signBytes) {
     }
 }
 
+function archiveSnapshotLabel(version) {
+    const app = String(version.appVersion || version.sdkVersion || 'unknown').replace(/^v/i, '');
+    const sign = String(version.signWasmVersion || '').replace(/^v/i, '');
+    if (sign) {
+        return `v${app}-sign-${sign}`;
+    }
+    return `v${app}`;
+}
+
 function archiveCurrent(version) {
-    const base = `v${String(version.appVersion || version.sdkVersion).replace(/^v/, '')}`;
+    const base = archiveSnapshotLabel(version);
     let destination = path.join(REVERSE_DIR, base);
     if (fs.existsSync(destination)) {
         const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
         destination = path.join(REVERSE_DIR, `${base}-${stamp}`);
     }
+    const optionalNames = new Set([
+        'live_bangcle_state.json',
+        'bb_module.cjs',
+        'randk.js',
+    ]);
     const pairs = [
         ['version.json', VERSION_PATH],
         ['bb_sdk.js', path.join(BB_DIR, 'bb_sdk.js')],
         ['bb_module.cjs', path.join(BB_DIR, 'bb_module.cjs')],
         ['randk.js', path.join(BB_DIR, 'randk.js')],
         ['live_bangcle_state.json', path.join(BB_DIR, 'live_bangcle_state.json')],
-        [version.runtime.file, runtimeArtifactPath(version)],
-        [version.signModule.file, signArtifactPath(version)],
+        [version.runtime?.file || 'runtime.wasm', runtimeArtifactPath(version)],
+        [version.signModule?.file || 'sign_wasm.bin', signArtifactPath(version)],
     ];
     for (const [name, src] of pairs) {
-        if (!fs.existsSync(src)) throw new Error(`归档源文件缺失: ${name} (${src})`);
+        if (!fs.existsSync(src) && !optionalNames.has(name)) {
+            throw new Error(`归档源文件缺失: ${name} (${src})`);
+        }
     }
     fs.mkdirSync(destination, { recursive: false });
-    for (const [name, src] of pairs) fs.copyFileSync(src, path.join(destination, name));
+    for (const [name, src] of pairs) {
+        if (!fs.existsSync(src)) continue;
+        fs.copyFileSync(src, path.join(destination, name));
+    }
     return destination;
 }
 
@@ -564,7 +583,22 @@ function atomicWrite(file, bytes) {
         );
     }
     const signBytes = sign.bytes;
-    const pair = await validatePair(runtimeResult.bytes, signBytes);
+    if (sign.networkFetch) {
+        console.warn(
+            `[bb-sign-warn] sign wasm 未从 Bangcle 线上拉取成功，将使用本地回退包: ${
+                sign.networkFetch.reason || 'unknown'
+            }`,
+        );
+    }
+    let pair;
+    try {
+        pair = await validatePair(runtimeResult.bytes, signBytes);
+    } catch (pairErr) {
+        console.error(
+            `[bb-sign-warn] sign wasm 未通过 run_wac 探针: ${pairErr.message || pairErr}`,
+        );
+        throw pairErr;
+    }
     const sdkFromH5 = extractSdkVersion(sdkResult.bytes.toString('utf8'));
     const storeInfo = ['auto', 'sync', 'check', 'apply'].includes(args.mode)
         ? fetchAppStoreVersion()
@@ -699,9 +733,10 @@ function atomicWrite(file, bytes) {
     }
 
     let archivedTo = null;
-    const bytesChanged = changes.runtime || changes.signModule;
-    if (bytesChanged) {
+    const versionChanged = Object.values(changes).some(Boolean);
+    if (versionChanged) {
         archivedTo = archiveCurrent(current);
+        console.warn(`[bb-update] 版本有变更，已归档旧制品 → ${archivedTo}`);
     }
     fs.mkdirSync(RUNTIME_DIR, { recursive: true });
     if (changes.runtime) {

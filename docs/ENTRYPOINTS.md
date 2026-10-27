@@ -91,7 +91,7 @@ Node 入口与脚本对照见 [NODE_APPS.md](NODE_APPS.md)。
 
 | 目录 | 用途 |
 | --- | --- |
-| `tools/TraceLens/` | TraceLens 日志抓取、参数审计；排查 rush/验码/组单/支付请用 `scripts/capture_tracelens_log.sh --full`（`--api` 看不到 H5 `purchaseInfoV2` / `rushPurchase`） |
+| `tools/TraceLens/` | TraceLens 越狱日志：`capture_tracelens_log.sh --full`（`--api` 仅 AFN；H5 抢购需 `--full`） |
 | `nodejs/bb/reverse/` | BB 资源历史归档（`update.cjs` 自动写入） |
 | `frp_mt_ws/` | FRP 主控/worker 公网映射脚本 |
 

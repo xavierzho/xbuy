@@ -12,6 +12,7 @@
 
 static os_log_t tweakLog = NULL;
 static void LogMsg(NSString *msg);
+static void LogNoise(NSString *msg);
 static _Thread_local int TraceLens_yxReenterGuard = 0;
 static _Thread_local int TraceLens_dyldReentry = 0;
 

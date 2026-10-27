@@ -68,8 +68,7 @@
 ## 1.9.16（设备已装、本地样本待更新）
 
 - 手机 **App Store 1.9.16**（约 93 MB IPA）与仓库内 **1.9.14** 样本（SHA256 `49754779…`，约 37 MB）**不是同一构建**；勿用 1.9.14 的 IMP 表直接当 1.9.16 结论。
-- TraceLens **0.0.49+** 日常 hook **不靠** `0x4864` / `0x2206C2C` 等文件偏移，靠 **ObjC 类名 + selector**；类名是否在 1.9.16 仍有效，用 `audit_tracelens_offsets.py` 的 **`strings` 表** 或拉新二进制后 `otool -ov` 核对。
-- 从越狱机拉主程序：`tools/TraceLens/scripts/pull_moutai_binary.sh`（需 SSH `mobile@127.0.0.1:2222` 可登录）。
+- TraceLens **0.0.49+** 日常 hook **不靠** `0x4864` / `0x2206C2C` 等文件偏移，靠 **ObjC 类名 + selector**；新版本请对 `downloads/ios/moutai-mall*` 跑 `strings` / `otool -ov` 核对类名。
 - **0.0.51+**：安全 hook（代理 / `yx_headerEncryptString` / `MassComnunicetion` / `CONCuhc`）在 `%ctor`；**AFN / WK / UI** 延后到 `UIApplicationMain`，减轻 1.9.16 启动期注入检测。
 
 ## REA 说明

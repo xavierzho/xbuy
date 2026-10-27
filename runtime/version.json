@@ -38,7 +38,7 @@
     "checkCommand": "node nodejs/bb/update.cjs --check",
     "applyCommand": "node nodejs/bb/update.cjs --apply"
   },
-  "checkedAt": "2026-10-22T02:51:25.209Z",
+  "checkedAt": "2026-10-23T16:47:28.064Z",
   "runtimeWasmtimeSkip": {
     "reason": "wasmtime_legacy_exceptions",
     "detail": "validate_runtime_wasm: FAIL: runtime.wasm 含 Wasm legacy exception（try）编码，当前 Python wasmtime 无法加载；Node 校验可通过但 shield 预热会失败。可从 nodejs/bb/reverse/*/runtime.wasm 恢复到 runtime/，或暂不执行 --sync 直至上游 wasm 与 wasmtime 对齐。\n原始错误: failed to compile: wasm[0]::function[38]\n\nCaused by:\n    0: WebAssembly translation error\n    1: Invalid input WebAssembly code at offset 34986: legacy_exceptions feature required for try instruction",

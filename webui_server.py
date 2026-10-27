@@ -1361,8 +1361,6 @@ def _bb_update_cli_mode() -> str:
 
 
 def _run_bb_update_script(mode: str) -> dict:
-    script = PATHS.node.bb_update
-    node_bin = _nodejs_executable()
     started = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
     with _bb_auto_update_lock:
         if _bb_auto_update_state.get("running"):
@@ -1373,32 +1371,31 @@ def _run_bb_update_script(mode: str) -> dict:
 
     try:
         cli_mode = mode if mode in ("sync", "auto", "check") else "sync"
-        proc = subprocess.run(
-            [node_bin, str(script), f"--{cli_mode}"],
-            cwd=str(ROOT),
-            capture_output=True,
-            text=True,
-            timeout=600,
-            env=os.environ.copy(),
+        from bangcle.runtime_update import run_bb_runtime_update
+
+        upd = run_bb_runtime_update(
+            cli_mode,
+            timeout_sec=600.0,
+            refresh_version_constants=cli_mode != "check",
+            notify_console=True,
         )
-        stdout = (proc.stdout or "").strip()
-        stderr = (proc.stderr or "").strip()
-        report = None
-        if stdout:
-            try:
-                report = json.loads(stdout)
-            except json.JSONDecodeError:
-                report = {"rawStdout": stdout[-4000:]}
-        ok = proc.returncode == 0 and isinstance(report, dict)
-        err = ""
-        if not ok:
-            err = stderr or stdout or f"exit {proc.returncode}"
+        report = upd.get("report")
+        ok = bool(upd.get("ok"))
+        err = str(upd.get("error") or "")
+        sign_warnings = upd.get("signWarnings") or []
         finished = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
         with _bb_auto_update_lock:
             _bb_auto_update_state["lastFinishedAt"] = finished
             _bb_auto_update_state["lastOk"] = ok
             _bb_auto_update_state["lastReport"] = report
             _bb_auto_update_state["lastError"] = err
+            _bb_auto_update_state["lastSignWarnings"] = sign_warnings
+        if sign_warnings and ok:
+            print(
+                f"[bb-update] sign 告警 {len(sign_warnings)} 条（见上方 [bb-sign-warn]）",
+                file=sys.stderr,
+                flush=True,
+            )
         if ok and isinstance(report, dict) and report.get("applied"):
             nxt = report.get("next") if isinstance(report.get("next"), dict) else {}
             store = report.get("store") if isinstance(report.get("store"), dict) else {}
@@ -1414,7 +1411,7 @@ def _run_bb_update_script(mode: str) -> dict:
             print("[bb-update] 自动检查：无变更", flush=True)
         else:
             print(f"[bb-update] 自动更新失败: {err[:500]}", file=sys.stderr, flush=True)
-        return {"ok": ok, "report": report, "error": err}
+        return {"ok": ok, "report": report, "error": err, "signWarnings": sign_warnings}
     except Exception as ex:
         finished = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
         with _bb_auto_update_lock:

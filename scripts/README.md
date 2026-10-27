@@ -9,6 +9,7 @@ bash scripts/bootstrap.sh
 bash scripts/run_webui.sh
 scripts/run_worker.sh ws://127.0.0.1:8765
 bash scripts/healthcheck.sh
+bash scripts/pull_and_analyze_apk.sh   # 官方最新 APK + downloads/imoutai_apk_analysis.json
 ```
 
 ## 文件说明

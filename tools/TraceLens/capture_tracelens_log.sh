@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$ROOT_DIR/logs/tracelens"
 mkdir -p "$LOG_DIR"
 
@@ -34,7 +34,6 @@ IDEVICE_ID="${IDEVICE_ID:-/opt/homebrew/bin/idevice_id}"
 if [[ "$MODE" == "raw" || "$MODE" == "probe" ]]; then
   PATTERN=''
 elif [[ "$MODE" == "api" ]]; then
-  # 抓 /xhr 与 payapi：依赖 TraceLens 0.0.46+ 默认 log_level=api（[AFN]/[PAY]）
   PATTERN='moutai-mall\(TraceLens.*(\[AFN\] (dataTaskWithHTTPMethod|dataTask parameters|dataTask headers|success|failure)|\[PAY\])|TraceLens VERSION 0\.0\.4[6-9]|TraceLens VERSION 0\.0\.[5-9]'
 elif [[ "$MODE" == "full" ]]; then
   PATTERN='TraceLens|FIBER_BOOT|ROOT_KEYS|FIBER|STATE|REACT|CLICK|WK|WKUNLOCK|WKDOM|API|AFN|JSON|XHR_|FETCH_|NSURLSession|NSMutableURLRequest'

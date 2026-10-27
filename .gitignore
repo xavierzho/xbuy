@@ -56,9 +56,11 @@ tools/**/extracted
 tools/audit/h5_bundles/
 tools/audit/ios_app_security/
 tools/rea_work/
-tools/TraceLens/*.ips
+tools/TraceLens/**/*.ips
 tools/moutai-zygisk/
 tools/moutai-native-hook/
 tools/moutai-hook/build/
 
 reverse-lab
+
+.taste-skill
