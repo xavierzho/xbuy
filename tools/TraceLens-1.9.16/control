@@ -1,0 +1,9 @@
+Package: com.fl.tweak
+Name: tweakTest
+Version: 0.0.1
+Architecture: iphoneos-arm64
+Description: Detection-only compatibility tweak for iMoutai 1.9.16
+Maintainer: tweakTest contributors
+Author: tweakTest contributors
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000)
