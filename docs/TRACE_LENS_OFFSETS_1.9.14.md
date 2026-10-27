@@ -59,9 +59,18 @@
 
 1. **删除** `immortal_c_func_nuke()`（`0x4864` / `0x4A8C`）— TraceLens **0.0.49+** 已移除
 2. **删除** `abnormal_byte = base + 0x2206C2C` 定时器 — **0.0.49+** 已移除
-3. **保留**：ObjC `%hook`、`+[Sciapodous load]` 用 Logos 并 **`%orig`**（勿 constructor+MSHook RET）
-4. **Dopamine**：`getenv(DYLD_*)` 立即生效，其余 hook **`dispatch_async(main)`** 延后
+3. **1.9.16 / TraceLens 0.0.50+**：默认 **不** 改写 `+[Sciapodous load]`、**不** 装 dyld 过滤；安全相关 ObjC hook 在 `%ctor` 即装载。需要时再开：
+   - `defaults write com.moutai.mall tracelens_sciapodous_nuke -bool true`
+   - `defaults write com.moutai.mall tracelens_dyld_filter -bool true`
+4. **Dopamine**：`getenv(DYLD_*)` 在 Boot 组；勿对 Sciapodous IMP 使用 `MSHookFunction`（用 `method_setImplementation` 且默认关闭）
 5. 仅装 **TraceLens** 或 **BBWasmLens** 之一，避免双 dylib
+
+## 1.9.16（设备已装、本地样本待更新）
+
+- 手机 **App Store 1.9.16**（约 93 MB IPA）与仓库内 **1.9.14** 样本（SHA256 `49754779…`，约 37 MB）**不是同一构建**；勿用 1.9.14 的 IMP 表直接当 1.9.16 结论。
+- TraceLens **0.0.49+** 日常 hook **不靠** `0x4864` / `0x2206C2C` 等文件偏移，靠 **ObjC 类名 + selector**；类名是否在 1.9.16 仍有效，用 `audit_tracelens_offsets.py` 的 **`strings` 表** 或拉新二进制后 `otool -ov` 核对。
+- 从越狱机拉主程序：`tools/TraceLens/scripts/pull_moutai_binary.sh`（需 SSH `mobile@127.0.0.1:2222` 可登录）。
+- **0.0.51+**：安全 hook（代理 / `yx_headerEncryptString` / `MassComnunicetion` / `CONCuhc`）在 `%ctor`；**AFN / WK / UI** 延后到 `UIApplicationMain`，减轻 1.9.16 启动期注入检测。
 
 ## REA 说明
 

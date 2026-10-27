@@ -1,9 +1,9 @@
-Package: com.fl.tweak
-Name: tweakTest
-Version: 0.0.1
+Package: com.xavier.tracelens
+Name: TraceLens
+Version: 0.0.47
 Architecture: iphoneos-arm64
-Description: Detection-only compatibility tweak for iMoutai 1.9.16
-Maintainer: tweakTest contributors
-Author: tweakTest contributors
+Description: TraceLens for iMoutai 1.9.16 (compat layer + API trace)
+Maintainer: Xavier
+Author: Xavier
 Section: Tweaks
-Depends: mobilesubstrate (>= 0.9.5000)
+Depends: mobilesubstrate (>= 0.9.5000) | ellekit

@@ -26,6 +26,11 @@
 #define FL_DEBUG_DISPATCH 0
 
 static os_log_t tweakLog = NULL;
+static _Thread_local int TraceLens_yxReenterGuard = 0;
+
+void TraceLensLogMsg(NSString *msg);
+int TraceLensTraceLogLevel(void);
+void TraceLensInstallTraceHooks(void);
 static uintptr_t moutai_base(void);
 static uintptr_t moutai_text_size(void);
 static void fl_dli_save(uintptr_t imp);
@@ -168,17 +173,42 @@ static void breadcrumb(const char *msg) {
     NSString *tmp = NSTemporaryDirectory();
     if (tmp.length) {
         char path[280];
-        snprintf(path, sizeof(path), "%s/tweaktest.log", tmp.fileSystemRepresentation);
+        snprintf(path, sizeof(path), "%s/tracelens.log", tmp.fileSystemRepresentation);
         if (breadcrumb_try(path, msg) == 0) return;
     }
-    if (breadcrumb_try("/tmp/tweaktest.log", msg) == 0) return;
-    breadcrumb_try("/var/mobile/tweaktest.log", msg);
+    if (breadcrumb_try("/tmp/tracelens.log", msg) == 0) return;
+    breadcrumb_try("/var/mobile/tracelens.log", msg);
+}
+
+int TraceLensTraceLogLevel(void) {
+    static int level = 0;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        id v = [[NSUserDefaults standardUserDefaults] objectForKey:@"tracelens_log_level"];
+        if ([v isKindOfClass:[NSString class]]) {
+            NSString *s = [(NSString *)v lowercaseString];
+            if ([s isEqualToString:@"full"]) level = 3;
+            else if ([s isEqualToString:@"standard"]) level = 2;
+            else level = 1;
+        } else if ([v isKindOfClass:[NSNumber class]]) {
+            level = [(NSNumber *)v intValue];
+        } else {
+            level = 1;
+        }
+        if (level < 1) level = 1;
+        if (level > 3) level = 3;
+    });
+    return level;
+}
+
+void TraceLensLogMsg(NSString *msg) {
+    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
+    os_log(tweakLog, "[TraceLens] %{public}@", msg);
+    breadcrumb([[NSString stringWithFormat:@"%@", msg] UTF8String]);
 }
 
 static void LogMsg(NSString *msg) {
-    if (!tweakLog) tweakLog = os_log_create("com.fl.tweaktest", "default");
-    os_log(tweakLog, "[TweakTest] %{public}@", msg);
-    breadcrumb([[NSString stringWithFormat:@"%@", msg] UTF8String]);
+    TraceLensLogMsg(msg);
 }
 
 static uintptr_t moutai_base(void) {
@@ -436,7 +466,7 @@ static BOOL fl_is_jb_path(const char *p) {
     }
     static const char *const needles[] = {
         "frida", "cycript", "Cydia", "Sileo", "Substrate", "ellekit",
-        "tweakTest", "jbdev", "gum-js",
+        "TraceLens", "tracelens", "tweakTest", "jbdev", "gum-js",
     };
     for (unsigned i = 0; i < sizeof(needles) / sizeof(needles[0]); i++) {
         if (strstr(p, needles[i])) return YES;
@@ -934,7 +964,8 @@ static void fl_sanitize_all_image_paths(void) {
         if (!p) continue;
         if (strstr(p, "/var/jb") || strstr(p, "TweakInject") ||
             strstr(p, "Substrate") || strstr(p, "substrate") ||
-            strstr(p, "ellekit") || strstr(p, "tweakTest") ||
+            strstr(p, "ellekit") || strstr(p, "TraceLens") || strstr(p, "tracelens") ||
+            strstr(p, "tweakTest") ||
             strstr(p, "Substitute") || strstr(p, "frida")) {
             *(volatile char *)p = '\0';
             hidden++;
@@ -956,7 +987,8 @@ static BOOL fl_hidden_image(uint32_t i) {
     if (!nm) return YES;
     return strstr(nm, "/var/jb") || strstr(nm, "TweakInject") ||
            strstr(nm, "MobileSubstrate") || strstr(nm, "ellekit") ||
-           strstr(nm, "tweakTest") || strstr(nm, "Substitute") ||
+           strstr(nm, "TraceLens") || strstr(nm, "tracelens") || strstr(nm, "tweakTest") ||
+           strstr(nm, "Substitute") ||
            strstr(nm, "frida") || strstr(nm, "Frida") ||
            strstr(nm, "substrate") || strstr(nm, "Substrate");
 }
@@ -1019,6 +1051,9 @@ static int my_uimain(int argc, char **argv, id p, id d) {
     fl_install_scene_configuration();
     // Constructors have completed; arm once before the original delegate chain.
     fl_arm_original_ui();
+    TraceLensInstallTraceHooks();
+    TraceLensLogMsg([NSString stringWithFormat:@"TraceLens VERSION 0.0.47 LOADED (iMoutai 1.9.16 compat, log_level=%d: 1=api 2=standard 3=full)",
+            TraceLensTraceLogLevel()]);
     int r = orig_uimain(argc, argv, p, d);
     LogMsg(@"UIApplicationMain LEAVE");
     return r;
@@ -1026,7 +1061,7 @@ static int my_uimain(int argc, char **argv, id p, id d) {
 
 __attribute__((constructor(1)))
 static void immortal_early(void) {
-    if (!tweakLog) tweakLog = os_log_create("com.fl.tweaktest", "default");
+    if (!tweakLog) tweakLog = os_log_create("com.xavier.tracelens", "default");
     breadcrumb("EARLY constructor(1)");
     // Record original dladdr data for every hooked target BEFORE any hooking.
     fl_dli_record_methods();
@@ -1135,8 +1170,10 @@ static void immortal_early(void) {
 
 %hook NSString
 - (id)yx_headerEncryptString {
+    if (TraceLens_yxReenterGuard > 0) return %orig;
     patch_saved_imp(s_imp_encrypt);
     NSString *input = (NSString *)self;
+    [[NSUserDefaults standardUserDefaults] setObject:input forKey:@"tweak_encrypt_input"];
     NSString *fixed = input;
     if ([fixed containsString:@"inject/1"])
         fixed = [fixed stringByReplacingOccurrencesOfString:@"inject/1" withString:@"inject/0"];
@@ -1147,9 +1184,17 @@ static void immortal_early(void) {
     if ([fixed containsString:@"debug/1"])
         fixed = [fixed stringByReplacingOccurrencesOfString:@"debug/1" withString:@"debug/0"];
     if (![fixed isEqualToString:input]) {
-        LogMsg([NSString stringWithFormat:@"🛡️ Encrypt bypass: %@ -> %@", input, fixed]);
-        return [fixed yx_headerEncryptString];
+        if (TraceLensTraceLogLevel() >= 3) {
+            LogMsg([NSString stringWithFormat:@"[ENCRYPT] bypass %@ -> %@", input, fixed]);
+        }
+        [[NSUserDefaults standardUserDefaults] setObject:fixed forKey:@"tweak_encrypt_fixed"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        TraceLens_yxReenterGuard++;
+        id out = [fixed yx_headerEncryptString];
+        TraceLens_yxReenterGuard--;
+        return out;
     }
+    [[NSUserDefaults standardUserDefaults] synchronize];
     return %orig;
 }
 %end

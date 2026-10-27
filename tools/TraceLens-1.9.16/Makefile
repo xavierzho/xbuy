@@ -1,5 +1,5 @@
 -include device.mk
-THEOS_DEVICE_IP ?= 192.168.1.100
+THEOS_DEVICE_IP ?= localhost
 THEOS_DEVICE_PORT ?= 22
 
 ARCHS = arm64
@@ -11,10 +11,10 @@ THEOS_PACKAGE_INSTALL_PREFIX=/var/jb
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = tweakTest
+TWEAK_NAME = TraceLens
 
-tweakTest_FILES = Tweak.x decrypted_1424.c decrypted_1429.c
-tweakTest_CFLAGS = -fobjc-arc
-tweakTest_FRAMEWORKS = UIKit CoreFoundation CFNetwork
+TraceLens_FILES = Tweak.x TraceLensTrace.x decrypted_1424.c decrypted_1429.c
+TraceLens_CFLAGS = -fobjc-arc
+TraceLens_FRAMEWORKS = UIKit CoreFoundation CFNetwork WebKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk
