@@ -13,7 +13,7 @@ Environment=PYTHONUNBUFFERED=1
 Environment=MT_DIST_MASTER_WS=ws://127.0.0.1:8765
 Environment=MT_DIST_SKIP_DEP_CHECK=1
 
-ExecStart=/opt/rushbuy/scripts/run_worker_instance.sh %i ${MT_DIST_MASTER_WS}
+ExecStart=/opt/rushbuy/scripts/run_worker_instance.sh %i
 
 Restart=always
 RestartSec=5
