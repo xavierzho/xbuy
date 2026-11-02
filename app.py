@@ -3035,10 +3035,25 @@ class Session:
         return bool(getattr(self, "_proxy_rotate_per_request", False)) or env_on
 
     def force_order_chain_direct(self) -> None:
-        """组单/下单/支付链路固定本机直连；不改抢购链路的代理状态。"""
-        self._force_order_chain_direct = True
-        self._order_pay_egress_for_gateway = None
-        self._pay_prefer_pool_rotate = False
+        """组单/下单/支付只在「本机IP（全局）」或该号强制本机时走直连。
+
+        关掉全局后这些请求与抢购一样走代理池或账号上的代理，不再先打本机。
+        """
+        explicit = bool(getattr(self, "_account_explicit_direct", False))
+        global_local = False
+        try:
+            from accounts import global_force_local_ip
+
+            global_local = bool(global_force_local_ip())
+        except Exception:
+            global_local = False
+        if explicit or global_local:
+            self._force_order_chain_direct = True
+            self._order_pay_egress_for_gateway = None
+            self._pay_prefer_pool_rotate = False
+            return
+        self._force_order_chain_direct = False
+        self._ensure_pool_proxy_bound()
 
     def _apply_rush_success_proxy_for_payment(self) -> None:
         """

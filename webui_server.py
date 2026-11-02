@@ -2466,14 +2466,19 @@ def _coerce_proxy_scheme(proxy_url: str, scheme: str) -> str:
 
 
 def _normalize_proxy_line(raw: str, *, scheme: str = "") -> str | None:
-    """与 proxy_pool.line_to_proxy_url 一致（裸 host:port 默认 socks5；显式 http/https/socks URL 透传）。"""
+    """与 proxy_pool.line_to_proxy_url 一致。
+
+    行首已经写了 http/https/socks5/socks5h 时保留该协议。
+    scheme 只补没有写协议的行（例如勾了 HTTP 格式时，裸 IP:端口写成 http://）。
+    """
     s = str(raw or "").strip()
     if not s or s.startswith("#"):
         return None
-    from proxy_pool import line_to_proxy_url
+    from proxy_pool import line_to_proxy_url, split_explicit_proxy_scheme
 
+    explicit, _body = split_explicit_proxy_scheme(s)
     norm = line_to_proxy_url(s)
-    if norm and scheme:
+    if norm and scheme and not explicit:
         return _coerce_proxy_scheme(norm, scheme)
     return norm
 
@@ -2754,12 +2759,18 @@ def _proxy_pool_shards_preview(only_logged: bool = True, phones: list[str] | Non
     }
 
 
-def _save_proxy_pool_lines(raw_lines: list[str]) -> dict:
-    """落盘代理池：默认与现有池累积合并；重复代理也保留为独立池条目。"""
+def _save_proxy_pool_lines(raw_lines: list[str], scheme: str = "") -> dict:
+    """落盘代理池：默认与现有池累积合并；重复代理也保留为独立池条目。
+
+    scheme 只作用于没写协议的新行。已写 http://、https://、socks5://、socks5h:// 的行不改协议。
+    """
+    scheme = str(scheme or "").strip().lower()
+    if scheme not in ("http", "https", "socks5", "socks5h"):
+        scheme = ""
     ok: list[str] = []
     bad: list[str] = []
     for raw in raw_lines:
-        norm = _normalize_proxy_line(raw)
+        norm = _normalize_proxy_line(raw, scheme=scheme)
         if norm:
             ok.append(norm)
         elif str(raw or "").strip():
@@ -4571,8 +4582,9 @@ def _purchase_info_auth_error_message(pinfo: object) -> str | None:
 
 
 def _call_with_session_local_ip(s: Session, fn, *args, **kwargs):
-    """
-    purchaseInfoV2 / 解析 actId 失败时，若实为鉴权问题则返回明确提示（避免误判为「活动 ID 解析」）。典型：HTTP 401 体或业务 code=4011、[ianus-token-auth] invalid userId。    """
+    """仅在「本机IP（全局）」或该号强制本机时，临时改走本机。关掉全局后保持当前代理。"""
+    if not global_force_local_ip() and not getattr(s, "_account_explicit_direct", False):
+        return fn(*args, **kwargs)
     names = (
         "_proxy_url",
         "_use_proxy_pool",
@@ -9159,7 +9171,8 @@ class Handler(BaseHTTPRequestHandler):
                 target_phones = payload.get("phones")
                 if target_phones is not None and not isinstance(target_phones, list):
                     return self._send_json(json_err("phones 须为数组或省略"), 400)
-                out = _save_proxy_pool_lines([str(x) for x in lines])
+                scheme = _proxy_import_scheme(payload if isinstance(payload, dict) else None)
+                out = _save_proxy_pool_lines([str(x) for x in lines], scheme=scheme)
                 if not out.get("saved"):
                     return self._send_json(
                         json_err(out.get("message", "保存失败"), detail=out),

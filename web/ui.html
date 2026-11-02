@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>i茅台 · 抢购控制台</title>
-<link rel="stylesheet" href="/ui-shell.css?v=13">
+<link rel="stylesheet" href="/ui-shell.css?v=14">
 <link rel="stylesheet" href="/ui-theme.css?v=18">
 </head>
 <body>
@@ -2188,7 +2188,11 @@ function applySchedPickersFromHidden() {
 
 function closeSchedCalPop() {
   const pop = document.getElementById('schedCalPop');
-  if (pop) pop.style.display = 'none';
+  if (pop) {
+    pop.style.display = 'none';
+    const anchor = pop.closest('.sched-cal-anchor');
+    if (anchor) anchor.classList.remove('is-open');
+  }
   schedCalPopOpen = false;
 }
 
@@ -2231,9 +2235,19 @@ function schedCalRenderGrid() {
 }
 
 function openSchedCalPop() {
+  if (!(schedSelY > 0)) {
+    const t = bjNowYmdInt();
+    schedSelY = t.y;
+    schedSelM = t.mo;
+    schedSelD = t.d;
+    syncSchedPickersToHidden();
+    updateSchedOpenCalLabel();
+  }
   schedCalViewY = schedSelY;
   schedCalViewM = schedSelM;
   const pop = document.getElementById('schedCalPop');
+  const anchor = pop && pop.closest('.sched-cal-anchor');
+  if (anchor) anchor.classList.add('is-open');
   if (pop) {
     pop.style.display = 'block';
     schedCalPopOpen = true;
@@ -2309,7 +2323,9 @@ function wireSchedulePickersAfterBatchRender() {
     };
   }
 
+  btn.dataset.schedWired = '1';
   btn.onclick = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     if (schedCalPopOpen) closeSchedCalPop();
     else openSchedCalPop();
@@ -3886,12 +3902,19 @@ async function saveProxyPoolUi(silent) {
   if (!ta) return;
   const lines = String(ta.value || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
   const targetPhones = getProxyPoolAutoAssignTargets();
+  const prefs = getProxyPoolImportPrefs();
   if (!targetPhones.length) {
     toast('当前范围没有已登录账号，代理池会保存但不会分配账号', 'warn');
   }
   await persistProxyPoolImportPrefsNow();
   if (!silent) toast('保存中…', '');
-  const res = await api('/api/proxy_pool/save', { lines, phones: targetPhones });
+  const res = await api('/api/proxy_pool/save', {
+    lines,
+    phones: targetPhones,
+    proxyScheme: prefs.proxyScheme || '',
+    useHttp: !!prefs.useHttp,
+    useHttps: !!prefs.useHttps,
+  });
   if (!res.ok || !res.data) {
     const err = formatApiFailure(res);
     const det = res.detail || res.data || {};
@@ -6549,7 +6572,7 @@ function renderAcctConfigPanel(force) {
             <button type="button" class="btn-xs accent" onclick="saveProxyPoolUi()">保存</button>
           </div>
         </div>
-        <p class="hint" style="margin-top:0;margin-bottom:8px">每行一条；四段 <code>host/port/user/pass</code> 会规范为 <code>socks5://</code>。也可写 <code>socks5://</code>/<code>socks5h://</code>/<code>http://</code>/<code>https://</code> 完整 URL，或纯 <code>IP:端口</code>（默认按 <code>socks5://</code> 补全）。<strong>保存/API提取/清空</strong>后会自动按已登录账号均分并轮询；需要重置请点<strong>清空</strong>。测线点<strong>自检连通</strong>。</p>
+        <p class="hint" style="margin-top:0;margin-bottom:8px">每行一条。行首已经写了 <code>http://</code>、<code>https://</code>、<code>socks5://</code>、<code>socks5h://</code> 的，保存后仍用这个协议。没写协议时：勾了 HTTP/HTTPS 就按勾选补上，否则四段 <code>host/port/user/pass</code> 和纯 <code>IP:端口</code> 默认 <code>socks5://</code>。<strong>保存/API提取/清空</strong>后会自动按已登录账号均分并轮询；需要重置请点<strong>清空</strong>。测线点<strong>自检连通</strong>。</p>
         <div style="display:flex;gap:8px;margin:0 0 8px 0;align-items:flex-start">
           <div style="flex:1;display:grid;gap:6px">
             <input id="proxyPoolApiUrl" type="text" placeholder="代理API提取地址 1（GET）">
@@ -6633,6 +6656,8 @@ function renderAcctConfigPanel(force) {
     _batchPanelSig = '';
     Object.keys(_cardSigMap).forEach(k => delete _cardSigMap[k]);
     wrap.innerHTML = batchHtml + `<div class="empty" style="padding:40px">请先在左侧添加账号</div>`;
+    try { mergeUiPrefsBatchPanelAfterRender(); } catch (e) {}
+    wireSchedulePickersAfterBatchRender();
     return;
   }
 
@@ -6718,9 +6743,14 @@ function renderAcctConfigPanel(force) {
       refreshDistributedStatus();
       refreshMobileRelayStatus();
     } catch (e) {}
-    mergeUiPrefsBatchPanelAfterRender();
+    try { mergeUiPrefsBatchPanelAfterRender(); } catch (e) {}
     wireSchedulePickersAfterBatchRender();
     syncGlobalForceLocalCheckboxFromServer();
+  }
+  const schedOpenBtn = document.getElementById('schedOpenCal');
+  if (schedOpenBtn && schedOpenBtn.dataset.schedWired !== '1') {
+    try { mergeUiPrefsBatchPanelAfterRender(); } catch (e) {}
+    wireSchedulePickersAfterBatchRender();
   }
 
   const seq = ++_acctCfgCardRenderSeq;

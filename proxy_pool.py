@@ -130,7 +130,18 @@ def _pool_bare_hostport_scheme() -> str:
     return "socks5"
 
 
-def _host_port_to_bare_proxy_url(host: str, port_s: str) -> str | None:
+_EXPLICIT_PROXY_SCHEMES = {
+    "socks5": "socks5",
+    "socks5h": "socks5h",
+    "socks5s": "socks5",
+    "ks5": "socks5",
+    "ks5h": "socks5h",
+    "http": "http",
+    "https": "https",
+}
+
+
+def _host_port_to_bare_proxy_url(host: str, port_s: str, scheme: str = "") -> str | None:
     host = (host or "").strip()
     if not host:
         return None
@@ -140,12 +151,41 @@ def _host_port_to_bare_proxy_url(host: str, port_s: str) -> str | None:
         return None
     if pnum < 1 or pnum > 65535:
         return None
-    sch = _pool_bare_hostport_scheme()
-    netloc = f"{host}:{port_s}"
+    sch = (scheme or "").strip().lower() or _pool_bare_hostport_scheme()
+    if sch not in ("socks5", "socks5h", "http", "https"):
+        sch = _pool_bare_hostport_scheme()
+    netloc = f"{host}:{pnum}"
     pr = urlparse(f"{sch}://{netloc}")
     if not pr.hostname or pr.port is None:
         return None
     return sanitize_proxy_url(f"{sch}://{netloc}")
+
+
+def _compose_auth_proxy_url(scheme: str, host: str, port_s: str, user: str, pwd: str) -> str | None:
+    sch = (scheme or "").strip().lower() or "socks5"
+    if sch not in ("socks5", "socks5h", "http", "https"):
+        sch = "socks5"
+    try:
+        pnum = int(port_s)
+    except (TypeError, ValueError):
+        return None
+    if pnum < 1 or pnum > 65535 or not (host or "").strip():
+        return None
+    u = quote(user or "", safe="")
+    p = quote(pwd or "", safe="")
+    return sanitize_proxy_url(f"{sch}://{u}:{p}@{host.strip()}:{pnum}")
+
+
+def split_explicit_proxy_scheme(line: str) -> tuple[str, str]:
+    """行首已写的协议留下；没有则 scheme 为空、正文原样返回。"""
+    text = (line or "").strip()
+    if "://" not in text:
+        return "", text
+    sch, rest = text.split("://", 1)
+    mapped = _EXPLICIT_PROXY_SCHEMES.get(sch.strip().lower())
+    if not mapped:
+        return "", text
+    return mapped, rest.strip()
 
 
 def _parse_expire_suffix(s: str) -> datetime | None:
@@ -168,26 +208,50 @@ def _line_to_proxy_url(line: str) -> str | None:
     line = line.strip()
     if not line or line.startswith("#"):
         return None
-    if "://" in line:
-        u = line.strip()
-        low = u.lower()
-        if not (
-            low.startswith("socks5://")
-            or low.startswith("socks5h://")
-            or low.startswith("ks5://")
-            or low.startswith("ks5h://")
-            or low.startswith("socks5s://")
-            or low.startswith("http://")
-            or low.startswith("https://")
-        ):
-            return None
+    explicit, body = split_explicit_proxy_scheme(line)
+    # 未知协议（例如 ftp://）直接丢弃，避免把「协议://后面」误当成裸地址再补成 socks5。
+    if "://" in line and not explicit:
+        return None
+    if explicit:
         try:
-            pr = urlparse(u)
+            pr = urlparse(f"{explicit}://{body}")
+            port = pr.port
         except ValueError:
-            return None
-        if not pr.hostname or pr.port is None:
-            return None
-        return sanitize_proxy_url(u)
+            pr = None
+            port = None
+        if pr is not None and pr.hostname and port:
+            return sanitize_proxy_url(f"{explicit}://{body}")
+        parsed = _proxy_body_to_url(body, explicit)
+        if parsed:
+            return parsed
+        return None
+    return _proxy_body_to_url(body, "")
+
+
+def _proxy_body_to_url(line: str, scheme: str) -> str | None:
+    """解析不含协议的代理正文。scheme 为空时，四段与裸地址仍默认 socks5。"""
+    line = (line or "").strip()
+    if not line or "://" in line:
+        return None
+    default_scheme = (scheme or "").strip().lower()
+
+    # user:pass@host:port（curl -x 这种，密码里可以有冒号）
+    if "@" in line:
+        userinfo, hostport = line.rsplit("@", 1)
+        if ":" in userinfo:
+            user, pwd = userinfo.split(":", 1)
+            m_hp = re.match(r"^(\[[^\]]+\]|[^:/\s]+):(\d{1,5})$", hostport.strip())
+            if m_hp and user:
+                sch = default_scheme or "http"
+                return _compose_auth_proxy_url(sch, m_hp.group(1), m_hp.group(2), user, pwd)
+
+    # host:port:user:pass
+    m_quad = re.match(r"^(\[[^\]]+\]|[^:/\s]+):(\d{1,5}):([^:/\s]+):(.+)$", line)
+    if m_quad:
+        sch = default_scheme or "socks5"
+        return _compose_auth_proxy_url(
+            sch, m_quad.group(1), m_quad.group(2), m_quad.group(3), m_quad.group(4)
+        )
 
     # 兼容两种分隔符：a/b/c/d[/expire] 或 a|b|c|d[|expire]
     m = re.match(r"^([^/|\s]+)([/|])(\d+)\2([^/|]+)\2([^/|]+)(?:\2(.+))?$", line)
@@ -197,9 +261,8 @@ def _line_to_proxy_url(line: str) -> str | None:
             exp = _parse_expire_suffix(expire_rest)
             if exp and datetime.now() > exp:
                 return None
-        u = quote(user, safe="")
-        p = quote(pwd, safe="")
-        return sanitize_proxy_url(f"socks5://{u}:{p}@{host}:{port}")
+        sch = default_scheme or "socks5"
+        return _compose_auth_proxy_url(sch, host, port, user, pwd)
 
     # host/port[/expire] 或 host|port[|expire] — 仅端口与第二段，无账密
     m_slash = re.match(r"^([^/|\s]+)[/|](\d{1,5})(?:[/|](.+))?$", line)
@@ -209,7 +272,7 @@ def _line_to_proxy_url(line: str) -> str | None:
             exp = _parse_expire_suffix(expire_rest)
             if exp and datetime.now() > exp:
                 return None
-        out = _host_port_to_bare_proxy_url(host, port_s)
+        out = _host_port_to_bare_proxy_url(host, port_s, default_scheme)
         if out:
             return out
 
@@ -221,7 +284,7 @@ def _line_to_proxy_url(line: str) -> str | None:
             exp = _parse_expire_suffix(expire_rest)
             if exp and datetime.now() > exp:
                 return None
-        out = _host_port_to_bare_proxy_url(host, port_s)
+        out = _host_port_to_bare_proxy_url(host, port_s, default_scheme)
         if out:
             return out
 

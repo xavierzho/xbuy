@@ -990,6 +990,10 @@ body.webengine-embed .modal-bg {
   max-width: 280px;
 }
 
+.sched-cal-anchor.is-open {
+  z-index: 40;
+}
+
 .sched-cal-pop {
   display: none;
   position: absolute;
