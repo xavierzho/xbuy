@@ -518,9 +518,9 @@ def rotation_chain() -> list[str]:
     429/异常轮换用：先池中各 URL，再视配置追加本机直连（空串）；见 _rotation_include_direct()。
     无有效代理文件时仅返回本机直连 [""]。
     """
-    _reload_if_needed()
+    # 代理池为空时返回空列表，调用方报错，不回退本机。
     if not _urls:
-        return [""]
+        return []
     if _rotation_include_direct():
         return list(_urls) + [""]
     return list(_urls)

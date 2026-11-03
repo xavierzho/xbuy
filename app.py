@@ -3542,18 +3542,36 @@ class Session:
     def _proxy_kw(self):
         return _proxy_kw_dict_from_url((getattr(self, "_proxy_url", "") or "").strip())
 
+    def _may_use_direct_egress(self) -> bool:
+        """只有全局本机 IP，或该号强制本机时，才允许不带代理发出。"""
+        if getattr(self, "_account_explicit_direct", False):
+            return True
+        if getattr(self, "_force_order_chain_direct", False):
+            return True
+        try:
+            from accounts import global_force_local_ip
+
+            return bool(global_force_local_ip())
+        except Exception:
+            return False
+
     def _ensure_pool_proxy_bound(self) -> None:
         """
-        若启用了代理池但当前会话代理为空，强制绑定一条池中认证代理。
-        防止请求落到直连导致「刷新地址正常、抢购被拒」这类不一致。
+        当前会话还没有代理时，从代理池绑定一条。
+        池是空的不回退本机；调用方在真正发包前报错。
         """
-        if not getattr(self, "_use_proxy_pool", False):
+        if self._may_use_direct_egress():
             return
         if getattr(self, "_proxy_direct_hop", False):
             return
         if (getattr(self, "_proxy_url", "") or "").strip():
             return
         try:
+            from proxy_pool import active_urls, get_session_proxy_url, pool_is_configured
+
+            if not pool_is_configured() or not active_urls():
+                return
+            self._use_proxy_pool = True
             if getattr(self, "_proxy_per_account_chain", False) and self._proxy_rotation_chain:
                 ch = self._proxy_rotation_chain
                 self._proxy_url = ch[0]
@@ -3561,8 +3579,6 @@ class Session:
                 self._proxy_direct_hop = False
                 self._proxy_prewarm_ok_for = ""
                 return
-            from proxy_pool import get_session_proxy_url
-
             p = (get_session_proxy_url() or "").strip()
             if p:
                 self._proxy_url = p
@@ -3570,6 +3586,13 @@ class Session:
                 self._proxy_prewarm_ok_for = ""
         except Exception:
             pass
+
+    def _refuse_unproxied_request(self) -> None:
+        if self._may_use_direct_egress():
+            return
+        if (getattr(self, "_proxy_url", "") or "").strip():
+            return
+        raise RuntimeError("代理池为空，已停止请求，不会使用本机 IP")
 
     def _probe_current_proxy(self, timeout: float = 6.0) -> tuple[bool, str]:
         """
@@ -3605,7 +3628,8 @@ class Session:
                 )
                 sc = r.status_code
                 if sc == 429:
-                    self._tls_bump_after_429()
+                    last_reason = f"{u} HTTP 429"
+                    continue
                 if sc == 407:
                     last_reason = f"{u} HTTP 407"
                     continue
@@ -3671,6 +3695,7 @@ class Session:
 
         if use_proxy:
             self._ensure_pool_proxy_bound()
+            self._refuse_unproxied_request()
         pool_n = 0
         if use_proxy and getattr(self, "_use_proxy_pool", False) and pool_is_configured():
             pool_n = self._proxy_rotation_len()
@@ -3706,6 +3731,8 @@ class Session:
             else:
                 k2.update({"proxies": {"http": None, "https": None}})
             cur_proxy = (getattr(self, "_proxy_url", "") or "").strip() if use_proxy else ""
+            if use_proxy and not cur_proxy:
+                self._refuse_unproxied_request()
             if use_proxy and precheck_proxy and cur_proxy and cur_proxy != self._proxy_prewarm_ok_for:
                 ok_probe, reason = self._probe_current_proxy()
                 if ok_probe:
@@ -3803,6 +3830,7 @@ class Session:
 
         if use_proxy:
             self._ensure_pool_proxy_bound()
+            self._refuse_unproxied_request()
         pool_n = 0
         if use_proxy and getattr(self, "_use_proxy_pool", False) and pool_is_configured():
             pool_n = self._proxy_rotation_len()
@@ -3837,6 +3865,8 @@ class Session:
             else:
                 k2.update({"proxies": {"http": None, "https": None}})
             cur_proxy = (getattr(self, "_proxy_url", "") or "").strip() if use_proxy else ""
+            if use_proxy and not cur_proxy:
+                self._refuse_unproxied_request()
             if use_proxy and precheck_proxy and cur_proxy and cur_proxy != self._proxy_prewarm_ok_for:
                 ok_probe, reason = self._probe_current_proxy()
                 if ok_probe:
@@ -4476,16 +4506,21 @@ class Session:
         # 与 /register/login 一致携带 MT-K/V，新版本服务端常校验
         h = self._base_hdr(sign=True)
         b = {"md5": sig, "mobile": phone, "timestamp": ts}
+        self._ensure_pool_proxy_bound()
         if self._proxy_url:
             print(f"[验证码] → {phone}（经代理 {_proxy_hostport_for_log(self._proxy_url)}）")
+        elif self._may_use_direct_egress():
+            print(f"[验证码] → {phone}（本机直连）")
         else:
-            print(f"[验证码] → {phone}（直连：未配置账号代理且未设置 HTTPS_PROXY 等环境变量）")
+            self._refuse_unproxied_request()
         try:
             r = self._req_post(
                 f"{API_HOST}/xhr/front/user/register/vcode",
                 tls_imp=TLS_PROFILE,
                 headers=h,
                 json=b,
+                precheck_proxy=False,
+                max_proxy_tries=1,
             )
         except Exception as ex:
             err = humanize_requests_error(ex)
@@ -4503,11 +4538,19 @@ class Session:
             if raw:
                 try:
                     j = r.json()
-                    if isinstance(j, dict) and j.get("message") is not None:
-                        return {
-                            "code": j.get("code", r.status_code),
-                            "message": str(j.get("message")),
-                        }
+                    if isinstance(j, dict):
+                        try:
+                            biz = int(j.get("code"))
+                        except (TypeError, ValueError):
+                            biz = None
+                        if biz == 2000:
+                            j["code"] = 2000
+                            return j
+                        if j.get("message") is not None:
+                            return {
+                                "code": j.get("code", r.status_code),
+                                "message": str(j.get("message")),
+                            }
                 except Exception:
                     msg = f"{msg}: {raw[:400]}"
             if r.status_code == 429:
@@ -4532,9 +4575,16 @@ class Session:
             elif r.status_code == 403:
                 msg = "HTTP 403（可能被网关拦截），请检查网络/代理后重试"
             return {"code": r.status_code, "message": msg}
-        if not r.text:
+        if not (r.text or "").strip():
             return {"code": -1, "message": "响应为空"}
-        res = r.json(); print(f"[验证码] {res}"); return res
+        try:
+            res = r.json()
+        except Exception:
+            raw = (r.text or "").strip()
+            print(f"[验证码] 响应不是 JSON: {raw[:180]}", flush=True)
+            return {"code": -1, "message": f"响应不是 JSON: {raw[:400]}"}
+        print(f"[验证码] {res}")
+        return res
 
     def login(self, phone, code):
         h = self._base_hdr(sign=True)

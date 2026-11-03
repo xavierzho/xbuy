@@ -12569,7 +12569,7 @@ def main():
         flush=True,
     )
     print(
-        "代理: 429/失败轮换在池内 URL 之后默认追加本机直连兜底；只要代理不要直连可设 MT_PROXY_POOL_NO_DIRECT=1。"
+        "代理: 代理池为空会报错，不会回退本机 IP。预检查遇到 HTTP 429 会换下一条池内代理。"
         " 详调可设 MT_PROXY_LOG=1。",
         flush=True,
     )

@@ -398,6 +398,15 @@ _vcode_gap_lock = threading.Lock()
 _vcode_last_attempt_mono: dict[str, float] = {}
 
 
+def _vcode_result_sent(res: object) -> bool:
+    if not isinstance(res, dict):
+        return False
+    try:
+        return int(res.get("code")) == 2000
+    except (TypeError, ValueError):
+        return False
+
+
 def _min_vcode_interval_sec() -> float:
     try:
         return max(0.0, float(os.environ.get("MT_VCODE_MIN_INTERVAL", "0") or 0))
@@ -491,13 +500,16 @@ def _resolve_account_proxy_for_session(current: str) -> str:
     """
     账号层代理策略：
     - 全局「本机IP」开启：所有账号强制 direct（优先级最高）。
-    - 填「本机/direct」等标记：强制 Session 走本机直连（不与代理池分片混用）。
-    - 否则不绑定单账号固定 URL（返回空），由 Session 按代理池/分片轮换（组单/下单/支付与抢购一致）。
+    - 填「本机/direct」等标记：强制 Session 走本机直连。
+    - 已经写了代理 URL（发码时按手机号锁定的那条）：原样交给 Session，不再清成空。
+    - 没有指定出口：返回空，由 Session 按代理池轮换。
     """
     if global_force_local_ip():
         return "direct"
     cur = (current or "").strip()
     if _is_direct_marker(cur):
+        return cur
+    if "://" in cur:
         return cur
     return ""
 
@@ -2121,7 +2133,7 @@ class AccountPool:
         if gap > 0:
             with _vcode_gap_lock:
                 _vcode_last_attempt_mono[phone] = _time.monotonic()
-        if res.get("code") == 2000:
+        if _vcode_result_sent(res):
             e.status = STATUS_CODE_SENT
             self.save()
         return res

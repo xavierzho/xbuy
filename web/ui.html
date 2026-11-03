@@ -392,7 +392,7 @@
       <input type="text" id="addNick" placeholder="账号备注" autocomplete="off">
     </div>
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <button type="button" class="btn secondary" onclick="modalEnsureAndSendCode()">&#x1F4F1; 发送验证码</button>
+      <button type="button" class="btn secondary" id="btnModalSendCode" onclick="modalEnsureAndSendCode()">&#x1F4F1; 发送验证码</button>
       <span style="font-size:12px;color:var(--text3);align-self:center">若账号尚未在列表中，会先自动添加再发码</span>
     </div>
     <div class="form-group" style="margin-bottom:12px">
@@ -6886,7 +6886,7 @@ function _buildCardHtml(a, idx, cfg, showDevRefresh, firstLoggedIdx) {
         </div>
         <div class="form-row" style="align-items:flex-end">
           <div class="form-group" style="flex:2">
-            <label title="代理走 local_proxy_pool.txt（默认 socks5:// 四段格式）。429/失败时先池内轮换，链尾默认本机直连兜底；只要代理不要直连：MT_PROXY_POOL_NO_DIRECT=1。">代理模式</label>
+            <label title="代理走 local_proxy_pool.txt。代理池为空会直接报错，不会改用本机 IP。预检查遇到 HTTP 429 会换池里的下一条，不再把这条当成可用。">代理模式</label>
             <input value="代理池自动轮换（不支持每账号单独代理）" autocomplete="off" disabled>
           </div>
           <button type="button" class="btn secondary" onclick="toggleForceDirect(this, '${a.phone}', ${directForced ? 'false' : 'true'})" title="${directForced ? '当前已强制本机直连，点此恢复代理池轮换' : '强制该账号仅走本机直连 IP'}">${directForced ? '取消本机直连' : '强制本机直连'}</button>
@@ -11499,12 +11499,54 @@ async function setProxyShardCount(phone) {
   await refreshAccountsForPhone(ph);
 }
 
+function vcodeResultSent(res) {
+  const d = res && res.ok && res.data ? res.data : null;
+  if (!d) return false;
+  return Number(d.code) === 2000;
+}
+
+let _modalSendCodeTimer = 0;
+function setModalSendCodeState(state, seconds) {
+  const btn = document.getElementById('btnModalSendCode');
+  if (!btn) return;
+  if (_modalSendCodeTimer) {
+    clearInterval(_modalSendCodeTimer);
+    _modalSendCodeTimer = 0;
+  }
+  if (state === 'sending') {
+    btn.disabled = true;
+    btn.textContent = '发送中…';
+    return;
+  }
+  if (state === 'sent') {
+    let left = Math.max(1, Number(seconds) || 60);
+    btn.disabled = true;
+    btn.textContent = `已发送 ${left}s`;
+    _modalSendCodeTimer = setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        setModalSendCodeState('idle');
+        return;
+      }
+      btn.textContent = `已发送 ${left}s`;
+    }, 1000);
+    return;
+  }
+  btn.disabled = false;
+  btn.textContent = '发送验证码';
+}
+
 async function sendCodeFor(phone) {
   log(`[发码] → ${phone}`);
+  const modalOpen = isModalAddShown();
+  if (modalOpen) setModalSendCodeState('sending');
   const res = await api('/api/accounts/send_code', {phone});
-  if (res.ok && res.data && res.data.code === 2000) {
+  const sent = vcodeResultSent(res);
+  if (sent) {
+    const d = res.data || {};
     toast('验证码已发送', 'ok');
-    log(`[发码] ← 成功`, 'ok');
+    log(`[发码] ← 已发出`, 'ok');
+    if (modalOpen) setModalSendCodeState('sent', 60);
   } else {
     const d = (res.ok && res.data) ? res.data : {};
     let hint = d.message || res.message || (d.code != null ? ('code=' + d.code) : '未知错误');
@@ -11514,9 +11556,10 @@ async function sendCodeFor(phone) {
     }
     toast('发码失败：' + hint, 'err');
     log(`[发码] ← 失败 ${JSON.stringify(res.data||res.message)}`, 'err');
+    if (modalOpen) setModalSendCodeState('idle');
   }
   // 登录弹窗打开时避免整页重绘（renderAcctConfigPanel），否则 WebEngine 容易出现视觉闪烁。
-  if (isModalAddShown()) await refreshAccountsLite();
+  if (modalOpen) await refreshAccountsLite();
   else await refreshAccountsForPhone(phone);
 }
 
@@ -11788,7 +11831,7 @@ async function batchSendCode() {
   const phones = pending.map(a => a.phone);
   const res = await api('/api/accounts/batch_send_code', {phones, delay: 0.5});
   if (res.ok) {
-    const ok = (res.data.results||[]).filter(r => r.result && r.result.code===2000).length;
+    const ok = (res.data.results||[]).filter(r => r.result && Number(r.result.code) === 2000).length;
     toast(`发码完成：${ok}/${phones.length} 成功`, 'ok');
     log(`[批量发码] 成功 ${ok}/${phones.length}`, 'ok');
     await refreshAccountsFull();
