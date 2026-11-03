@@ -10970,16 +10970,31 @@ async function submitRealnameFromModal() {
     return;
   }
   const r = res.data.result || {};
-  const txt = JSON.stringify(r);
-  document.getElementById('rn_result').textContent = txt;
-  if (realnameCodeOk(r.code)) {
-    const vs = (r && r.verifyStatus != null) ? r.verifyStatus
-      : (r && r.data && r.data.verifyStatus != null ? r.data.verifyStatus : 2);
-    realnameVerifiedState = Number(vs);
+  const vsRaw = (r && r.verifyStatus != null) ? r.verifyStatus
+    : (r && r.data && r.data.verifyStatus != null ? r.data.verifyStatus : null);
+  const vsNum = vsRaw == null || vsRaw === '' ? null : Number(vsRaw);
+  const msg = (r && r.message != null && String(r.message).trim()) ? String(r.message).trim() : '';
+  let line = '';
+  if (!realnameCodeOk(r.code)) {
+    line = msg || ('提交失败 code=' + r.code);
+  } else if (realnameVerifyStatusDone(vsNum)) {
+    line = '提交成功，已实名（verifyStatus=' + vsNum + '）';
+  } else if (realnameVerifyStatusPending(vsNum)) {
+    line = '提交成功，认证处理中（verifyStatus=2）';
+  } else if (vsNum === 0) {
+    line = '提交返回 code=2000，随后查询仍是未实名（verifyStatus=0）';
+  } else {
+    line = '提交返回 code=2000';
   }
-  appendAcctLog(phone, '实名认证提交：' + txt.slice(0, 240));
-  log(`[实名] ${phone} ← ${txt}`, realnameCodeOk(r.code) ? 'ok' : 'warn');
-  if (realnameCodeOk(r.code)) toast('实名认证提交成功', 'ok');
+  if (realnameCodeOk(r.code) && msg) line += '，' + msg;
+  document.getElementById('rn_result').textContent = line;
+  if (vsNum != null && !Number.isNaN(vsNum)) realnameVerifiedState = vsNum;
+  appendAcctLog(phone, '实名认证提交：' + line);
+  const okSubmit = realnameCodeOk(r.code) && vsNum !== 0;
+  log(`[实名] ${phone} ← ${line}`, okSubmit ? 'ok' : 'warn');
+  if (!realnameCodeOk(r.code)) toast('实名认证提交失败：' + line, 'err');
+  else if (vsNum === 0) toast(line, 'err');
+  else toast(line, 'ok');
 }
 
 async function findIdentityFromModal() {
