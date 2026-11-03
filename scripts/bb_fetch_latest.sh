@@ -4,4 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export MT_BB_UPDATE_SIGN_FALLBACK="${MT_BB_UPDATE_SIGN_FALLBACK:-0}"
-exec node nodejs/bb/update.cjs --sync
+PY="${MT_PYTHON:-${ROOT}/.venv/bin/python}"
+if [[ ! -x "${PY}" ]]; then
+  PY="$(command -v python3)"
+fi
+exec "${PY}" "${ROOT}/scripts/bb_fetch_latest.py" --sync

@@ -1,11 +1,8 @@
-"""Headless refresh of runtime/sign_wasm.bin via nodejs/bb/update.cjs (Python entry)."""
+"""Headless refresh of runtime/sign_wasm.bin via bangcle/bb_update.py."""
 
 from __future__ import annotations
 
-import json
 import os
-import shutil
-import subprocess
 import sys
 from typing import Any, Literal
 
@@ -24,20 +21,12 @@ _SIGN_ERROR_MARKERS = (
 )
 
 
-def nodejs_executable() -> str:
-    for name in ("node", "nodejs"):
-        found = shutil.which(name)
-        if found:
-            return found
-    return "node"
-
-
 def collect_sign_warnings(
     result: dict[str, Any],
     *,
     expect_sign_version: str | None = None,
 ) -> list[str]:
-    """Heuristics for unusable or risky sign wasm after update.cjs."""
+    """Heuristics for unusable or risky sign wasm after the Python BB updater."""
     warnings: list[str] = []
     expect = (expect_sign_version or os.environ.get("MT_BB_SIGN_EXPECT_VERSION") or "").strip()
 
@@ -124,67 +113,51 @@ def run_bb_runtime_update(
     refresh_version_constants: bool = True,
     expect_sign_version: str | None = None,
     notify_console: bool = True,
+    page: str = "",
+    sign_version: str = "",
+    app_version: str = "",
+    version_code: str = "",
 ) -> dict[str, Any]:
     """
-    Run ``node nodejs/bb/update.cjs --<mode>`` and write ``runtime/sign_wasm.bin`` (+ version.json).
+    Run the Python BB updater and write ``runtime/sign_wasm.bin`` (+ version.json).
 
     Returns ``{ok, report, error, signWarnings}``. Emits ``[bb-sign-warn]`` on stderr when sign 不合适.
+    ``timeout_sec`` is kept for callers; each download uses its own 45s limit.
     """
-    script = PATHS.node.bb_update
-    if not script.is_file():
-        out = {"ok": False, "error": f"missing update script: {script}"}
-        if notify_console:
-            emit_sign_warnings(collect_sign_warnings(out, expect_sign_version=expect_sign_version))
-        return out
-
+    del timeout_sec
     cli_mode = mode if mode in ("check", "apply", "auto", "sync") else "sync"
-    proc_env = os.environ.copy()
     if env:
-        proc_env.update(env)
+        for key, value in env.items():
+            os.environ[str(key)] = str(value)
     if cli_mode == "sync":
-        proc_env.setdefault("MT_BB_UPDATE_SIGN_FALLBACK", "0")
+        os.environ.setdefault("MT_BB_UPDATE_SIGN_FALLBACK", "0")
 
-    try:
-        proc = subprocess.run(
-            [nodejs_executable(), str(script), f"--{cli_mode}"],
-            cwd=str(PATHS.repo_root),
-            capture_output=True,
-            text=True,
-            timeout=timeout_sec,
-            env=proc_env,
-        )
-    except subprocess.TimeoutExpired:
-        out = {"ok": False, "error": f"update.cjs timeout ({timeout_sec}s)", "mode": cli_mode}
-        if notify_console:
-            emit_sign_warnings(collect_sign_warnings(out, expect_sign_version=expect_sign_version))
-        return out
-    except OSError as ex:
-        out = {"ok": False, "error": str(ex), "mode": cli_mode}
-        if notify_console:
-            emit_sign_warnings(collect_sign_warnings(out, expect_sign_version=expect_sign_version))
-        return out
+    from bangcle.bb_update import BbUpdateError, run_bb_update
 
-    stdout = (proc.stdout or "").strip()
-    stderr = (proc.stderr or "").strip()
     report: dict[str, Any] | None = None
-    if stdout:
-        try:
-            parsed = json.loads(stdout)
-            report = parsed if isinstance(parsed, dict) else {"rawStdout": stdout[-4000:]}
-        except json.JSONDecodeError:
-            report = {"rawStdout": stdout[-4000:]}
-
-    ok = proc.returncode == 0 and isinstance(report, dict)
-    err = ""
-    if not ok:
-        err = stderr or stdout or f"exit {proc.returncode}"
+    try:
+        report = run_bb_update(
+            cli_mode,
+            page=page,
+            sign_version=sign_version,
+            app_version=app_version,
+            version_code=version_code,
+        )
+        ok = isinstance(report, dict)
+        err = "" if ok else "empty report"
+    except BbUpdateError as ex:
+        ok = False
+        err = str(ex)
+    except Exception as ex:
+        ok = False
+        err = str(ex)
 
     result: dict[str, Any] = {
         "ok": ok,
         "report": report,
         "error": err,
         "mode": cli_mode,
-        "stderr": stderr[:2000] if stderr else "",
+        "stderr": err[:2000] if err else "",
     }
 
     if ok and refresh_version_constants and cli_mode != "check":
