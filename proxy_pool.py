@@ -334,8 +334,22 @@ def verify_pool_proxy_url(url: str, timeout: float = 14.0) -> tuple[bool, str]:
                     timeout=t,
                     impersonate=_CURL_TLS_IMPERSONATE,
                 )
-                if r.status_code in (200, 301, 302, 404):
-                    return True, f"{scheme}_https:{r.status_code}"
+                # 200/301/302/404：页面正常。403/429：请求已经从代理打到茅台，
+                # 只是边缘拒绝或限流，线路本身是通的。连不上、407、5xx 仍算未通过。
+                reached = {
+                    200: "",
+                    301: "",
+                    302: "",
+                    404: "",
+                    403: "出口已打到茅台，边缘返回 403，线路是通的",
+                    429: "出口已打到茅台，被限流，线路是通的",
+                }
+                note = reached.get(int(r.status_code))
+                if note is not None:
+                    msg = f"{scheme}_https:{r.status_code}"
+                    if note:
+                        msg += f"({note})"
+                    return True, msg
                 return False, f"{scheme}_https:{r.status_code}"
             except Exception as e:
                 return False, str(e).strip()[:220] or f"{scheme}_https_fail"

@@ -3888,12 +3888,17 @@ async function verifyProxyPoolUi() {
   }
   const vr = res.data.results || [];
   const bad = vr.filter(r => !r.ok);
+  renderProxyPoolList(vr.map(r => ({
+    normalized: (r.ok ? '通过' : '未通过') + '  ' + (r.endpoint || '') + '  ' + (r.message || ''),
+  })));
+  log(
+    '[代理池] 自检\n' + vr.map(r => (r.ok ? '通过' : '未通过') + '  ' + (r.endpoint || '') + ' → ' + (r.message || '')).join('\n'),
+    bad.length ? 'warn' : 'ok',
+  );
   if (bad.length) {
     toast('自检：' + bad.length + ' 条未通过', 'warn');
-    log('[代理池] 未通过：\n' + bad.map(r => (r.endpoint || '') + ' → ' + (r.message || '')).join('\n'), 'warn');
   } else {
     toast('自检：全部 ' + vr.length + ' 条通过', 'ok');
-    log('[代理池] 自检全部通过', 'ok');
   }
 }
 
