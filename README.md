@@ -16,7 +16,7 @@ bash scripts/bootstrap.sh   # .venv + pip install -e ".[ddddocr,dev]" + npm work
 MT_TLS_ENGINE=ja3_client bash scripts/run_webui.sh
 ```
 
-**导入 iMT 已登录账号：**在 WebUI 的「批量导入」粘贴完整的 iMT 导出 JSON（包含 `app: "iMT"` 和 `accounts` 数组），点击「导入登录态」。默认跳过已有手机号；需要替换时勾选覆盖。导入会保存 token、cookie、可用的设备信息和收货地址缓存，不会发送验证码，也不会应用导出包里的代理或分组。导出标记为掉线、失效或 JWT 已过期的记录会跳过，请重新登录后导出。
+**导入 iMT 已登录账号：**在 WebUI 的「批量导入」粘贴完整的 iMT 导出 JSON（包含 `app: "iMT"` 和 `accounts` 数组），点击「导入登录态」。默认跳过已有手机号；需要替换时勾选覆盖。导入会保存 token、cookie、可用的设备信息和收货地址缓存，不会发送验证码，也不会应用导出包里的代理或分组。导出包里的掉线和失效标记不影响导入。JWT 已过期的账号仍会保存，但显示为「待登录」，重新登录后再使用。
 
 启动分布式 worker：
 

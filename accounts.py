@@ -145,7 +145,7 @@ def _is_imt_export(obj: object) -> bool:
     return isinstance(obj, dict) and str(obj.get("app") or "").strip().lower() == "imt"
 
 
-def _imt_account_error(src: object, now: float) -> str:
+def _imt_account_error(src: object) -> str:
     if not isinstance(src, dict):
         return "账号记录不是对象"
     if not re.fullmatch(r"1[0-9]{10}", _norm_phone(src.get("phone", src.get("mobile")))):
@@ -153,15 +153,15 @@ def _imt_account_error(src: object, now: float) -> str:
     token = src.get("token")
     if not isinstance(token, str) or not token.strip():
         return "缺少 token，请登录后重新导出"
-    if src.get("kicked") is True:
-        return "账号已被踢下线，请重新登录后导出"
-    if src.get("tokenAlive") is False:
-        return "登录态已失效，请重新登录后导出"
+    return ""
+
+
+def _imt_login_expired(src: dict, now: float) -> bool:
     for key in ("token", "cookie"):
         exp = _jwt_payload(src.get(key)).get("exp")
         if isinstance(exp, (int, float)) and not isinstance(exp, bool) and exp <= now:
-            return f"{key} 已过期，请重新登录后导出"
-    return ""
+            return True
+    return False
 
 
 def _iter_mtm_account_candidates(obj: object) -> list[dict]:
@@ -1662,7 +1662,7 @@ class AccountPool:
         invalid: list[dict] = []
         now = _time.time()
         for idx, src in enumerate(candidates, start=1):
-            if is_imt and (reason := _imt_account_error(src, now)):
+            if is_imt and (reason := _imt_account_error(src)):
                 invalid.append({"index": idx, "reason": reason})
                 continue
             try:
@@ -1675,6 +1675,8 @@ class AccountPool:
                     continue
                 seen.add(phone)
                 if is_imt:
+                    if _imt_login_expired(src, now):
+                        entry_dict["status"] = STATUS_PENDING
                     entry_dict["nickname"] = str(src.get("userName") or "").strip() or entry_dict["nickname"]
                     if not src.get("remark"):
                         entry_dict["remark"] = "iMT导入"

@@ -69,23 +69,27 @@ def test_imt_import_persists_login_and_address(pool):
     assert accounts.AccountPool()._map[row["mobile"]].token == replacement["token"]
 
 
-def test_imt_reports_invalid_rows_without_overwriting_existing_login(pool):
-    phone = "13800138001"
+def test_imt_ignores_export_flags_but_saves_expired_login_as_pending(pool):
     token = jwt(time.time() + 3600)
-    row = {"mobile": phone, "token": token}
-    pool.import_mtm_text(export(row))
+    expired = jwt(1)
     result = pool.import_mtm_text(export(
-        {**row, "kicked": True},
-        {**row, "tokenAlive": False},
-        {**row, "token": jwt(1)},
-        {"mobile": phone},
+        {"mobile": "13800138001", "token": token, "kicked": True},
+        {"mobile": "13800138002", "token": token, "tokenAlive": False},
+        {"mobile": "13800138003", "token": expired, "kicked": True, "tokenAlive": False},
+        {"mobile": "13800138004", "token": token, "cookie": expired},
+        {"mobile": "13800138001"},
         None,
-        {**row, "mobile": "13800138002"},
-    ), overwrite=True)
-    assert (result["added"], result["updated"], result["invalid"]) == (1, 0, 5)
-    assert pool._map[phone].token == token
-    assert [item["index"] for item in result["invalidItems"]] == [1, 2, 3, 4, 5]
-    assert "已过期" in result["invalidItems"][2]["reason"]
+    ))
+    assert (result["added"], result["invalid"]) == (4, 2)
+    assert [item["index"] for item in result["invalidItems"]] == [5, 6]
+
+    entries = accounts.AccountPool()._map
+    assert entries["13800138001"].status == accounts.STATUS_OK
+    assert entries["13800138002"].status == accounts.STATUS_OK
+    assert entries["13800138003"].status == accounts.STATUS_PENDING
+    assert entries["13800138003"].token == expired
+    assert entries["13800138004"].status == accounts.STATUS_PENDING
+    assert entries["13800138004"].cookie == expired
     assert not pool.import_mtm_text('{"app":"iMT","accounts":[')["ok"]
 
 
