@@ -10223,19 +10223,19 @@ class Handler(BaseHTTPRequestHandler):
                     "stats": POOL.stats(),
                 }))
 
-            # 智能导入 MTM 账号包 {text, overwrite?}
+            # 导入登录态：iMT 导出 JSON / MTM 账号包 {text, overwrite?}
             if path == "/api/accounts/import_mtm":
                 text = payload.get("text", payload.get("mtm", ""))
                 if not str(text or "").strip():
-                    return self._send_json(json_err("MTM 内容不能为空"), 400)
+                    return self._send_json(json_err("请粘贴 iMT 导出 JSON 或 MTM 串"), 400)
                 try:
                     data = POOL.import_mtm_text(text, overwrite=_json_truthy(payload.get("overwrite")))
-                except Exception as ex:
-                    return self._send_json(json_err("MTM 导入失败", detail=str(ex)), 400)
+                except Exception:
+                    return self._send_json(json_err("导入失败，请检查导出内容和账号存储"), 400)
                 if not data.get("valid"):
-                    return self._send_json(json_err("未识别到可导入的 MTM 账号", detail=data), 400)
+                    return self._send_json(json_err("没有可导入的账号，请检查登录态或重新导出完整 JSON", detail=data), 400)
                 msg = (
-                    f"MTM导入：新增 {data.get('added', 0)}，覆盖 {data.get('updated', 0)}，"
+                    f"登录态导入：新增 {data.get('added', 0)}，覆盖 {data.get('updated', 0)}，"
                     f"跳过 {data.get('skipped', 0)}，无效 {data.get('invalid', 0)}"
                 )
                 return self._send_json(json_ok(data, msg))

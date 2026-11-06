@@ -141,6 +141,29 @@ def _extract_mtm_payloads(raw_text: object) -> list[object]:
     return nested or [obj]
 
 
+def _is_imt_export(obj: object) -> bool:
+    return isinstance(obj, dict) and str(obj.get("app") or "").strip().lower() == "imt"
+
+
+def _imt_account_error(src: object, now: float) -> str:
+    if not isinstance(src, dict):
+        return "账号记录不是对象"
+    if not re.fullmatch(r"1[0-9]{10}", _norm_phone(src.get("phone", src.get("mobile")))):
+        return "缺少有效手机号"
+    token = src.get("token")
+    if not isinstance(token, str) or not token.strip():
+        return "缺少 token，请登录后重新导出"
+    if src.get("kicked") is True:
+        return "账号已被踢下线，请重新登录后导出"
+    if src.get("tokenAlive") is False:
+        return "登录态已失效，请重新登录后导出"
+    for key in ("token", "cookie"):
+        exp = _jwt_payload(src.get(key)).get("exp")
+        if isinstance(exp, (int, float)) and not isinstance(exp, bool) and exp <= now:
+            return f"{key} 已过期，请重新登录后导出"
+    return ""
+
+
 def _iter_mtm_account_candidates(obj: object) -> list[dict]:
     out: list[dict] = []
     if isinstance(obj, list):
@@ -1619,16 +1642,29 @@ class AccountPool:
         return result
 
     def import_mtm_text(self, text: object, *, overwrite: bool = False) -> dict:
-        """导入 MTM 账号包；支持一段文本里混贴多个 MTM 串或已解开的 JSON。"""
-        payloads = _extract_mtm_payloads(text)
-        candidates: list[dict] = []
-        for payload in payloads:
-            candidates.extend(_iter_mtm_account_candidates(payload))
+        """导入 iMT 导出 JSON、MTM 串或已解开的 MTM JSON。"""
+        raw = str(text or "").strip().lstrip("\ufeff")
+        try:
+            obj = json.loads(raw)
+        except ValueError:
+            obj = None
+        is_imt = _is_imt_export(obj)
+        candidates: list = []
+        if is_imt:
+            if isinstance(obj.get("accounts"), list):
+                candidates = obj["accounts"]
+        else:
+            for payload in _extract_mtm_payloads(raw):
+                candidates.extend(_iter_mtm_account_candidates(payload))
 
         seen: set[str] = set()
         prepared: list[tuple[str, dict, list[dict]]] = []
         invalid: list[dict] = []
+        now = _time.time()
         for idx, src in enumerate(candidates, start=1):
+            if is_imt and (reason := _imt_account_error(src, now)):
+                invalid.append({"index": idx, "reason": reason})
+                continue
             try:
                 entry_dict, addresses = _mtm_to_account_dict(src)
                 phone = _norm_phone(entry_dict.get("phone"))
@@ -1638,6 +1674,10 @@ class AccountPool:
                     invalid.append({"index": idx, "phone": phone, "reason": "同批重复"})
                     continue
                 seen.add(phone)
+                if is_imt:
+                    entry_dict["nickname"] = str(src.get("userName") or "").strip() or entry_dict["nickname"]
+                    if not src.get("remark"):
+                        entry_dict["remark"] = "iMT导入"
                 prepared.append((phone, entry_dict, addresses))
             except Exception as ex:
                 invalid.append({"index": idx, "reason": str(ex) or type(ex).__name__})
@@ -1671,7 +1711,7 @@ class AccountPool:
                     for key in keep_keys:
                         if key in old and key not in merged:
                             merged[key] = old[key]
-                    if old.get("remark") and entry_dict.get("remark") == "MTM导入":
+                    if old.get("remark") and entry_dict.get("remark") in ("MTM导入", "iMT导入"):
                         merged["remark"] = old.get("remark")
                     e = AccountEntry.from_dict(merged)
                     updated += 1

@@ -412,19 +412,19 @@
   <div class="modal" style="width:560px;max-width:94vw">
     <h3><span class="ico">&#x1F4CB;</span> 批量导入账号</h3>
     <div class="form-group">
-      <label>手机号 / MTM 串</label>
-      <textarea id="batchPhones" rows="8" placeholder="13800138001&#10;13800138002&#10;&#10;或粘贴一个/多个 MTM-... 账号包"></textarea>
-      <p class="form-hint">普通导入只提取手机号；智能导入会识别 MTM 串、已解开的 JSON、混在文本里的多条 MTM，并写入 token、cookie、设备头和默认地址缓存。</p>
+      <label for="batchPhones">iMT 导出 JSON / MTM 串 / 手机号</label>
+      <textarea id="batchPhones" rows="8" spellcheck="false" autocomplete="off" aria-describedby="batchImportHint" placeholder="粘贴完整的 iMT 导出 JSON、MTM 串，或每行一个手机号"></textarea>
+      <p class="form-hint" id="batchImportHint">有 iMT 导出 JSON 或 MTM 串，选「导入登录态」，无需发验证码。只有手机号时，选「导入手机号」，之后再登录。</p>
     </div>
     <label class="check-line" style="margin-top:10px">
       <input id="mtmOverwrite" type="checkbox">
       覆盖已存在手机号的登录态和设备数据
     </label>
-    <div id="mtmImportResult" class="form-hint" style="max-height:120px;overflow:auto"></div>
+    <div id="mtmImportResult" class="form-hint" role="status" style="max-height:120px;overflow:auto;white-space:pre-line"></div>
     <div class="modal-footer">
       <button class="btn secondary" onclick="closeModal('modalBatch')">取消</button>
-      <button class="btn secondary" onclick="importMtmBatch()">智能导入 MTM</button>
-      <button class="btn primary" onclick="importBatch()">导入手机号</button>
+      <button class="btn secondary" onclick="importBatch()">导入手机号</button>
+      <button class="btn primary" id="btnImportLogin" onclick="importMtmBatch()">导入登录态</button>
     </div>
   </div>
 </div>
@@ -11800,6 +11800,10 @@ function showBatchImport() {
 
 async function importBatch() {
   const raw = document.getElementById('batchPhones').value;
+  if (/^\s*[\[{]/.test(raw) || /MTM-[A-Za-z0-9+/=_-]+/.test(raw)) {
+    toast('JSON 或 MTM 串请选择「导入登录态」', 'warn');
+    return;
+  }
   const phones = raw.split(/[\n,，\s]+/).map(s=>s.trim()).filter(Boolean);
   if (!phones.length) { toast('请输入手机号', 'err'); return; }
   closeModal('modalBatch');
@@ -11814,30 +11818,34 @@ async function importBatch() {
 }
 
 async function importMtmBatch() {
-  const raw = document.getElementById('batchPhones').value || '';
-  if (!raw.trim()) { toast('请粘贴 MTM 串或 JSON', 'err'); return; }
+  const input = document.getElementById('batchPhones');
+  const raw = input.value;
+  if (!raw.trim()) { toast('请粘贴 iMT 导出 JSON 或 MTM 串', 'err'); return; }
   const overwrite = !!(document.getElementById('mtmOverwrite') || {}).checked;
   const resBox = document.getElementById('mtmImportResult');
-  if (resBox) resBox.textContent = '正在识别 MTM...';
+  const btn = document.getElementById('btnImportLogin');
+  btn.disabled = true;
+  resBox.textContent = '正在导入登录态…';
   const res = await api('/api/accounts/import_mtm', { text: raw, overwrite });
+  btn.disabled = false;
+  const d = (res.ok ? res.data : res.detail) || {};
+  const invalid = Array.isArray(d.invalidItems) && d.invalidItems.length
+    ? '\n' + d.invalidItems.map(x => `第 ${x.index} 条：${x.reason || '无法识别'}`).join('\n')
+    : '';
   if (!res.ok) {
-    const msg = formatApiFailure(res) || 'MTM 导入失败';
-    if (resBox) resBox.textContent = msg;
+    const msg = res.message || '登录态导入失败';
+    resBox.textContent = msg + invalid;
     toast(msg, 'err');
     return;
   }
-  const d = res.data || {};
-  const line = `MTM导入：新增 ${d.added || 0} / 覆盖 ${d.updated || 0} / 跳过 ${d.skipped || 0} / 无效 ${d.invalid || 0} / 地址 ${d.addressSaved || 0}`;
-  if (resBox) {
-    const invalid = Array.isArray(d.invalidItems) && d.invalidItems.length
-      ? '\n无效项：' + d.invalidItems.map(x => (x.phone ? `${x.phone}:` : '') + (x.reason || '无法识别')).join('；')
-      : '';
-    resBox.textContent = line + invalid;
-  }
-  toast(line, (d.added || d.updated) ? 'ok' : 'warn');
-  log('[MTM导入] ' + line, (d.added || d.updated) ? 'ok' : 'warn');
-  closeModal('modalBatch');
-  await refreshAccountsFull();
+  const line = `新增 ${d.added || 0} / 覆盖 ${d.updated || 0} / 跳过 ${d.skipped || 0} / 无效 ${d.invalid || 0} / 地址 ${d.addressSaved || 0}`;
+  resBox.textContent = line + invalid;
+  if (input.value === raw) input.value = '';
+  const tone = d.invalid || !(d.added || d.updated) ? 'warn' : 'ok';
+  toast(line, tone);
+  log('[登录态导入] ' + line, tone);
+  if (!d.invalid && !d.skipped) closeModal('modalBatch');
+  if (d.added || d.updated) await refreshAccountsFull();
 }
 
 // ══════════════════════════════════════════════
@@ -12820,6 +12828,7 @@ function flushDeferredUiAfterModalClose() {
 function closeModal(id) {
   const el = document.getElementById(id);
   if (!el) return;
+  if (id === 'modalBatch') document.getElementById('batchPhones').value = '';
   el.classList.remove('show');
   setTimeout(flushDeferredUiAfterModalClose, 0);
 }
